@@ -1,6 +1,6 @@
-package io.ergodex.core.cfmm
+package io.ergodex.core.cfmm.simulation
 
-import io.ergodex.core.cfmm.generators._
+import io.ergodex.core.cfmm.simulation.generators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks

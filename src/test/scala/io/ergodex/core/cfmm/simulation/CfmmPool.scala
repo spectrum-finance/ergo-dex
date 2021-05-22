@@ -1,5 +1,4 @@
-package io.ergodex
-package core.cfmm
+package io.ergodex.core.cfmm.simulation
 
 final case class PoolConfig(feeNum: Int, feeDenom: Int, emissionLP: Long, minInitialDeposit: Long)
 

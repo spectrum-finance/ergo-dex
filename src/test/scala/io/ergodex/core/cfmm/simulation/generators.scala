@@ -1,4 +1,4 @@
-package io.ergodex.core.cfmm
+package io.ergodex.core.cfmm.simulation
 
 import org.scalacheck.Gen
 
