@@ -11,10 +11,6 @@
 
     val tokenIdLP = selfLP._1
 
-    // self checks
-    val validSelfLP            = selfLP._2 == InitiallyLockedLP // Correct amount of LP tokens issued
-    val validSelfPoolFeeConfig = poolFeeConfig <= 1000L && poolFeeConfig > 750L // Correct pool fee config
-
     val pool           = OUTPUTS(0)
     val sharesRewardLP = OUTPUTS(1)
 
