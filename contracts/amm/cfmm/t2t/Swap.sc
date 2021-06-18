@@ -1,16 +1,17 @@
 {
     val FeeDenom = 1000
-    
+
     val base       = SELF.tokens(0)
     val baseId     = base._1
     val baseAmount = base._2
 
     val poolInput  = INPUTS(0)
+    val poolNFT    = poolInput.tokens(0)._1
     val poolAssetX = poolInput.tokens(2)
     val poolAssetY = poolInput.tokens(3)
 
     val validPoolInput =
-        blake2b256(poolInput.propositionBytes) == PoolScriptHash &&
+        poolNFT == PoolNFT &&
         (poolAssetX._1 == QuoteId || poolAssetY._1 == QuoteId) &&
         (poolAssetX._1 == baseId  || poolAssetY._1 == baseId)
 
