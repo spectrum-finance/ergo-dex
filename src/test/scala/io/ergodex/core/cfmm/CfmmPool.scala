@@ -36,7 +36,7 @@ final case class CfmmPool(x: Long, y: Long, lp: Long, config: PoolConfig) {
       require((BigInt(x) * deltaY * config.feeNum) >= BigInt(-deltaX) * (y * config.feeDenom + deltaY * config.feeNum))
 
     val pool = copy(x + deltaX, y + deltaY)
-    require(BigInt(pool.x) * pool.y >= BigInt(x) * y, "Non-decreasing constant product holds")
+    require(BigInt(pool.x) * pool.y >= BigInt(x) * y, "Non-decreasing constant product doesn't hold")
 
     pool
   }
