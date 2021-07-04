@@ -6,19 +6,18 @@
    1. Order-Book
    2. AMM
 3. Tokenomics
-4. User interface
 
 ## Introduction
 
 Act of exchange without trusted parties is a most basic primitive for decentralized finance on top of blockchains. Many types of contracts for that were introduced early: with partial filling, buyback guarantee and so on. What is good for traders in decentralized worlds, such contracts are usually composable. While swap order contracts allows for orderbook-based decentralized exchanges (DEXes), now popular AMM-based DEXes (where AMM stands for Automated Market Maker) are also possible on blockchains with advanced smart-contracts such as Ergo and Cardano. Interestingly, unlike other known blockchains, thanks to the eUTXO model, liquidity pool contracts for AMM-based DEXes can be combined with order contracts (for orderbook-based DEXes). This gives unique possibility to have shared liquidity among different types of exchanges on top of the Ergo and Cardano blockchains.
 
-This documant provides a description of the Automated Decentralized Exchange protocol on top of Ergo and Cardano.
+This document provides a description of the Automated Decentralized Exchange protocol on top of Ergo and Cardano.
 
 ## Protocol architecture overview
 
 ### Order-book DEX
 
-Orders are waiting for another orders to be matched, or for a cancellation. There're the following three types of orders — "buy" (i.e. buy tokens for native asset), "sell" (i.e. sell tokens for native asset), and "swap" (buy tokens for other tokens) orders. Order-book DEX has the advantage of working best for those pairs with high liquidity.
+Orders are waiting for other orders to be matched, or for a cancellation. There are the following three types of orders — "buy" (i.e. buy tokens for native asset), "sell" (i.e. sell tokens for native asset), and "swap" (buy tokens for other tokens) orders. Order-book DEX has the advantage of working best for those pairs with high liquidity.
 
 ![OrderBook](img/OrderBook.png)
 
@@ -50,21 +49,22 @@ While in CFMMs liquidity is uniformly distributed along the reserve curve, which
 
 ## Tokenomics
 
-In the ErgoDEX each actor is incentivized to fulfill his role as better as possible.
+In the ErgoDEX each actor is incentivized to fulfill his role as best as possible.
 
-There are three types of economic agents in the ErgoDEX ecosystem:
+There are four types of economic agents in the ErgoDEX ecosystem:
 
+* Miners - need to be incentivized in order to process transactions
 * DEXes (Parties which run DEX bots and UI) - need to be incentivized in order to provide best services.
 * Liquidity providers (LPs) - need to be incentivized in order to provide liquidity.
 * Traders
 
 Each type of agents benefits from using DEX in his own way:
 
-* DEXes are earning fees from both OrderBook and AMM services
+* Miners are earning miner fees paid in ERGs
+* DEXes are earning fees paid in ERGs from both OrderBook and AMM services
   * In AMM: fees are charged for every operation on a liquidity pool
     * An amount of native tokens defined by a user for deposit|redeem operations
     * An amount of native tokens defined by a user for each unit of quote asset exchanged
   * In OrderBook: fees are charged in native tokens for each unit of quote asset exchanged
 * LPs benefit from protocol fees paid in tokens and accumulated in liquidity pools
 * Traders benefit from DEX services they use
-
