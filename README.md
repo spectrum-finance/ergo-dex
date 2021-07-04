@@ -49,7 +49,7 @@ While in CFMMs liquidity is uniformly distributed along the reserve curve, which
 
 ## Tokenomics
 
-In the ErgoDEX each actor is incentivized to fulfill his role as best as possible.
+In the ErgoDEX each actor is incentivized to fulfill his role as well as possible.
 
 There are four types of economic agents in the ErgoDEX ecosystem:
 
