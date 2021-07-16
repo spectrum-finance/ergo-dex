@@ -39,7 +39,7 @@ class CfmmPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPrope
     }
   }
 
-  it should "support full liquidation" in {
+  it should "keep some portion of assets irredeemable" in {
     forAll(cfmmConfGen) { conf =>
       forAll(initialDepositGen(conf.minInitialDeposit)) { case (ix, iy) =>
         whenever(ix >= conf.minInitialDeposit && iy >= conf.minInitialDeposit) {
@@ -53,10 +53,11 @@ class CfmmPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPrope
               }
             }
 
-            val poolDepleted = pool.redeem(pool.supplyLP)
-            poolDepleted.x should be(0)
-            poolDepleted.y should be(0)
-            poolDepleted.lp should be(conf.emissionLP)
+            val realCirculatingLP = pool.supplyLP - conf.burnLP
+            val poolDepleted      = pool.redeem(realCirculatingLP)
+            poolDepleted.x should be > 0L
+            poolDepleted.y should be > 0L
+            poolDepleted.lp should be(conf.emissionLP - conf.burnLP)
           }
         }
       }

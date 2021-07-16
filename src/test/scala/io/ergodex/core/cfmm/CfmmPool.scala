@@ -1,7 +1,7 @@
 package io.ergodex
 package core.cfmm
 
-final case class PoolConfig(feeNum: Int, feeDenom: Int, emissionLP: Long, minInitialDeposit: Long)
+final case class PoolConfig(feeNum: Int, feeDenom: Int, emissionLP: Long, burnLP: Long, minInitialDeposit: Long)
 
 final case class CfmmPool(x: Long, y: Long, lp: Long, config: PoolConfig) {
 
@@ -67,6 +67,6 @@ object CfmmPool {
   def init(inX: Long, inY: Long, config: PoolConfig): CfmmPool = {
     require(inX >= config.minInitialDeposit && inY >= config.minInitialDeposit)
     val share = math.sqrt(inX * inY).toLong // todo: overflow
-    CfmmPool(inX, inY, config.emissionLP - share, config)
+    CfmmPool(inX, inY, config.emissionLP - config.burnLP - share, config)
   }
 }

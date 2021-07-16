@@ -9,8 +9,9 @@ object generators {
       feeNum     <- Gen.chooseNum(501, 999)
       feeDenom   <- Gen.const(1000)
       emissionLP <- Gen.const(Long.MaxValue)
+      burnLP     <- Gen.const(1000L)
       minDeposit <- Gen.oneOf(Seq(1000, 2000, 10000, 20000))
-    } yield PoolConfig(feeNum, feeDenom, emissionLP, minDeposit)
+    } yield PoolConfig(feeNum, feeDenom, emissionLP, burnLP, minDeposit)
 
   def initialDepositGen(minDeposit: Long): Gen[(Long, Long)] =
     for {
