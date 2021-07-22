@@ -20,11 +20,14 @@
     val rewardOut = OUTPUTS(1)
     val rewardLP  = rewardOut.tokens(0)
 
+    val uniqueOutput = rewardOut.R4[Int].map({(i: Int) => INPUTS(i).id == SELF.id}).getOrElse(false)
+
     val validRewardOut =
         rewardOut.propositionBytes == Pk.propBytes &&
         rewardOut.value >= SELF.value - DexFee &&
         rewardLP._1 == poolLP._1 &&
-        rewardLP._2 >= minimalReward
+        rewardLP._2 >= minimalReward &&
+        uniqueOutput
 
     sigmaProp(Pk || (validPoolIn && validRewardOut))
 }

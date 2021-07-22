@@ -27,11 +27,14 @@
                 else
                     poolAssetY._2.toBigInt * baseAmount * FeeNum <= relaxedOutput * (poolAssetX._2.toBigInt * FeeDenom + baseAmount * FeeNum)
 
+            val uniqueOutput = box.R4[Int].map({(i: Int) => INPUTS(i).id == SELF.id}).getOrElse(false)
+
             box.propositionBytes == Pk.propBytes &&
             quoteAsset._1 == QuoteId &&
             quoteAsset._2 >= MinQuoteAmount &&
             fairDexFee &&
-            fairPrice
+            fairPrice &&
+            uniqueOutput
         }
 
     sigmaProp(Pk || (validPoolInput && validTrade))
