@@ -26,16 +26,16 @@ final case class CfmmPool(x: Long, y: Long, lp: Long, config: PoolConfig) {
     require(in > 0)
     val (deltaX, deltaY) =
       if (asset == "x")
-        (in, -y * in * config.feeNum / (x * config.feeDenom + in * config.feeNum))
+        (BigInt(in), -BigInt(y) * in * config.feeNum / (BigInt(x) * config.feeDenom + in * config.feeNum))
       else
-        (-x * in * config.feeNum / (y * config.feeDenom + in * config.feeNum), in)
+        (-BigInt(x) * in * config.feeNum / (BigInt(y) * config.feeDenom + in * config.feeNum), BigInt(in))
 
     if (asset == "x")
-      require((BigInt(y) * deltaX * config.feeNum) >= BigInt(-deltaY) * (x * config.feeDenom + deltaX * config.feeNum))
+      require((BigInt(y) * deltaX * config.feeNum) >= -deltaY * (x * config.feeDenom + deltaX * config.feeNum))
     else
-      require((BigInt(x) * deltaY * config.feeNum) >= BigInt(-deltaX) * (y * config.feeDenom + deltaY * config.feeNum))
+      require((BigInt(x) * deltaY * config.feeNum) >= -deltaX * (y * config.feeDenom + deltaY * config.feeNum))
 
-    val pool = copy(x + deltaX, y + deltaY)
+    val pool = copy((x + deltaX).toLong, (y + deltaY).toLong)
     require(BigInt(pool.x) * pool.y >= BigInt(x) * y, "Non-decreasing constant product doesn't hold")
 
     pool
