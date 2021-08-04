@@ -1,39 +1,40 @@
 {
     val FeeDenom = 1000
 
-    val base       = SELF.tokens(0)
-    val baseId     = base._1
-    val baseAmount = base._2.toBigInt
+    val poolIn = INPUTS(0)
 
-    val poolInput  = INPUTS(0)
-    val poolNFT    = poolInput.tokens(0)._1
-    val poolAssetX = poolInput.tokens(2)
-    val poolAssetY = poolInput.tokens(3)
+    val validTrade =
+        if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
+            val base       = SELF.tokens(0)
+            val baseId     = base._1
+            val baseAmount = base._2.toBigInt
 
-    val validPoolInput = poolNFT == PoolNFT
-    val noMoreInputs   = INPUTS.size == 2
+            val poolNFT    = poolIn.tokens(0)._1
+            val poolAssetX = poolIn.tokens(2)
+            val poolAssetY = poolIn.tokens(3)
 
-    val rewardBox = OUTPUTS(1)
+            val validPoolIn = poolNFT == PoolNFT
 
-    val validTrade = {
-        val quoteAsset    = rewardBox.tokens(0)
-        val quoteAmount   = quoteAsset._2.toBigInt
-        val fairDexFee    = rewardBox.value >= SELF.value - quoteAmount * DexFeePerTokenNum / DexFeePerTokenDenom
-        val relaxedOutput = quoteAmount + 1L // handle rounding loss
-        val poolX         = poolAssetX._2.toBigInt
-        val poolY         = poolAssetY._2.toBigInt
-        val fairPrice     =
-            if (poolAssetX._1 == QuoteId)
-                poolX * baseAmount * FeeNum <= relaxedOutput * (poolY * FeeDenom + baseAmount * FeeNum)
-            else
-                poolY * baseAmount * FeeNum <= relaxedOutput * (poolX * FeeDenom + baseAmount * FeeNum)
+            val rewardBox     = OUTPUTS(2)
+            val quoteAsset    = rewardBox.tokens(0)
+            val quoteAmount   = quoteAsset._2.toBigInt
+            val fairDexFee    = rewardBox.value >= SELF.value - quoteAmount * DexFeePerTokenNum / DexFeePerTokenDenom
+            val relaxedOutput = quoteAmount + 1L // handle rounding loss
+            val poolX         = poolAssetX._2.toBigInt
+            val poolY         = poolAssetY._2.toBigInt
+            val fairPrice     =
+                if (poolAssetX._1 == QuoteId)
+                    poolX * baseAmount * FeeNum <= relaxedOutput * (poolY * FeeDenom + baseAmount * FeeNum)
+                else
+                    poolY * baseAmount * FeeNum <= relaxedOutput * (poolX * FeeDenom + baseAmount * FeeNum)
 
-        rewardBox.propositionBytes == Pk.propBytes &&
-        quoteAsset._1 == QuoteId &&
-        quoteAsset._2 >= MinQuoteAmount &&
-        fairDexFee &&
-        fairPrice
-    }
+            validPoolIn &&
+            rewardBox.propositionBytes == Pk.propBytes &&
+            quoteAsset._1 == QuoteId &&
+            quoteAsset._2 >= MinQuoteAmount &&
+            fairDexFee &&
+            fairPrice
+        } else false
 
-    sigmaProp(Pk || (validPoolInput && noMoreInputs && validTrade))
+    sigmaProp(Pk || validTrade)
 }
