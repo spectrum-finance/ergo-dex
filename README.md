@@ -53,21 +53,29 @@ While in CFMMs liquidity is uniformly distributed along the reserve curve, which
 
 ![CLP](img/CLP.png)
 
+## Off-chain execution
+
+For the sake of efficiency most of the DEX actions are split into two stages: 1. order creation 2. execution. Once an order is submitted to the network it can be executed by off-chain bots. Off-chain bot is a piece of software that tracks orders and makes transactions from them performing all the necessary state transitions. Legitimacy of all transitions is checked on-chian by validation scripts. Off-chain bot can be run by anyone who is willing to support ErgoDEX and earn execution fees.
+
 ## Tokenomics
 
 In the ErgoDEX each actor is incentivized to fulfill his role as well as possible.
 
-There are four types of economic agents in the ErgoDEX ecosystem:
+There are five types of economic agents in the ErgoDEX ecosystem:
 
-* Miners - need to be incentivized in order to process transactions
-* DEXes (Parties which run DEX bots and UI) - need to be incentivized in order to provide best services.
-* Liquidity providers (LPs) - need to be incentivized in order to provide liquidity.
-* Traders
+| Type of agent             | Goal of incentives         |
+| ------------------------- | -------------------------- |
+| Miners                    | Process transactions       |
+| UI providers              | Provide better UI          |
+| Off-chain executors       | Execute orders             |
+| Liquidity providers (LPs) | Provide liquidity          |
+| Traders                   | Use DEX                    |
 
 Each type of agents benefits from using DEX in his own way:
 
-* Miners are earning miner fees paid in ERGs
-* DEXes are earning fees paid in ERGs from both OrderBook and AMM services
+* Miners are earning miner fees paid in native tokens
+* UI providers are earning fees paid in native tokens charged for each operation done via UI
+* Off-chain executors are earning fees paid in native tokens from both OrderBook and AMM services
   * In AMM: fees are charged for every operation on a liquidity pool
     * An amount of native tokens defined by a user for deposit|redeem operations
     * An amount of native tokens defined by a user for each unit of quote asset exchanged
