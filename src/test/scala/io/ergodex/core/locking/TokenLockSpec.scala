@@ -4,7 +4,6 @@ import io.ergodex.core.SigmaPlatform
 import org.scalatest.matchers.should
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import sigmastate.basics.DLogProtocol.DLogProverInput
 
 class TokenLockSpec extends AnyPropSpec with should.Matchers with ScalaCheckPropertyChecks with SigmaPlatform {
 
