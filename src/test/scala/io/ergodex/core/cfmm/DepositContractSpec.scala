@@ -28,6 +28,6 @@ class DepositContractSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     println(s"Required change: $change")
     val sim = new DepositContractSim(pool)
     val res = sim.eval(depositX, depositY)(expectedOutputLP, change.getOrElse(0L))
-    println(res)
+    res shouldBe true
   }
 }
