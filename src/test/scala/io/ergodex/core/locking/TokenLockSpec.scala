@@ -5,16 +5,12 @@ import org.scalatest.matchers.should
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sigmastate.basics.DLogProtocol.DLogProverInput
-import sigmastate.serialization.ErgoTreeSerializer
 
 class TokenLockSpec extends AnyPropSpec with should.Matchers with ScalaCheckPropertyChecks with SigmaPlatform {
 
   property("Contract compiles") {
     val source   = readSource("contracts/locking/TokenLock.sc")
-    val env      = Map(
-      "Pk"         -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "LockPeriod" -> 10
-    )
+    val env      = Map.empty[String, Any]
     printTree("TokenLock", source, env)
   }
 }
