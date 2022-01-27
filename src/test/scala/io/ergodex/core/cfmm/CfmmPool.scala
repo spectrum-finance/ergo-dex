@@ -1,6 +1,8 @@
 package io.ergodex
 package core.cfmm
 
+import io.circe.Json
+
 final case class PoolConfig(feeNum: Int, feeDenom: Int, emissionLP: Long, burnLP: Long, minInitialDeposit: Long)
 
 final case class CfmmPool(x: Long, y: Long, lp: Long, config: PoolConfig) {
@@ -59,6 +61,22 @@ final case class CfmmPool(x: Long, y: Long, lp: Long, config: PoolConfig) {
       BigInt(out) * input * config.feeNum /
       (in * config.feeDenom + input * config.feeNum)
     (if (token == "x") out(x, y) else out(y, x)).toLong
+  }
+
+  def rewardLP(inX: Long, inY: Long): (Long, Option[Long]) = {
+    val minByX = BigInt(inX) * supplyLP / x
+    val minByY = BigInt(inY) * supplyLP / y
+    val change =
+      if (minByX < minByY) {
+        val diff    = minByY - minByX
+        val excessY = diff * y / supplyLP
+        Some(excessY)
+      } else if (minByX > minByY) {
+        val diff    = minByX - minByY
+        val excessX = diff * x / supplyLP
+        Some(excessX)
+      } else None
+    math.min(minByX.toLong, minByY.toLong) -> change.map(_.toLong)
   }
 }
 
