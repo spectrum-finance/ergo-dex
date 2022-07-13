@@ -38,7 +38,10 @@ Bob wants to participate in LM program X. To do that, he sends `N` ADA/Xt LQ tok
 Compounding must be performed each epoch so that rewards allocated for each epoch are fully distributed among stakers. Each staker receives `EpochReward * M / Emission_M` tokens. `1` Epoch token is withdrawn from staker's staking bundle box each time compounding happens.
 
 ### Redeem
-Once Bob decided to unstake his liquidity he returns his staking bundle to LM Pool and receives propotional amount of LQ tokens to the amount of vLQ returned. Redemption is only allowed when all epochs Bob is eligible for are componded.
+Once Bob decided to unstake his liquidity he returns his staking bundle to LM Pool and receives proportional amount of LQ tokens to the amount of vLQ returned. Redemption is only allowed when all epochs Bob is eligible for are compounded.
+
+_Properties_:
+* User can redeem his LQ tokens before and after program end
 
 ### Increase stake
 Bob wants to stake more LQ tokens. Once he deposited additional liqudity to LM Pool the released vLQ are addded to the Bob's staking bundle. No additional Epoch tokens are released. 

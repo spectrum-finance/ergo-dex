@@ -1,13 +1,16 @@
 package io.ergodex.core.sim
 
 import cats.Functor
-
+import cats.mtl.Ask
+import cats.mtl.syntax.ask._
 import tofu.WithContext
 import tofu.syntax.monadic._
 
 final case class LedgerCtx(height: Int)
 
-object LedgerCtx extends WithContext.Companion[LedgerCtx]
+object LedgerCtx extends WithContext.Companion[LedgerCtx] {
+  def init: LedgerCtx = LedgerCtx(height = 1)
+}
 
 trait LedgerState[F[_]] {
   def withLedgerState[R](fn: LedgerCtx => R): F[R]
@@ -21,5 +24,11 @@ object LedgerState {
     new LedgerState[F] {
       def withLedgerState[R](fn: LedgerCtx => R): F[R] =
         LedgerCtx.access.map(fn)
+    }
+
+  implicit def ledgerStateFromAsk[F[_]: Functor: Ask[*[_], LedgerCtx]]: LedgerState[F] =
+    new LedgerState[F] {
+      def withLedgerState[R](fn: LedgerCtx => R): F[R] =
+        fn.reader
     }
 }
