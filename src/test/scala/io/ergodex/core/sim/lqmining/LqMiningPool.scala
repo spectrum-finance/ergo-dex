@@ -24,9 +24,12 @@ final case class StakingBundle(vLQ: Long, TT: Long)
 object Token {
   type X
   type LQ
+  type TT
 }
 
-final case class Asset[T](value: Long)
+final case class AssetInput[T](value: Long)
+final case class AssetOutput[T](value: Long)
+final case class BurnAsset[T](value: Long)
 
 final case class LMPool[Ledger[_]: LedgerState](conf: LMConfig, reserves: PoolReserves, totalStakes: Long) {
   import LMPool._
@@ -34,12 +37,12 @@ final case class LMPool[Ledger[_]: LedgerState](conf: LMConfig, reserves: PoolRe
   def updateReserves(fn: PoolReserves => PoolReserves): LMPool[Ledger] =
     copy(reserves = fn(reserves))
 
-  def deposit(lq: Asset[Token.LQ]): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle)]] =
+  def deposit(lq: AssetInput[Token.LQ]): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle)]] =
     LedgerState.withLedgerState { ctx =>
-      if (ctx.height >= conf.programStart && ctx.height < conf.programEnd) {
-        val frame       = (ctx.height - conf.programStart) / conf.frameLen
+      if (ctx.height < conf.programEnd) {
+        val curFrame    = (ctx.height - conf.programStart + 1) / conf.frameLen
         val releasedVLQ = lq.value
-        val releasedTT  = conf.framesNum - frame
+        val releasedTT  = conf.framesNum - math.max(0, curFrame)
         Right(
           copy(
             reserves = reserves.copy(
@@ -49,38 +52,39 @@ final case class LMPool[Ledger[_]: LedgerState](conf: LMConfig, reserves: PoolRe
             ),
             totalStakes = totalStakes + 1
           ) ->
-          StakingBundle(releasedVLQ, releasedTT)
+          StakingBundle(releasedVLQ, releasedTT.toLong)
         )
-      } else Left(ProgramInactive)
+      } else Left(ProgramEnded)
     }
 
-  def compound(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle, Asset[Token.X])]] =
+  def compound(
+    bundle: StakingBundle,
+    epoch: Int
+  ): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle, AssetOutput[Token.X], BurnAsset[Token.TT])]] =
     LedgerState.withLedgerState { ctx =>
-      if (ctx.height >= conf.programStart && ctx.height < conf.programEnd) {
-        val curEpoch            = (ctx.height - conf.programStart + 1) / (conf.frameLen * conf.epochLen)
-        val fullEpochsLeft   = conf.epochNum - curEpoch
-        val epochsToCompound = fullEpochsLeft + 1
-        logState(ctx)
-        println(reserves.X - epochsToCompound * conf.epochAlloc)
+      val curEpoch         = (ctx.height - conf.programStart + 1) / (conf.frameLen * conf.epochLen)
+      val epochsToCompound = conf.epochNum - epoch
+      if (epoch <= curEpoch - 1) {
         if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
-          val epochTT      = reserves.emissionTT - (conf.epochLen * epochsToCompound * fullEpochsLeft)
+          // val epochTT = reserves.emissionTT - (conf.epochLen * epochsToCompound * fullEpochsLeft) // todo: track burned TT tokens?
+          val epochTT      = reserves.emissionTT - (conf.epochLen * (conf.epochNum - 1) * totalStakes)
           val inputEpochTT = bundle.TT - conf.epochLen * epochsToCompound
-          if (epochTT > 0) {
-            val reward = conf.epochAlloc * bundle.vLQ * inputEpochTT / (reserves.LQ * epochTT)
-            Right(
-              (
-                updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT + inputEpochTT)),
-                bundle.copy(TT = bundle.TT - inputEpochTT),
-                Asset(reward)
-              )
+          val reward =
+            (BigInt(bundle.vLQ) * inputEpochTT * conf.epochAlloc /
+              (BigInt(reserves.LQ) * epochTT / totalStakes)).toLong
+          Right(
+            (
+              updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT)),
+              bundle.copy(TT = bundle.TT - inputEpochTT),
+              AssetOutput(reward),
+              BurnAsset(inputEpochTT)
             )
-          }
-          else Left(EpochAlreadyWithdrawn)
+          )
         } else Left(PrevEpochNotWithdrawn)
-      } else Left(ProgramInactive)
+      } else Left(IllegalEpoch)
     }
 
-  def redeem(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], Asset[Token.LQ])]] =
+  def redeem(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], AssetOutput[Token.LQ])]] =
     LedgerState.withLedgerState { _ =>
       val releasedLQ = bundle.vLQ
       Right(
@@ -92,7 +96,7 @@ final case class LMPool[Ledger[_]: LedgerState](conf: LMConfig, reserves: PoolRe
           ),
           totalStakes = totalStakes - 1
         ) ->
-        Asset(releasedLQ)
+        AssetOutput(releasedLQ)
       )
     }
 
@@ -120,9 +124,10 @@ object LMPool {
   val MaxCapTT: Long  = Long.MaxValue
 
   sealed trait LMPoolErr
-  case object ProgramInactive extends LMPoolErr
+  case object ProgramEnded extends LMPoolErr
   case object PrevEpochNotWithdrawn extends LMPoolErr
   case object EpochAlreadyWithdrawn extends LMPoolErr
+  case object IllegalEpoch extends LMPoolErr
 
   type VerifiedST[+A] = Either[LMPoolErr, A]
 
