@@ -15,7 +15,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   val pool01: LMPool[Ledger] =
     LMPool.init(frameLen = 1, epochLen = 1, epochNum = 3, programStart = 2, programBudget = 90)
   val pool02: LMPool[Ledger] =
-    LMPool.init(frameLen = 1, epochLen = 2, epochNum = 3, programStart = 2, programBudget = 9000000)
+    LMPool.init(frameLen = 1, epochLen = 2, epochNum = 3, programStart = 2, programBudget = 900000L)
 
   val input0: AssetInput[LQ] = AssetInput(1 * KK)
   val input1: AssetInput[LQ] = AssetInput(2 * KK)
@@ -76,27 +76,29 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   it should "release correct amount of reward on compounding (fractional epoch)" in {
     val action = for {
-      Right((pool1, bundle11))             <- pool02.deposit(input0)
+      Right((pool1, bundle11))             <- pool02.deposit(input1)
+      _                                    <- Ledger.extend
+      _ = println((pool1, bundle11))
       Right((pool2, bundle21))             <- pool1.deposit(input0)
       _                                    <- Ledger.extendBy(4)
+      _ = println((pool2, bundle21))
       Right((pool3, bundle12, output1, _)) <- pool2.compound(bundle11, epoch = 1)
-      _ = println(bundle11)
-      _ = println(bundle21)
+      _ = println((pool3, bundle12, output1))
       Right((pool4, bundle22, output2, _)) <- pool3.compound(bundle21, epoch = 1)
-    } yield (output1, output2)
-    val (_, (output1, output2)) = action.run(LedgerCtx.init).value
-    println((output1, output2))
-  }
-
-  it should "fail on compounding while previous epoch is not fully compounded" in {
-    val action = for {
-      _                       <- Ledger.extend
-      Right((pool1, bundle1)) <- pool01.deposit(input0)
-      _                       <- Ledger.extendBy(2)
-      res                     <- pool1.compound(bundle1, epoch = 2)
-    } yield res
-    val (_, res) = action.run(LedgerCtx.init).value
-    res shouldBe Left(LMPool.PrevEpochNotWithdrawn)
+      _ = println((pool4, bundle22, output2))
+      _                                    <- Ledger.extendBy(2)
+      Right((pool5, bundle13, output3, _)) <- pool4.compound(bundle12, epoch = 2)
+      _ = println((pool5, bundle13, output3))
+      _                                    <- Ledger.extendBy(2)
+      Right((pool6, bundle14, output5, _)) <- pool5.compound(bundle13, epoch = 3)
+      _ = println((pool6, bundle14, output5))
+      Right((pool7, bundle23, output4, _)) <- pool6.compound(bundle22, epoch = 2)
+      _ = println((pool7, bundle23, output4))
+      Right((pool8, bundle24, output6, _)) <- pool7.compound(bundle23, epoch = 3)
+      _ = println((pool8, bundle24, output6))
+    } yield (output1, output2, output3, output4, output5, output6)
+    val (_, (output1, output2, output3, output4, output5, output6)) = action.run(LedgerCtx.init).value
+    println((output1, output2, output3, output4, output5, output6))
   }
 
   it should "do nothing on an attempt to compound already fully compounded epoch" in {

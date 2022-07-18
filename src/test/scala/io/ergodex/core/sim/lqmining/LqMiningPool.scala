@@ -65,22 +65,17 @@ final case class LMPool[Ledger[_]: LedgerState](conf: LMConfig, reserves: PoolRe
       val curEpoch         = (ctx.height - conf.programStart + 1) / (conf.frameLen * conf.epochLen)
       val epochsToCompound = conf.epochNum - epoch
       if (epoch <= curEpoch - 1) {
-        if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
-          // val epochTT = reserves.emissionTT - (conf.epochLen * epochsToCompound * fullEpochsLeft) // todo: track burned TT tokens?
-          val epochTT      = reserves.emissionTT - (conf.epochLen * (conf.epochNum - 1) * totalStakes)
-          val inputEpochTT = bundle.TT - conf.epochLen * epochsToCompound
-          val reward =
-            (BigInt(bundle.vLQ) * inputEpochTT * conf.epochAlloc /
-              (BigInt(reserves.LQ) * epochTT / totalStakes)).toLong
-          Right(
-            (
-              updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT)),
-              bundle.copy(TT = bundle.TT - inputEpochTT),
-              AssetOutput(reward),
-              BurnAsset(inputEpochTT)
-            )
+        val inputEpochTT = bundle.TT - conf.epochLen * epochsToCompound
+        val reward =
+          (BigInt(bundle.vLQ) * conf.epochAlloc * inputEpochTT / (BigInt(reserves.LQ) * conf.epochLen)).toLong // todo: handle depositing half-way
+        Right(
+          (
+            updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT)),
+            bundle.copy(TT = bundle.TT - inputEpochTT),
+            AssetOutput(reward),
+            BurnAsset(inputEpochTT)
           )
-        } else Left(PrevEpochNotWithdrawn)
+        )
       } else Left(IllegalEpoch)
     }
 
