@@ -21,22 +21,22 @@ Fig. 1. Lottery states
 
 ### Lottery parameters
 
-| Param               | Type      | Description
-|---------------------|-----------|-----------
-| `updateWindowLen`   | `Integer` | Length of a read-only window for seamless pool updates
-| `registerWindowLen` | `Integer` | Length of a window when register for the next lottery is open
-| `computeWindowLen`  | `Integer` | Length of a window withing which it's allowed to compute next matcher
-| `ticketPrice`       | `Integer` | Price of one ticket
-| `acceptedCurrency`  | `TokenId` | ID of the accepted currency
+| Param               | Type      | Description                                                           |
+|---------------------|-----------|-----------------------------------------------------------------------|
+| `updateWindowLen`   | `Integer` | Length of a read-only window for seamless pool updates                |
+| `registerWindowLen` | `Integer` | Length of a window when register for the next lottery is open         |
+| `computeWindowLen`  | `Integer` | Length of a window withing which it's allowed to compute next matcher |
+| `ticketPrice`       | `Integer` | Price of one ticket                                                   |
+| `acceptedCurrency`  | `TokenId` | ID of the accepted currency                                           |
 
 ### Lottery state
 
-| Param            | Type      | Description
-|------------------|-----------|-----------
-| `pendingEpoch`   | `Integer` | Index of the pending epoch (for which the matcher will be selected via this lottery)
-| `winnerTicketIx` | `Integer` | Index of the winner ticket
-| `ticketRangeMin` | `Integer` | Index of the first ticket sold in this round
-| `ticketRangeMax` | `Integer` | Index of the last ticket sold in this round
+| Param            | Type      | Description                                                                          |
+|------------------|-----------|--------------------------------------------------------------------------------------|
+| `pendingEpoch`   | `Integer` | Index of the pending epoch (for which the matcher will be selected via this lottery) |
+| `winnerTicketIx` | `Integer` | Index of the winner ticket                                                           |
+| `ticketRangeMin` | `Integer` | Index of the first ticket sold in this round                                         |
+| `ticketRangeMax` | `Integer` | Index of the last ticket sold in this round                                          |
 
 ### Protocol bootstrap
 
