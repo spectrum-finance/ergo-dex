@@ -6,21 +6,21 @@ Liqudity Mining Protocol allows anyone to setup his own liquidity mining (LM) pr
 Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following structure:
 
 ### Datum (LM configuration)
-| Field           | Type      | Description
-|-----------------|-----------|------------
-| `frameLen`      | `Integer` | Length of one frame in blocks
-| `epochLen`      | `Integer` | Length of one epoch in frames
-| `epochNum`      | `Integer` | Number of epochs in LM program
-| `programStart`  | `Integer` | Block the program starts at
-| `programBudget` | `Integer` | Total LM program budget
+| Field           | Type      | Description                    |
+|-----------------|-----------|--------------------------------|
+| `frameLen`      | `Integer` | Length of one frame in blocks  |
+| `epochLen`      | `Integer` | Length of one epoch in frames  |
+| `epochNum`      | `Integer` | Number of epochs in LM program |
+| `programStart`  | `Integer` | Block the program starts at    |
+| `programBudget` | `Integer` | Total LM program budget        |
 
 ### Tokens
-| Name           | Description
-|----------------|------------
-| Reward token   | Budget of the LM program
-| LQ token       | Locked LQ tokens
-| vLQ token      | Tokens representing locked share of LQ
-| Temporal Token | Tokens representing number of frames until the end of the program
+| Name           | Description                                                       |
+|----------------|-------------------------------------------------------------------|
+| Reward token   | Budget of the LM program                                          |
+| LQ token       | Locked LQ tokens                                                  |
+| vLQ token      | Tokens representing locked share of LQ                            |
+| Temporal Token | Tokens representing number of frames until the end of the program |
 
 ## Staking bundle
 Staking bundle is responsible for holding vLQ and Epoch tokens. Staking bundle script guarantees bundling of tokens and controls Compounding and Redeem operations (see "User scenarios" below).

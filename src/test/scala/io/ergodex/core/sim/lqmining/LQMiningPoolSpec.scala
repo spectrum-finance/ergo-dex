@@ -28,6 +28,21 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     }
   }
 
+  it should "aggregate vLQ allocations (deposits in non-adjacent frames)" in {
+    val pool       = LMPool.init(frameLen = 1, epochLen = 10, epochNum = 2, programStart = 3, programBudget = 100)
+    val skipFrames = 5
+    val action = for {
+      Right((pool1, _)) <- pool.deposit(input0)
+      ctx               <- Ledger.ctx
+      extendBy = (pool.conf.programStart - 1 - ctx.height) + skipFrames * pool.conf.frameLen
+      _                 <- Ledger.extendBy(extendBy)
+      Right((pool2, _)) <- pool1.deposit(input0)
+    } yield pool2
+    val (_, pl) = action.run(LedgerCtx.init).value
+    println(pl.vLQAllocated)
+    pl.vLQAllocated shouldBe input0.value * skipFrames
+  }
+
   it should "return correct amount of bundled tokens on deposit (before start)" in {
     val pool = LMPool.init(frameLen = 1, epochLen = 1, epochNum = 3, programStart = 5, programBudget = 90)
 
@@ -66,8 +81,9 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   it should "release correct amount of reward on compounding" in {
     val action = for {
       Right((pool1, bundle1)) <- pool01.deposit(input0)
-      _                       <- Ledger.extendBy(2)
-      res                     <- pool1.compound(bundle1, epoch = 1)
+      _ = println(pool1)
+      _   <- Ledger.extendBy(2)
+      res <- pool1.compound(bundle1, epoch = 1)
     } yield (pool1, bundle1, res)
     val (_, (pool1, bundle1, Right((pool2, bundle2, output, _)))) = action.run(LedgerCtx.init).value
     output shouldBe AssetOutput(pool1.conf.epochAlloc)
@@ -76,11 +92,11 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   it should "release correct amount of reward on compounding (fractional epoch)" in {
     val action = for {
-      Right((pool1, bundle11))             <- pool02.deposit(input1)
-      _                                    <- Ledger.extend
+      Right((pool1, bundle11)) <- pool02.deposit(input1)
+      _                        <- Ledger.extend
       _ = println((pool1, bundle11))
-      Right((pool2, bundle21))             <- pool1.deposit(input0)
-      _                                    <- Ledger.extendBy(4)
+      Right((pool2, bundle21)) <- pool1.deposit(input0)
+      _                        <- Ledger.extendBy(4)
       _ = println((pool2, bundle21))
       Right((pool3, bundle12, output1, _)) <- pool2.compound(bundle11, epoch = 1)
       _ = println((pool3, bundle12, output1))

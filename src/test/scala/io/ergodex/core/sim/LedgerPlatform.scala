@@ -15,5 +15,6 @@ trait LedgerPlatform {
   object Ledger {
     def extendBy(n: Int): Ledger[Unit] = State.modify(s0 => s0.copy(height = s0.height + n))
     def extend: Ledger[Unit]           = extendBy(1)
+    def ctx: Ledger[LedgerCtx]         = State.get
   }
 }
