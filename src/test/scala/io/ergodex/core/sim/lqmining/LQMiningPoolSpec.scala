@@ -1,5 +1,6 @@
 package io.ergodex.core.sim.lqmining
 
+import io.ergodex.core.sim.lqmining.LMPool.PrevEpochNotWithdrawn
 import io.ergodex.core.sim.lqmining.Token.LQ
 import io.ergodex.core.sim.{LedgerCtx, LedgerPlatform}
 import org.scalacheck.Gen
@@ -15,7 +16,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   val pool01: LMPool[Ledger] =
     LMPool.init(frameLen = 1, epochLen = 1, epochNum = 3, programStart = 2, programBudget = 90)
   val pool02: LMPool[Ledger] =
-    LMPool.init(frameLen = 1, epochLen = 2, epochNum = 3, programStart = 2, programBudget = 900000L)
+    LMPool.init(frameLen = 1, epochLen = 2, epochNum = 3, programStart = 2, programBudget = 900000000L)
 
   val input0: AssetInput[LQ] = AssetInput(1 * KK)
   val input1: AssetInput[LQ] = AssetInput(2 * KK)
@@ -39,8 +40,23 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
       Right((pool2, _)) <- pool1.deposit(input0)
     } yield pool2
     val (_, pl) = action.run(LedgerCtx.init).value
-    println(pl.vLQAllocated)
     pl.vLQAllocated shouldBe input0.value * skipFrames
+  }
+
+  it should "aggregate vLQ allocations (deposits and then redeem in the same frame)" in {
+    val pool       = LMPool.init(frameLen = 1, epochLen = 10, epochNum = 2, programStart = 3, programBudget = 100)
+    val skipFrames = 5
+    val action = for {
+      Right((pool1, _)) <- pool.deposit(input0)
+      ctx               <- Ledger.ctx
+      extendBy = (pool.conf.programStart - 1 - ctx.height) + skipFrames * pool.conf.frameLen
+      _                       <- Ledger.extendBy(extendBy)
+      Right((pool2, bundle2)) <- pool1.deposit(input0)
+      Right((pool3, _))       <- pool2.redeem(bundle2)
+    } yield (pool2, pool3)
+    val (_, (pl2, pl3)) = action.run(LedgerCtx.init).value
+    pl2.vLQAllocated shouldBe input0.value * skipFrames
+    pl3.vLQAllocated shouldBe input0.value * skipFrames - input0.value
   }
 
   it should "return correct amount of bundled tokens on deposit (before start)" in {
@@ -90,31 +106,23 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     bundle2 shouldBe bundle1.copy(TT = bundle1.TT - pool2.conf.epochLen)
   }
 
-  it should "release correct amount of reward on compounding (fractional epoch)" in {
+  it should "deplete program budget when fully compounded (fractional epoch)" in {
     val action = for {
       Right((pool1, bundle11)) <- pool02.deposit(input1)
       _                        <- Ledger.extend
-      _ = println((pool1, bundle11))
       Right((pool2, bundle21)) <- pool1.deposit(input0)
-      _                        <- Ledger.extendBy(4)
-      _ = println((pool2, bundle21))
+      _                        <- Ledger.extendBy(3)
       Right((pool3, bundle12, output1, _)) <- pool2.compound(bundle11, epoch = 1)
-      _ = println((pool3, bundle12, output1))
       Right((pool4, bundle22, output2, _)) <- pool3.compound(bundle21, epoch = 1)
-      _ = println((pool4, bundle22, output2))
       _                                    <- Ledger.extendBy(2)
       Right((pool5, bundle13, output3, _)) <- pool4.compound(bundle12, epoch = 2)
-      _ = println((pool5, bundle13, output3))
       _                                    <- Ledger.extendBy(2)
-      Right((pool6, bundle14, output5, _)) <- pool5.compound(bundle13, epoch = 3)
-      _ = println((pool6, bundle14, output5))
-      Right((pool7, bundle23, output4, _)) <- pool6.compound(bundle22, epoch = 2)
-      _ = println((pool7, bundle23, output4))
-      Right((pool8, bundle24, output6, _)) <- pool7.compound(bundle23, epoch = 3)
-      _ = println((pool8, bundle24, output6))
-    } yield (output1, output2, output3, output4, output5, output6)
-    val (_, (output1, output2, output3, output4, output5, output6)) = action.run(LedgerCtx.init).value
-    println((output1, output2, output3, output4, output5, output6))
+      Right((pool6, bundle14, output5, _)) <- pool5.compound(bundle22, epoch = 2)
+      Right((pool7, bundle23, output4, _)) <- pool6.compound(bundle13, epoch = 3)
+      Right((pool8, bundle24, output6, _)) <- pool7.compound(bundle14, epoch = 3)
+    } yield pool8
+    val (_, pool) = action.run(LedgerCtx.init).value
+    pool.reserves.X shouldBe 0L
   }
 
   it should "do nothing on an attempt to compound already fully compounded epoch" in {
@@ -154,6 +162,16 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     val (_, (pool1, bundle1, Right((pool2, bundle2, output, _)))) = action.run(LedgerCtx.init).value
     output shouldBe AssetOutput(pool1.conf.epochAlloc)
     bundle2 shouldBe bundle1.copy(TT = bundle1.TT - pool2.conf.epochLen)
+  }
+
+  it should "not allow compounding in reverse order" in {
+    val action = for {
+      Right((pool1, bundle1)) <- pool01.deposit(input0)
+      _                       <- Ledger.extendBy(3)
+      res                     <- pool1.compound(bundle1, epoch = 2)
+    } yield res
+    val (_, res) = action.run(LedgerCtx.init).value
+    res shouldBe Left(PrevEpochNotWithdrawn)
   }
 
   //  val scenario0 =

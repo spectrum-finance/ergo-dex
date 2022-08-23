@@ -36,32 +36,51 @@ final case class LMPool[Ledger[_]: LedgerState](
   reserves: PoolReserves,
   vLQAllocated: Long,
   lastUpdatedAtFrameIx: Int,
-  lastUpdatedAtEpochIx: Int
+  lastUpdatedAtEpochIx: Int,
+  lastCompoundedEpochIx: Int
 ) {
   import LMPool._
 
   def updateReserves(fn: PoolReserves => PoolReserves): LMPool[Ledger] =
     copy(reserves = fn(reserves))
 
+  private def frameAndEpochIx(ctx: LedgerCtx): (Int, Int) = {
+    val curFrameIxNum = ctx.height - conf.programStart + 1
+    val curFrameIxRem = curFrameIxNum % conf.frameLen
+    val curFrameIxR   = curFrameIxNum / conf.frameLen
+    val curFrameIx    = if (curFrameIxRem > 0) curFrameIxR + 1 else curFrameIxR
+    val curEpochIxRem = curFrameIx    % conf.epochLen
+    val curEpochIxR   = curFrameIx / conf.epochLen
+    val curEpochIx    = if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
+    curFrameIx -> curEpochIx
+  }
+
+  private def epochIx(ctx: LedgerCtx): Int = {
+    val curEpochIxNum = ctx.height - conf.programStart + 1
+    val curEpochIxDen = conf.frameLen * conf.epochLen
+    val curEpochIxRem = curEpochIxNum % curEpochIxDen
+    val curEpochIxR = curEpochIxNum / curEpochIxDen
+    if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
+  }
+
   def deposit(lq: AssetInput[Token.LQ]): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle)]] =
     LedgerState.withLedgerState { ctx =>
       if (ctx.height < conf.programEnd) {
-        val curFrameIx  = (ctx.height - conf.programStart + 1) / conf.frameLen
-        val curEpochIx  = curFrameIx / conf.epochLen
-        val releasedVLQ = lq.value
-        val releasedTT  = conf.framesNum - math.max(0, curFrameIx)
+        val (curFrameIx, curEpochIx) = frameAndEpochIx(ctx)
+        val releasedVLQ              = lq.value
+        val releasedTT               = conf.framesNum - math.max(0, curFrameIx)
         val (vLQAllocated_, frameIx_, epochIx_) =
-          if (ctx.height < conf.programStart) // todo: do not allow further deposits until last epoch is compounded
+          if (ctx.height < conf.programStart) { // todo: do not allow further deposits until last epoch is compounded
             (vLQAllocated, lastUpdatedAtFrameIx, lastUpdatedAtEpochIx)
-          else if (curEpochIx != lastUpdatedAtEpochIx) {
+          } else if (curEpochIx != lastUpdatedAtEpochIx) {
             val passedFrames = curFrameIx - (curEpochIx - 1) * conf.epochLen
             (passedFrames * reserves.LQ, curFrameIx, curFrameIx)
           } else if (curFrameIx != lastUpdatedAtFrameIx) {
             val passedFrames = curFrameIx - lastUpdatedAtFrameIx
-            println(passedFrames)
             (vLQAllocated + passedFrames * reserves.LQ, curFrameIx, lastUpdatedAtEpochIx)
-          } else
+          } else {
             (vLQAllocated, lastUpdatedAtFrameIx, lastUpdatedAtEpochIx)
+          }
         Right(
           copy(
             reserves = reserves.copy(
@@ -83,30 +102,40 @@ final case class LMPool[Ledger[_]: LedgerState](
     epoch: Int
   ): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle, AssetOutput[Token.X], BurnAsset[Token.TT])]] =
     LedgerState.withLedgerState { ctx =>
-      val curEpoch         = (ctx.height - conf.programStart + 1) / (conf.frameLen * conf.epochLen)
-      val epochsToCompound = conf.epochNum - epoch
-      if (epoch <= curEpoch - 1) {
-        val inputEpochTT =
-          bundle.TT - conf.epochLen * epochsToCompound // todo: bundle.TT - conf.epochLen * (epochsToCompound-1) ?
-        val vLQAllocated_   = if (lastUpdatedAtEpochIx != curEpoch) reserves.LQ else vLQAllocated
-        val vLQAllocatedAvg = vLQAllocated_ / conf.epochLen
-        println((conf.epochAlloc, bundle.vLQ, vLQAllocatedAvg, inputEpochTT, conf.epochLen))
-        val reward = conf.epochAlloc * bundle.vLQ / vLQAllocatedAvg * inputEpochTT / conf.epochLen
-//          (BigInt(bundle.vLQ) * conf.epochAlloc * inputEpochTT / (BigInt(
-//            reserves.LQ
-//          ) * conf.epochLen)).toLong // todo: handle depositing half-way
-        Right(
-          (
-            updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT)),
-            bundle.copy(TT = bundle.TT - inputEpochTT),
-            AssetOutput(reward),
-            BurnAsset(inputEpochTT)
+      val curEpochIx = epochIx(ctx)
+      val epochsToCompound         = conf.epochNum - epoch
+      if (epoch <= curEpochIx - 1) {
+        if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
+          val inputEpochTT = bundle.TT - conf.epochLen * epochsToCompound
+          val vLQAllocated_ =
+            if (lastUpdatedAtEpochIx != (curEpochIx - 1)) {
+              reserves.LQ * conf.epochLen // reserves haven't been updated for the whole past epoch.
+            } else if (lastUpdatedAtFrameIx != epoch * conf.epochLen) {
+              val framesUntouched = epoch * conf.epochLen - lastUpdatedAtFrameIx
+              reserves.LQ * framesUntouched + vLQAllocated
+            } else {
+              vLQAllocated
+            }
+          val reward =
+            (BigInt(conf.epochAlloc) * inputEpochTT * bundle.vLQ * conf.epochLen /
+              (BigInt(vLQAllocated_) * conf.epochLen)).toLong
+          Right(
+            (
+              updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT)),
+              bundle.copy(TT = bundle.TT - inputEpochTT),
+              AssetOutput(reward),
+              BurnAsset(inputEpochTT)
+            )
           )
-        )
-      } else Left(IllegalEpoch)
+        } else {
+          Left(PrevEpochNotWithdrawn)
+        }
+      } else {
+        Left(IllegalEpoch)
+      }
     }
 
-  def redeem(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], AssetOutput[Token.LQ])]] = // todo
+  def redeem(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], AssetOutput[Token.LQ])]] =
     LedgerState.withLedgerState { _ =>
       val releasedLQ = bundle.vLQ
       Right(
@@ -116,7 +145,7 @@ final case class LMPool[Ledger[_]: LedgerState](
             vLQ = reserves.vLQ + bundle.vLQ,
             TT  = reserves.TT + bundle.TT
           ),
-          vLQAllocated = vLQAllocated - 1
+          vLQAllocated = vLQAllocated - releasedLQ
         ) ->
         AssetOutput(releasedLQ)
       )
@@ -163,8 +192,9 @@ object LMPool {
     LMPool(
       LMConfig(frameLen, epochLen, epochNum, programStart, programBudget),
       PoolReserves(programBudget, 0L, MaxCapVLQ, MaxCapTT),
-      vLQAllocated         = 0L,
-      lastUpdatedAtFrameIx = 0,
-      lastUpdatedAtEpochIx = 0
+      vLQAllocated          = 0L,
+      lastUpdatedAtFrameIx  = 0,
+      lastUpdatedAtEpochIx  = 0,
+      lastCompoundedEpochIx = 0
     )
 }
