@@ -108,18 +108,18 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   it should "deplete program budget when fully compounded (fractional epoch)" in {
     val action = for {
-      Right((pool1, bundle11)) <- pool02.deposit(input1)
-      _                        <- Ledger.extend
-      Right((pool2, bundle21)) <- pool1.deposit(input0)
-      _                        <- Ledger.extendBy(3)
-      Right((pool3, bundle12, output1, _)) <- pool2.compound(bundle11, epoch = 1)
-      Right((pool4, bundle22, output2, _)) <- pool3.compound(bundle21, epoch = 1)
-      _                                    <- Ledger.extendBy(2)
-      Right((pool5, bundle13, output3, _)) <- pool4.compound(bundle12, epoch = 2)
-      _                                    <- Ledger.extendBy(2)
-      Right((pool6, bundle14, output5, _)) <- pool5.compound(bundle22, epoch = 2)
-      Right((pool7, bundle23, output4, _)) <- pool6.compound(bundle13, epoch = 3)
-      Right((pool8, bundle24, output6, _)) <- pool7.compound(bundle14, epoch = 3)
+      Right((pool1, bundle11))       <- pool02.deposit(input1)
+      _                              <- Ledger.extend
+      Right((pool2, bundle21))       <- pool1.deposit(input0)
+      _                              <- Ledger.extendBy(3)
+      Right((pool3, bundle12, _, _)) <- pool2.compound(bundle11, epoch = 1)
+      Right((pool4, bundle22, _, _)) <- pool3.compound(bundle21, epoch = 1)
+      _                              <- Ledger.extendBy(2)
+      Right((pool5, bundle13, _, _)) <- pool4.compound(bundle12, epoch = 2)
+      _                              <- Ledger.extendBy(2)
+      Right((pool6, bundle14, _, _)) <- pool5.compound(bundle22, epoch = 2)
+      Right((pool7, _, _, _))        <- pool6.compound(bundle13, epoch = 3)
+      Right((pool8, _, _, _))        <- pool7.compound(bundle14, epoch = 3)
     } yield pool8
     val (_, pool) = action.run(LedgerCtx.init).value
     pool.reserves.X shouldBe 0L

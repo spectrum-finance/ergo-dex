@@ -36,8 +36,7 @@ final case class LMPool[Ledger[_]: LedgerState](
   reserves: PoolReserves,
   vLQAllocated: Long,
   lastUpdatedAtFrameIx: Int,
-  lastUpdatedAtEpochIx: Int,
-  lastCompoundedEpochIx: Int
+  lastUpdatedAtEpochIx: Int
 ) {
   import LMPool._
 
@@ -49,7 +48,7 @@ final case class LMPool[Ledger[_]: LedgerState](
     val curFrameIxRem = curFrameIxNum % conf.frameLen
     val curFrameIxR   = curFrameIxNum / conf.frameLen
     val curFrameIx    = if (curFrameIxRem > 0) curFrameIxR + 1 else curFrameIxR
-    val curEpochIxRem = curFrameIx    % conf.epochLen
+    val curEpochIxRem = curFrameIx % conf.epochLen
     val curEpochIxR   = curFrameIx / conf.epochLen
     val curEpochIx    = if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
     curFrameIx -> curEpochIx
@@ -59,7 +58,7 @@ final case class LMPool[Ledger[_]: LedgerState](
     val curEpochIxNum = ctx.height - conf.programStart + 1
     val curEpochIxDen = conf.frameLen * conf.epochLen
     val curEpochIxRem = curEpochIxNum % curEpochIxDen
-    val curEpochIxR = curEpochIxNum / curEpochIxDen
+    val curEpochIxR   = curEpochIxNum / curEpochIxDen
     if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
   }
 
@@ -102,8 +101,8 @@ final case class LMPool[Ledger[_]: LedgerState](
     epoch: Int
   ): Ledger[VerifiedST[(LMPool[Ledger], StakingBundle, AssetOutput[Token.X], BurnAsset[Token.TT])]] =
     LedgerState.withLedgerState { ctx =>
-      val curEpochIx = epochIx(ctx)
-      val epochsToCompound         = conf.epochNum - epoch
+      val curEpochIx       = epochIx(ctx)
+      val epochsToCompound = conf.epochNum - epoch
       if (epoch <= curEpochIx - 1) {
         if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
           val inputEpochTT = bundle.TT - conf.epochLen * epochsToCompound
@@ -150,24 +149,6 @@ final case class LMPool[Ledger[_]: LedgerState](
         AssetOutput(releasedLQ)
       )
     }
-
-  def logState(ctx: LedgerCtx): Unit = {
-    val epoch      = (ctx.height - conf.programStart + 1) / (conf.frameLen * conf.epochLen)
-    val epochsLeft = conf.epochNum - epoch
-    println(s"""
-        |RESERVES_X:   ${reserves.X}
-        |RESERVES_LQ:  ${reserves.LQ}
-        |RESERVES_vLQ: ${reserves.vLQ}
-        |RESERVES_TT:  ${reserves.TT}
-        |
-        |STAKES_TOTAL: $vLQAllocated
-        |
-        |EPOCH_ALLOC: ${conf.epochAlloc}
-        |
-        |EPOCH: $epoch
-        |EPOCHS_LEFT: $epochsLeft
-        |""".stripMargin)
-  }
 }
 
 object LMPool {
@@ -192,9 +173,8 @@ object LMPool {
     LMPool(
       LMConfig(frameLen, epochLen, epochNum, programStart, programBudget),
       PoolReserves(programBudget, 0L, MaxCapVLQ, MaxCapTT),
-      vLQAllocated          = 0L,
-      lastUpdatedAtFrameIx  = 0,
-      lastUpdatedAtEpochIx  = 0,
-      lastCompoundedEpochIx = 0
+      vLQAllocated         = 0L,
+      lastUpdatedAtFrameIx = 0,
+      lastUpdatedAtEpochIx = 0
     )
 }
