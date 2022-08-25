@@ -40,7 +40,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
       Right((pool2, _)) <- pool1.deposit(input0)
     } yield pool2
     val (_, pl) = action.run(LedgerCtx.init).value
-    pl.vLQAllocated shouldBe input0.value * skipFrames
+    pl.lqAllocSum shouldBe input0.value * skipFrames
   }
 
   it should "aggregate vLQ allocations (deposits and then redeem in the same frame)" in {
@@ -55,8 +55,8 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
       Right((pool3, _))       <- pool2.redeem(bundle2)
     } yield (pool2, pool3)
     val (_, (pl2, pl3)) = action.run(LedgerCtx.init).value
-    pl2.vLQAllocated shouldBe input0.value * skipFrames
-    pl3.vLQAllocated shouldBe input0.value * skipFrames - input0.value
+    pl2.lqAllocSum shouldBe input0.value * skipFrames
+    pl3.lqAllocSum shouldBe input0.value * skipFrames - input0.value
   }
 
   it should "return correct amount of bundled tokens on deposit (before start)" in {
@@ -173,18 +173,4 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     val (_, res) = action.run(LedgerCtx.init).value
     res shouldBe Left(PrevEpochNotWithdrawn)
   }
-
-  //  val scenario0 =
-//    for {
-//      Right((pool1, bundle1)) <- pool0.deposit(input0)
-//      _ = bundle1 shouldBe StakingBundle(input0.value, pool0.conf.epochNum)
-//      _ = pool1.reserves.LQ shouldBe input0.value
-//      _ = pool1.reserves.vLQ shouldBe LMPool.MaxCapVLQ - bundle1.vLQ
-//      _ = pool1.reserves.TT shouldBe LMPool.MaxCapTT - bundle1.TT
-//      _ <- Ledger.extend
-//      Right((pool2, bundle2, out2)) <- pool1.compound(bundle1)
-//      _ = println((pool2, bundle2, out2))
-//    } yield ()
-//
-//  scenario0.run(LedgerCtx.init).value
 }
