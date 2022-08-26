@@ -22,10 +22,12 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   val input1: AssetInput[LQ] = AssetInput(2 * KK)
 
   it should "return correct amount of bundled tokens on deposit" in {
-    forAll(Gen.choose(0, pool01.conf.epochNum)) { span =>
-      val action                   = Ledger.extendBy(span) >> pool01.deposit(input0)
-      val (_, Right((_, bundle1))) = action.run(LedgerCtx.init).value
-      bundle1 shouldBe StakingBundle(input0.value, pool01.conf.epochNum - span)
+    forAll(Gen.choose(0, pool01.conf.frameLen * pool01.conf.epochLen)) { span =>
+      whenever(span >= 0) {
+        val action                   = Ledger.extendBy(span) >> pool01.deposit(input0)
+        val (_, Right((_, bundle1))) = action.run(LedgerCtx.init).value
+        bundle1 shouldBe StakingBundle(input0.value, pool01.conf.epochNum - span)
+      }
     }
   }
 
@@ -49,7 +51,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     val action = for {
       Right((pool1, _)) <- pool.deposit(input0)
       ctx               <- Ledger.ctx
-      extendBy = (pool.conf.programStart - 1 - ctx.height) + skipFrames * pool.conf.frameLen
+      extendBy = (pool.conf.programStart - (ctx.height + 1)) + skipFrames * pool.conf.frameLen
       _                       <- Ledger.extendBy(extendBy)
       Right((pool2, bundle2)) <- pool1.deposit(input0)
       Right((pool3, _))       <- pool2.redeem(bundle2)
@@ -68,12 +70,12 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   }
 
   it should "return correct amount of bundled tokens on deposit (fractional epoch)" in {
-    val maxHeight = pool02.conf.epochNum * pool02.conf.epochLen
-    val maxFrames = maxHeight
-    forAll(Gen.choose(0, maxHeight)) { span =>
-      val action                   = Ledger.extendBy(span) >> pool02.deposit(input0)
-      val (_, Right((_, bundle1))) = action.run(LedgerCtx.init).value
-      bundle1 shouldBe StakingBundle(input0.value, maxFrames - span * pool02.conf.frameLen)
+    forAll(Gen.choose(0, pool02.conf.epochLen)) { span =>
+      whenever(span >= 0) {
+        val action                   = Ledger.extendBy(span) >> pool02.deposit(input0)
+        val (_, Right((_, bundle1))) = action.run(LedgerCtx.init).value
+        bundle1 shouldBe StakingBundle(input0.value, pool02.conf.framesNum - span * pool02.conf.frameLen)
+      }
     }
   }
 
@@ -123,6 +125,16 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     } yield pool8
     val (_, pool) = action.run(LedgerCtx.init).value
     pool.reserves.X shouldBe 0L
+  }
+
+  it should "do not allow further deposits until prev epoch is compounded" in {
+    val action = for {
+      Right((pool1, bundle11)) <- pool02.deposit(input1)
+      _                        <- Ledger.extendBy(pool02.conf.epochLen * pool02.conf.frameLen)
+      res                      <- pool1.deposit(input0)
+    } yield res
+    val (_, res) = action.run(LedgerCtx.init).value
+    println(res)
   }
 
   it should "do nothing on an attempt to compound already fully compounded epoch" in {

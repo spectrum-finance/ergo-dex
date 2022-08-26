@@ -14,6 +14,13 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `programStart`  | `Integer` | Block the program starts at    |
 | `programBudget` | `Integer` | Total LM program budget        |
 
+### Datum (LM Pool State Vars)
+| Field                  | Type      | Description                                                        |
+|------------------------|-----------|--------------------------------------------------------------------|
+| `lqAllocSum`           | `Integer` | Sum of all LQ tokens locked in the pool at each frame of the epoch |
+| `lastUpdatedAtFrameIx` | `Integer` | Index of the frame LQ reserves of the pool were last updated at    |
+| `lastUpdatedAtEpochIx` | `Integer` | Index of the epoch LQ reserves of the pool were last updated at    |
+
 ### Tokens
 | Name           | Description                                                       |
 |----------------|-------------------------------------------------------------------|
