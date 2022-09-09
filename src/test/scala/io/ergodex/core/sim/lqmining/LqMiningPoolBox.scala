@@ -38,7 +38,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
         val poolVLQ1 = successor.tokens(3)
         val poolTT1  = successor.tokens(4)
 
-        val conf1 = successor.R4[Coll[Int]].get
+        val conf1 = successor.R4[Coll[Long]].get
 
         val nftPreserved    = poolNFT1 == poolNFT0
         val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
@@ -55,12 +55,12 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
         val validCollateral = successor.value >= SELF.value
 
         val lqAllocSum0           = SELF.R5[BigInt].get
-        val lastUpdatedAtFrameIx0 = SELF.R6[Int].get
-        val lastUpdatedAtEpochIx0 = SELF.R7[Int].get
+        val lastUpdatedAtFrameIx0 = SELF.R6[Long].get
+        val lastUpdatedAtEpochIx0 = SELF.R7[Long].get
 
         val lqAllocSum1           = successor.R5[BigInt].get
-        val lastUpdatedAtFrameIx1 = successor.R6[Int].get
-        val lastUpdatedAtEpochIx1 = successor.R7[Int].get
+        val lastUpdatedAtFrameIx1 = successor.R6[Long].get
+        val lastUpdatedAtEpochIx1 = successor.R7[Long].get
 
         val reservesX  = poolX0._2
         val reservesLQ = poolLQ0._2
@@ -77,8 +77,6 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
         val curEpochIxRem = curFrameIx    % epochLen
         val curEpochIxR   = curFrameIx / epochLen
         val curEpochIx    = if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
-
-        val height = HEIGHT
 
         val validAction =
           if (deltaLQ > 0) {
