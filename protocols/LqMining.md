@@ -36,7 +36,15 @@ The more frames each epoch consists of, the more precisely can stakers be reward
 if `epochLen` is at least 2, Alice will be rewarded 1/2 of the epoch reward she is eligible for according to her stake size.
 
 ## Staking bundle
-Staking bundle is responsible for holding vLQ and Epoch tokens. Staking bundle script guarantees bundling of tokens and controls Compounding and Redeem operations (see "User scenarios" below).
+Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking bundle script guarantees bundling of tokens and controls Compounding and Redeem operations (see "User scenarios" below).
+
+### Tokens
+| Name | Description                                              | Emission |
+|------|----------------------------------------------------------|----------|
+| Key  | Bundle key                                               | 2^63     |
+| vLQ  | Virtual LQ token. Represents certain amount of liquidity |          |
+| Tmp  | Temporal token                                           |          |
+
 
 ## User scenarios
 

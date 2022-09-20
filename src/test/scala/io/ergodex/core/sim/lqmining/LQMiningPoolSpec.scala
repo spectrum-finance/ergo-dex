@@ -88,7 +88,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.init).value
     pool1.reserves.LQ shouldBe input0.value
     pool1.reserves.vLQ shouldBe LMPool.MaxCapVLQ - bundle1.vLQ
-    pool1.reserves.TT shouldBe LMPool.MaxCapTT - bundle1.TT
+    pool1.reserves.TMP shouldBe LMPool.MaxCapTMP - bundle1.TMP
   }
 
   it should "fail on premature compounding attempt" in {
@@ -108,7 +108,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     } yield (pool1, bundle1, res)
     val (_, (pool1, bundle1, Right((pool2, bundle2, output)))) = action.run(RuntimeCtx.init).value
     output shouldBe AssetOutput(pool1.conf.epochAlloc)
-    bundle2 shouldBe bundle1.copy(TT = bundle1.TT - bundle1.vLQ * pool2.conf.epochLen)
+    bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * pool2.conf.epochLen)
   }
 
   it should "deplete program budget when fully compounded (fractional epoch)" in {
@@ -175,7 +175,7 @@ class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     } yield (pool1, bundle1, res)
     val (_, (pool1, bundle1, Right((pool2, bundle2, output)))) = action.run(RuntimeCtx.init).value
     output shouldBe AssetOutput(pool1.conf.epochAlloc)
-    bundle2 shouldBe bundle1.copy(TT = bundle1.TT - bundle1.vLQ * pool2.conf.epochLen)
+    bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * pool2.conf.epochLen)
   }
 
   it should "not allow compounding in reverse order" in {

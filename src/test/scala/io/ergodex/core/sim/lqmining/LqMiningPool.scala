@@ -1,8 +1,9 @@
 package io.ergodex.core.sim.lqmining
 
 import cats.kernel.Monoid
-import io.ergodex.core.sim.lqmining.LMPool.MaxCapTT
-import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger, TokenId}
+import io.ergodex.core.sim.Helpers.{boxId, tokenId}
+import io.ergodex.core.sim.lqmining.LMPool.MaxCapTMP
+import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger}
 
 final case class LMConfig(
   frameLen: Int,
@@ -16,24 +17,24 @@ final case class LMConfig(
   val epochAlloc: Long = programBudget / epochNum
 }
 
-final case class PoolReserves(X: Long, LQ: Long, vLQ: Long, TT: Long) {
-  val emissionTT: Long = MaxCapTT - TT
+final case class PoolReserves(X: Long, LQ: Long, vLQ: Long, TMP: Long) {
+  val emissionTMP: Long = MaxCapTMP - TMP
 }
 
-final case class StakingBundle(vLQ: Long, TT: Long)
+final case class StakingBundle(vLQ: Long, TMP: Long)
 
 object StakingBundle {
   implicit val monoid: Monoid[StakingBundle] =
     new Monoid[StakingBundle] {
       def empty: StakingBundle                                       = StakingBundle(0L, 0L)
-      def combine(x: StakingBundle, y: StakingBundle): StakingBundle = StakingBundle(x.vLQ + y.vLQ, x.TT + y.TT)
+      def combine(x: StakingBundle, y: StakingBundle): StakingBundle = StakingBundle(x.vLQ + y.vLQ, x.TMP + y.TMP)
     }
 }
 
 object Token {
   type X
   type LQ
-  type TT
+  type TMP
 }
 
 final case class AssetInput[T](value: Long)
@@ -74,37 +75,32 @@ final case class LMPool[Ledger[_]: RuntimeState](
     RuntimeState.withRuntimeState { ctx =>
       if (ctx.height < conf.programEnd) {
         val (curFrameIx, curEpochIx) = frameAndEpochIx(ctx)
-        val epochsToCompound         = conf.epochNum - curEpochIx
-        if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
-          val releasedVLQ     = lq.value
-          val framesAllocated = conf.framesNum - math.max(0, curFrameIx)
-          val releasedTT      = releasedVLQ * framesAllocated
-          val (lqAllocSum_, frameIx_, epochIx_) =
-            if (curEpochIx != lastUpdatedAtEpochIx) {
-              val passedFrames = curFrameIx - (curEpochIx - 1) * conf.epochLen
-              (passedFrames * reserves.LQ, curFrameIx, curFrameIx)
-            } else if (curFrameIx != lastUpdatedAtFrameIx) {
-              val passedFrames = curFrameIx - lastUpdatedAtFrameIx
-              (lqAllocSum + passedFrames * reserves.LQ, curFrameIx, lastUpdatedAtEpochIx)
-            } else {
-              (lqAllocSum, lastUpdatedAtFrameIx, lastUpdatedAtEpochIx)
-            }
-          Right(
-            copy(
-              reserves = reserves.copy(
-                LQ  = reserves.LQ + lq.value,
-                vLQ = reserves.vLQ - releasedVLQ,
-                TT  = reserves.TT - releasedTT
-              ),
-              lqAllocSum           = lqAllocSum_,
-              lastUpdatedAtFrameIx = frameIx_,
-              lastUpdatedAtEpochIx = epochIx_
-            ) ->
-            StakingBundle(releasedVLQ, releasedTT)
-          )
-        } else {
-          Left(PrevEpochNotWithdrawn)
-        }
+        val releasedVLQ              = lq.value
+        val framesAllocated          = conf.framesNum - math.max(0, curFrameIx)
+        val releasedTMP              = releasedVLQ * framesAllocated
+        val (lqAllocSum_, frameIx_, epochIx_) =
+          if (curEpochIx != lastUpdatedAtEpochIx) {
+            val passedFrames = curFrameIx - (curEpochIx - 1) * conf.epochLen
+            (passedFrames * reserves.LQ, curFrameIx, curFrameIx)
+          } else if (curFrameIx != lastUpdatedAtFrameIx) {
+            val passedFrames = curFrameIx - lastUpdatedAtFrameIx
+            (lqAllocSum + passedFrames * reserves.LQ, curFrameIx, lastUpdatedAtEpochIx)
+          } else {
+            (lqAllocSum, lastUpdatedAtFrameIx, lastUpdatedAtEpochIx)
+          }
+        Right(
+          copy(
+            reserves = reserves.copy(
+              LQ  = reserves.LQ + lq.value,
+              vLQ = reserves.vLQ - releasedVLQ,
+              TMP = reserves.TMP - releasedTMP
+            ),
+            lqAllocSum           = lqAllocSum_,
+            lastUpdatedAtFrameIx = frameIx_,
+            lastUpdatedAtEpochIx = epochIx_
+          ) ->
+          StakingBundle(releasedVLQ, releasedTMP)
+        )
       } else Left(ProgramEnded)
     }
 
@@ -117,8 +113,8 @@ final case class LMPool[Ledger[_]: RuntimeState](
       val epochsToCompound = conf.epochNum - epoch
       if (epoch <= curEpochIx - 1) {
         if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc) {
-          val framesBurned = (bundle.TT / bundle.vLQ) - conf.epochLen * epochsToCompound
-          val revokedTT    = framesBurned * bundle.vLQ
+          val framesBurned = (bundle.TMP / bundle.vLQ) - conf.epochLen * epochsToCompound
+          val revokedTMP   = framesBurned * bundle.vLQ
           val lqAllocSum_ =
             if (lastUpdatedAtEpochIx != (curEpochIx - 1)) {
               reserves.LQ * conf.epochLen // reserves haven't been updated for the whole past epoch.
@@ -128,11 +124,11 @@ final case class LMPool[Ledger[_]: RuntimeState](
             } else {
               lqAllocSum
             }
-          val reward = (BigInt(conf.epochAlloc) * revokedTT / lqAllocSum_).toLong
+          val reward = (BigInt(conf.epochAlloc) * revokedTMP / lqAllocSum_).toLong
           Right(
             (
-              updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TT = r.TT + revokedTT)),
-              bundle.copy(TT = bundle.TT - revokedTT),
+              updateReserves(r => PoolReserves(X = r.X - reward, r.LQ, r.vLQ, TMP = r.TMP + revokedTMP)),
+              bundle.copy(TMP = bundle.TMP - revokedTMP),
               AssetOutput(reward)
             )
           )
@@ -158,7 +154,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
             reserves = reserves.copy(
               LQ  = reserves.LQ - bundle.vLQ,
               vLQ = reserves.vLQ + bundle.vLQ,
-              TT  = reserves.TT + bundle.TT
+              TMP = reserves.TMP + bundle.TMP
             ),
             lqAllocSum = lqAllocSum_
           ),
@@ -170,7 +166,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
 
 object LMPool {
   val MaxCapVLQ: Long = Long.MaxValue
-  val MaxCapTT: Long  = Long.MaxValue
+  val MaxCapTMP: Long = Long.MaxValue
 
   sealed trait LMPoolErr
   case object ProgramEnded extends LMPoolErr
@@ -185,25 +181,26 @@ object LMPool {
   implicit def toLedger[F[_]: RuntimeState]: ToLedger[LMPool[F], F] =
     (pool: LMPool[F]) =>
       new LqMiningPoolBox[F](
+        boxId("lqm_box_1"),
         MinCollateralErg,
         tokens = Vector(
-          TokenId("nft") -> 1L,
-          TokenId("x")   -> pool.reserves.X,
-          TokenId("lq")  -> pool.reserves.LQ,
-          TokenId("vql") -> pool.reserves.vLQ,
-          TokenId("tt")  -> pool.reserves.TT
+          tokenId("nft") -> 1L,
+          tokenId("x")   -> pool.reserves.X,
+          tokenId("lq")  -> pool.reserves.LQ,
+          tokenId("vql") -> pool.reserves.vLQ,
+          tokenId("TMP") -> pool.reserves.TMP
         ),
         registers = Map(
           4 -> Vector(
             pool.conf.frameLen,
             pool.conf.epochLen,
             pool.conf.epochNum,
-            pool.conf.programStart,
-            pool.conf.programBudget
+            pool.conf.programStart
           ),
           5 -> BigInt(pool.lqAllocSum),
           6 -> pool.lastUpdatedAtFrameIx,
-          7 -> pool.lastUpdatedAtEpochIx
+          7 -> pool.lastUpdatedAtEpochIx,
+          8 -> pool.conf.programBudget
         )
       )
 
@@ -216,7 +213,7 @@ object LMPool {
   ): LMPool[Ledger] =
     LMPool(
       LMConfig(frameLen, epochLen, epochNum, programStart, programBudget),
-      PoolReserves(programBudget, 0L, MaxCapVLQ, MaxCapTT),
+      PoolReserves(programBudget, 0L, MaxCapVLQ, MaxCapTMP),
       lqAllocSum           = 0L,
       lastUpdatedAtFrameIx = 0,
       lastUpdatedAtEpochIx = 0

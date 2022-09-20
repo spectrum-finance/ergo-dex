@@ -1,7 +1,6 @@
 package io.ergodex.core
 
-import io.ergodex.core.sim.{Box, RuntimeCtx}
-import io.ergodex.core.sim.BoxRuntime
+import io.ergodex.core.sim.{Box, BoxRuntime, RuntimeCtx, SigmaProp}
 
 import scala.util.Try
 
@@ -18,6 +17,8 @@ object syntax {
     def R7[T]: Option[T] = getR(7)
 
     def R8[T]: Option[T] = getR(8)
+
+    def R9[T]: Option[T] = getR(9)
 
     private def getR[T](i: Int): Option[T] =
       box.registers.get(i).flatMap(a => Try(a.asInstanceOf[T]).toOption)
@@ -44,4 +45,13 @@ object syntax {
 
   @inline def min(x: BigInt, y: BigInt): BigInt =
     if (y < x) y else x
+
+  implicit def sigmaPropIsBoolean(prop: SigmaProp)(implicit ctx: RuntimeCtx): Boolean =
+    ctx.signatories.contains(prop)
+
+  implicit class ToSigmaPropOps(prop: SigmaProp) {
+    def propBytes: Coll[Byte] = prop.value.getBytes().toVector
+  }
+
+  type Coll[A] = Vector[A]
 }

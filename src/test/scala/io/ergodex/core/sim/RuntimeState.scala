@@ -6,11 +6,14 @@ import cats.mtl.syntax.ask._
 import tofu.WithContext
 import tofu.syntax.monadic._
 
+final case class SigmaProp(value: String)
+
 final case class RuntimeCtx(
   height: Int,
   vars: Map[Int, Any]                        = Map.empty,
   inputs: List[Box[BoxRuntime.NonRunnable]]  = List.empty,
-  outputs: List[Box[BoxRuntime.NonRunnable]] = List.empty
+  outputs: List[Box[BoxRuntime.NonRunnable]] = List.empty,
+  signatories: List[SigmaProp]               = List.empty
 )
 
 object RuntimeCtx extends WithContext.Companion[RuntimeCtx] {

@@ -1,26 +1,37 @@
 package io.ergodex.core.sim
 
+import io.ergodex.core.syntax.Coll
+
 object BoxRuntime {
   type NonRunnable[_] = Any
 }
 
-final case class TokenId(value: String)
-
 final case class TaggedValidator[F[_]](tag: String, validator: F[Boolean])
 
 trait Box[+F[_]] { self =>
+  val id: Coll[Byte]
   val value: Long
-  val tokens: Vector[(TokenId, Long)]
+  val tokens: Vector[(Coll[Byte], Long)]
   val registers: Map[Int, Any]
   val validatorTag: String
   val validator: F[Boolean]
 
-  type Coll[A] = Vector[A]
+  final def SELF: Box[F] = self
 
-  def SELF: Box[F] = self
+  final def propositionBytes: Coll[Byte] = validatorTag.getBytes().toVector
 
-  def propositionBytes: String = validatorTag
+  final def setRegister[T](reg: Int, v: T): Box[F] =
+    new Box[F] {
+      override val id: Coll[Byte]                     = self.id
+      override val value: Long                        = self.value
+      override val tokens: Vector[(Coll[Byte], Long)] = self.tokens
+      override val registers: Map[Int, Any]           = self.registers + (reg -> v)
+      override val validatorTag: String               = self.validatorTag
+      override val validator: F[Boolean]              = self.validator
+    }
 }
+
+object Box {}
 
 trait ToLedger[A, F[_]] {
   def toLedger(a: A): Box[F]

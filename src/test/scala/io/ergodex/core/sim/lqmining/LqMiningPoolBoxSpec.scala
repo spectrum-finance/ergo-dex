@@ -42,9 +42,9 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val poolBox4 = pool4.toLedger[Ledger]
 
     val (_, isValidFirstCompounding) =
-      poolBox2.validator.run(RuntimeCtx(startAtHeight + epochStep, vars = Map(0 -> 1), outputs = List(poolBox3))).value
+      poolBox2.validator.run(RuntimeCtx(startAtHeight + epochStep, outputs = List(poolBox3.setRegister(9, 1)))).value
     val (_, isValidSecondCompounding) =
-      poolBox3.validator.run(RuntimeCtx(startAtHeight + epochStep, vars = Map(0 -> 1), outputs = List(poolBox4))).value
+      poolBox3.validator.run(RuntimeCtx(startAtHeight + epochStep, outputs = List(poolBox4.setRegister(9, 1)))).value
 
     isValidFirstCompounding shouldBe true
     isValidSecondCompounding shouldBe true
