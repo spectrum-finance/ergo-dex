@@ -1,6 +1,6 @@
 # ErgoDEX liquidity mining protocol
 
-Liqudity Mining Protocol allows anyone to setup his own liquidity mining (LM) program targeted at the desired pool on Spectrum.DEX.
+Liqudity Mining Protocol allows anyone to setup his own liquidity mining (LM) program targeted at the desired pool on Spectrum Finance.
 
 ## Liquidity Mining Pool
 Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following structure:
