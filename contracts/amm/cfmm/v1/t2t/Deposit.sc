@@ -1,69 +1,69 @@
 {
-  val InitiallyLockedLP = 0x7fffffffffffffffL
+    val InitiallyLockedLP = 0x7fffffffffffffffL
 
-  val selfX = SELF.tokens(0)
-  val selfY = SELF.tokens(1)
+    val selfX = SELF.tokens(0)
+    val selfY = SELF.tokens(1)
 
-  val poolIn = INPUTS(0)
+    val poolIn = INPUTS(0)
 
-  val validDeposit =
-    if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
-      val validPoolIn  = poolIn.tokens(0) == (PoolNFT, 1L)
+    val validDeposit =
+        if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
+            val validPoolIn  = poolIn.tokens(0) == (PoolNFT, 1L)
 
-      val poolLP    = poolIn.tokens(1)
-      val reservesX = poolIn.tokens(2)
-      val reservesY = poolIn.tokens(3)
+            val poolLP    = poolIn.tokens(1)
+            val reservesX = poolIn.tokens(2)
+            val reservesY = poolIn.tokens(3)
 
-      val reservesXAmount = reservesX._2
-      val reservesYAmount = reservesY._2
+            val reservesXAmount = reservesX._2
+            val reservesYAmount = reservesY._2
 
-      val supplyLP = InitiallyLockedLP - poolLP._2
+            val supplyLP = InitiallyLockedLP - poolLP._2
 
-      val minByX = selfX._2.toBigInt * supplyLP / reservesXAmount
-      val minByY = selfY._2.toBigInt * supplyLP / reservesYAmount
+            val minByX = selfX._2.toBigInt * supplyLP / reservesXAmount
+            val minByY = selfY._2.toBigInt * supplyLP / reservesYAmount
 
-      val minimalReward = min(minByX, minByY)
+            val minimalReward = min(minByX, minByY)
 
-      val rewardOut = OUTPUTS(1)
-      val rewardLP  = rewardOut.tokens(0)
+            val rewardOut = OUTPUTS(1)
+            val rewardLP  = rewardOut.tokens(0)
 
-      val validErgChange = rewardOut.value >= SELF.value - DexFee
+            val validErgChange = rewardOut.value >= SELF.value - DexFee
 
-      val validTokenChange =
-        if (minByX < minByY && rewardOut.tokens.size == 2) {
-          val diff = minByY - minByX
-          val excessY = diff * reservesYAmount / supplyLP
+            val validTokenChange =
+                if (minByX < minByY && rewardOut.tokens.size == 2) {
+                    val diff = minByY - minByX
+                    val excessY = diff * reservesYAmount / supplyLP
 
-          val changeY = rewardOut.tokens(1)
+                    val changeY = rewardOut.tokens(1)
 
-          changeY._1 == reservesY._1 &&
-            changeY._2 >= excessY
-        } else if (minByX > minByY && rewardOut.tokens.size == 2) {
-          val diff = minByX - minByY
-          val excessX = diff * reservesXAmount / supplyLP
+                    changeY._1 == reservesY._1 &&
+                    changeY._2 >= excessY
+                } else if (minByX > minByY && rewardOut.tokens.size == 2) {
+                    val diff = minByX - minByY
+                    val excessX = diff * reservesXAmount / supplyLP
 
-          val changeX = rewardOut.tokens(1)
+                    val changeX = rewardOut.tokens(1)
 
-          changeX._1 == reservesX._1 &&
-            changeX._2 >= excessX
-        } else if (minByX == minByY) {
-          true
-        } else {
-          false
-        }
+                    changeX._1 == reservesX._1 &&
+                    changeX._2 >= excessX
+                } else if (minByX == minByY) {
+                    true
+                } else {
+                    false
+                }
 
-      val validMinerFee = OUTPUTS.map { (o: Box) =>
-        if (o.propositionBytes == MinerPropBytes) o.value else 0L
-      }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+            val validMinerFee = OUTPUTS.map { (o: Box) =>
+                if (o.propositionBytes == MinerPropBytes) o.value else 0L
+            }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
-      validPoolIn &&
-        rewardOut.propositionBytes == Pk.propBytes &&
-        validErgChange &&
-        validTokenChange &&
-        rewardLP._1 == poolLP._1 &&
-        rewardLP._2 >= minimalReward &&
-        validMinerFee
-    } else false
+            validPoolIn &&
+            rewardOut.propositionBytes == Pk.propBytes &&
+            validErgChange &&
+            validTokenChange &&
+            rewardLP._1 == poolLP._1 &&
+            rewardLP._2 >= minimalReward &&
+            validMinerFee
+        } else false
 
-  sigmaProp(Pk || validDeposit)
+    sigmaProp(Pk || validDeposit)
 }
