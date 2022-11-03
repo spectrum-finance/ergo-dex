@@ -23,12 +23,16 @@
             val returnXAmount = returnOut.value - SELF.value + DexFee
             val returnY       = returnOut.tokens(0)
 
+            val validMinerFee = OUTPUTS.map { (o: Box) =>
+                if (o.propositionBytes == MinerPropBytes) o.value else 0L
+            }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+
             validPoolIn &&
             returnOut.propositionBytes == Pk.propBytes &&
-            returnOut.value >= SELF.value - DexFee &&
             returnY._1 == reservesY._1 && // token id matches
             returnXAmount >= minReturnX &&
-            returnY._2 >= minReturnY
+            returnY._2 >= minReturnY &&
+            validMinerFee
         } else false
 
     sigmaProp(Pk || validRedeem)
