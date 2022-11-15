@@ -1,3 +1,10 @@
+// Pool state mapping:
+// R4: Coll[Int] - program config
+// R5: Long      - total budget of LM program
+// R6: Long      - total execution budget
+//
+// ContextExtension mapping:
+// 0: Int - index of the epoch being compounded (required only for compounding)
 {
   val poolNFT0 = SELF.tokens(0)
   val poolX0   = SELF.tokens(1)
@@ -69,17 +76,23 @@
       deltaVLQ == -deltaLQ &&
       deltaTMP == returnedTMP
     } else { // compound
-      val epoch               = successor.R6[Int].get // the epoch we compound
+      val epoch               = getVar[Int](0).get
       val epochsToCompound    = epochNum - epoch
       val legalEpoch          = epoch <= curEpochIx - 1
       val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc
       val reward              = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
 
+      val execBudget   = successor.R6[Long].get
+      val execBudget0  = SELF.value
+      val execBudget1  = successor.value
+      val execFee      = (reward.toBigInt * execBudget / programBudget).toLong
+
       legalEpoch &&
       prevEpochCompounded &&
       -deltaX == reward &&
       deltaLQ == 0L &&
-      deltaVLQ == 0L
+      deltaVLQ == 0L &&
+      execBudget1 - execBudget0 <= execFee // valid exec fee
     }
 
   nftPreserved &&

@@ -12,6 +12,7 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epochNum`      | `Integer` | Number of epochs in LM program |
 | `programStart`  | `Integer` | Block the program starts at    |
 | `programBudget` | `Integer` | Total LM program budget        |
+| `execBudget`    | `Integer` | Total execution budget         |
 
 ### Tokens
 | Name           | Description                            |
@@ -21,7 +22,6 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | LQ token       | Locked LQ tokens                       |
 | vLQ token      | Tokens representing locked share of LQ |
 | Temporal Token | Left program epochs times liquidity    |
-
 
 ### Temporal stake weighting
 During LM pool creation LM provider configures `epochLen` parameter which defines how many discrete frames will each epoch be divided into.
