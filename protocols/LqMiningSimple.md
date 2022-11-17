@@ -53,8 +53,6 @@ Compounding must be performed each epoch so that rewards allocated for each epoc
 Each staker receives a reward of `EpochReward * StakerLQ / LockedLQ` tokens for each passed epoch. 
 `K - EpochLen * (EpochNum - Epoch)` epoch token is withdrawn from staker's staking bundle box each time compounding happens.
 
-#### Compounding TX mapping for Ergo
-
 [Compounding TX mapping for Ergo](./../img/compound.svg)
 
 ### Redeem
