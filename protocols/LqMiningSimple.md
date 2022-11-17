@@ -53,6 +53,10 @@ Compounding must be performed each epoch so that rewards allocated for each epoc
 Each staker receives a reward of `EpochReward * StakerLQ / LockedLQ` tokens for each passed epoch. 
 `K - EpochLen * (EpochNum - Epoch)` epoch token is withdrawn from staker's staking bundle box each time compounding happens.
 
+#### Compounding TX mapping for Ergo
+
+[Compounding TX mapping for Ergo](./../img/compound.svg)
+
 ### Redeem
 Once Bob decided to unstake his liquidity he returns his staking bundle to LM Pool and receives proportional amount of LQ tokens to the amount of vLQ returned. Redemption is only allowed when all epochs Bob is eligible for are compounded.
 

@@ -1,6 +1,6 @@
 // Pool box registers mapping:
 // R4: Coll[Byte] - redeemer proposition; where the reward should be sent.
-// R5: Long       - bundle key (tokenId); used to authenticate redeem.
+// R5: Long       - bundle key ID (tokenId); used to authenticate redeem.
 // R6: Long       - pool ID (tokenId)   ; used to authenticate pool.
 // 
 // ContextExtension constants:
