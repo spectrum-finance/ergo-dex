@@ -1,10 +1,8 @@
-// Pool state mapping:
+// Pool box registers mapping:
 // R4: Coll[Int] - program config
 // R5: Long      - total budget of LM program
 // R6: Long      - total execution budget
-//
-// ContextExtension mapping:
-// 0: Int - index of the epoch being compounded (required only for compounding)
+// R7: Int       - index of the epoch being compounded (required only for compounding)
 {
   val poolNFT0 = SELF.tokens(0)
   val poolX0   = SELF.tokens(1)
@@ -20,6 +18,7 @@
 
   val programBudget = SELF.R5[Long].get
   val epochAlloc    = programBudget / epochNum
+  val execBudget    = successor.R6[Long].get
 
   val successor = OUTPUTS(0)
 
@@ -31,10 +30,14 @@
 
   val conf1          = successor.R4[Coll[Int]].get
   val programBudget1 = successor.R5[Long].get
+  val execBudget1    = successor.R6[Long].get
 
   val nftPreserved    = poolNFT1 == poolNFT0
   val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
-  val configPreserved = conf1 == conf0 && programBudget1 == programBudget
+  val configPreserved =
+    conf1 == conf0 &&
+    programBudget1 == programBudget &&
+    execBudget1 == execBudget
 
   val assetsPreserved =
     poolX1._1 == poolX0._1 &&
@@ -76,23 +79,22 @@
       deltaVLQ == -deltaLQ &&
       deltaTMP == returnedTMP
     } else { // compound
-      val epoch               = getVar[Int](0).get
+      val epoch               = successor.R7[Int].get
       val epochsToCompound    = epochNum - epoch
       val legalEpoch          = epoch <= curEpochIx - 1
       val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc
       val reward              = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
 
-      val execBudget   = successor.R6[Long].get
-      val execBudget0  = SELF.value
-      val execBudget1  = successor.value
-      val execFee      = (reward.toBigInt * execBudget / programBudget).toLong
+      val execBudgetRem0 = SELF.value
+      val execBudgetRem1 = successor.value
+      val execFee        = (reward.toBigInt * execBudget / programBudget).toLong
 
       legalEpoch &&
       prevEpochCompounded &&
       -deltaX == reward &&
       deltaLQ == 0L &&
       deltaVLQ == 0L &&
-      execBudget1 - execBudget0 <= execFee // valid exec fee
+      execBudgetRem1 - execBudgetRem0 <= execFee // valid exec fee
     }
 
   nftPreserved &&

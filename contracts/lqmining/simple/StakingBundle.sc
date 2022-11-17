@@ -1,11 +1,20 @@
+// Pool box registers mapping:
+// R4: Coll[Byte] - redeemer proposition; where the reward should be sent.
+// R5: Long       - bundle key (tokenId); used to authenticate redeem.
+// R6: Long       - pool ID (tokenId)   ; used to authenticate pool.
+// 
+// ContextExtension constants:
+// 0: Int - redeemer output index
+// 1: Int - sucessor output index
+// * indexes are dynamic to allow batch compounding.
 {
   val bundleId0  = SELF.tokens(0)
   val bundleVLQ0 = SELF.tokens(1)
   val bundleTMP0 = SELF.tokens(2)
 
-  val redeemerPk0 = SELF.R4[SigmaProp].get
-  val bundleKey0  = SELF.R5[Coll[Byte]].get
-  val poolId0     = SELF.R6[Coll[Byte]].get
+  val redeemerProp0 = SELF.R4[Coll[Byte]].get
+  val bundleKey0    = SELF.R5[Coll[Byte]].get
+  val poolId0       = SELF.R6[Coll[Byte]].get
 
   val pool0 = INPUTS(0)
   val pool1 = OUTPUTS(0)
@@ -16,7 +25,7 @@
 
   val validAction =
     if (deltaLQ == 0L) { // compound
-      val epoch               = pool1.R6[Int].get
+      val epoch               = pool1.R7[Int].get
       val conf                = pool0.R4[Coll[Int]].get
       val epochNum            = conf(2)
       val programBudget       = pool0.R5[Long].get
@@ -31,7 +40,7 @@
       val redeemerOutIx       = getVar[Int](0).get
       val redeemer            = OUTPUTS(redeemerOutIx)
       val redeemerRewardToken = redeemer.tokens(0)
-      val validRedeemer       = redeemer.propositionBytes == redeemerPk0.propBytes
+      val validRedeemer       = redeemer.propositionBytes == redeemerProp0
 
       val successorIndex = getVar[Int](1).get
 
@@ -42,7 +51,7 @@
       val bundleTMP1 = successor.tokens(2)
 
       val validSuccessor =
-        successor.R4[SigmaProp].get == redeemerPk0 &&
+        successor.R4[Coll[Byte]].get == redeemerProp0 &&
         successor.R5[Coll[Byte]].get == bundleKey0 &&
         successor.R6[Coll[Byte]].get == poolId0 &&
         bundleTMP1._1 == bundleTMP0._1 &&
