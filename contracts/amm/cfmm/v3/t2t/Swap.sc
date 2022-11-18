@@ -6,7 +6,7 @@
     val DexFeePerTokenNum   = 1L
     val DexFeePerTokenDenom = 10L
     val MinQuoteAmount      = 800L
-    val ReservedExFee       = 1400L
+    val MaxExFee       = 1400L
     val SpectrumIsQuote     = true // todo: make sure sigma produces same templates regardless of this const.
 
     val poolIn = INPUTS(0)
@@ -15,7 +15,7 @@
         if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
             val base       = SELF.tokens(0)
             val baseId     = base._1
-            val baseAmount = (if (baseId != SpectrumId) base._2 else base._2 - ReservedExFee).toBigInt
+            val baseAmount = (if (baseId != SpectrumId) base._2 else base._2 - MaxExFee).toBigInt
 
             val poolNFT    = poolIn.tokens(0)._1
             val poolAssetX = poolIn.tokens(2)
@@ -26,7 +26,7 @@
             val rewardBox   = OUTPUTS(1)
             val quoteAsset  = rewardBox.tokens(0)
             val quoteAmount =
-                if (SpectrumIsQuote) FeeDenom * (quoteAsset._2.toBigInt - ReservedExFee) / (FeeDenom - FeeNum)
+                if (SpectrumIsQuote) FeeDenom * (quoteAsset._2.toBigInt - MaxExFee) / (FeeDenom - FeeNum)
                 else quoteAsset._2.toBigInt
 
             val valuePreserved = rewardBox.value >= SELF.value
@@ -35,7 +35,7 @@
                 if (SpectrumIsQuote) true
                 else {
                     val exFee     = quoteAmount * DexFeePerTokenNum / DexFeePerTokenDenom
-                    val remainder = ReservedExFee - exFee
+                    val remainder = MaxExFee - exFee
                     if (remainder > 0) {
                         val spectrumRem = rewardBox.tokens(1)
                         spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder

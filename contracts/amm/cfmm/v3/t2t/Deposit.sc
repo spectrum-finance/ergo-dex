@@ -1,9 +1,6 @@
 {
     val InitiallyLockedLP = 0x7fffffffffffffffL
 
-    val selfX = SELF.tokens(0)
-    val selfY = SELF.tokens(1)
-
     val poolIn = INPUTS(0)
 
     val validDeposit =
@@ -19,19 +16,24 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val minByX = selfX._2.toBigInt * supplyLP / reservesXAmount
-            val minByY = selfY._2.toBigInt * supplyLP / reservesYAmount
+            val selfX       = SELF.tokens(0)
+            val selfY       = SELF.tokens(1)
+            val selfXAmount = if (SpectrumIsX) selfX._2 - ExFee else selfX._2
+            val selfYAmount = if (SpectrumIsY) selfY._2 - ExFee else selfY._2
+
+            val minByX = selfXAmount.toBigInt * supplyLP / reservesXAmount
+            val minByY = selfYAmount.toBigInt * supplyLP / reservesYAmount
 
             val minimalReward = min(minByX, minByY)
 
             val rewardOut = OUTPUTS(1)
             val rewardLP  = rewardOut.tokens(0)
 
-            val validErgChange = rewardOut.value >= SELF.value - DexFee
+            val validErgChange = rewardOut.value >= SELF.value
 
             val validTokenChange =
                 if (minByX < minByY && rewardOut.tokens.size == 2) {
-                    val diff = minByY - minByX
+                    val diff    = minByY - minByX
                     val excessY = diff * reservesYAmount / supplyLP
 
                     val changeY = rewardOut.tokens(1)
@@ -39,7 +41,7 @@
                     changeY._1 == reservesY._1 &&
                     changeY._2 >= excessY
                 } else if (minByX > minByY && rewardOut.tokens.size == 2) {
-                    val diff = minByX - minByY
+                    val diff    = minByX - minByY
                     val excessX = diff * reservesXAmount / supplyLP
 
                     val changeX = rewardOut.tokens(1)

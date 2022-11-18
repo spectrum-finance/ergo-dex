@@ -7,6 +7,9 @@
         if (INPUTS.size == 2 && poolIn.tokens.size == 3) {
             val selfY = SELF.tokens(0)
 
+            val selfXAmount = SelfXAmount
+            val selfYAmount = if (SpectrumIsY) selfY._2 - ExFee else selfY._2
+
             val validPoolIn = poolIn.tokens(0)._1 == PoolNFT
 
             val poolLP          = poolIn.tokens(1)
@@ -16,10 +19,8 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val _selfX = SelfX
-
-            val minByX = _selfX.toBigInt * supplyLP / reservesXAmount
-            val minByY = selfY._2.toBigInt * supplyLP / reservesYAmount
+            val minByX = selfXAmount.toBigInt * supplyLP / reservesXAmount
+            val minByY = selfYAmount.toBigInt * supplyLP / reservesYAmount
 
             val minimalReward = min(minByX, minByY)
 
@@ -28,19 +29,18 @@
 
             val validChange =
                 if (minByX < minByY && rewardOut.tokens.size == 2) {
-                    val diff = minByY - minByX
+                    val diff    = minByY - minByX
                     val excessY = diff * reservesYAmount / supplyLP
-
                     val changeY = rewardOut.tokens(1)
 
-                    rewardOut.value >= SELF.value - DexFee - _selfX &&
+                    rewardOut.value >= SELF.value - selfXAmount &&
                     changeY._1 == reservesY._1 &&
                     changeY._2 >= excessY
                 } else if (minByX >= minByY) {
-                    val diff = minByX - minByY
+                    val diff    = minByX - minByY
                     val excessX = diff * reservesXAmount / supplyLP
 
-                    rewardOut.value >= SELF.value - DexFee - (_selfX - excessX)
+                    rewardOut.value >= SELF.value - (selfXAmount - excessX)
                 } else {
                     false
                 }

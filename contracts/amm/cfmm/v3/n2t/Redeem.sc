@@ -20,7 +20,7 @@
 
             val returnOut = OUTPUTS(1)
 
-            val returnXAmount = returnOut.value - SELF.value + DexFee
+            val returnXAmount = returnOut.value - SELF.value
             val returnY       = returnOut.tokens(0)
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
