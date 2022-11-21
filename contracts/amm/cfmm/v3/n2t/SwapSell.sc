@@ -13,7 +13,7 @@
     val poolIn = INPUTS(0)
 
     val validTrade =
-        if (INPUTS.size == 2 && poolIn.tokens.size == 3) {
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
             val poolNFT = poolIn.tokens(0)._1
 
             val poolY = poolIn.tokens(2)

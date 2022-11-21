@@ -4,7 +4,7 @@
     val poolIn = INPUTS(0)
 
     val validDeposit =
-        if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 4) {
             val validPoolIn  = poolIn.tokens(0) == (PoolNFT, 1L)
 
             val poolLP    = poolIn.tokens(1)

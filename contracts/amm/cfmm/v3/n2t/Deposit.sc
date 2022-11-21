@@ -4,7 +4,7 @@
     val poolIn = INPUTS(0)
 
     val validDeposit =
-        if (INPUTS.size == 2 && poolIn.tokens.size == 3) {
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
             val selfY = SELF.tokens(0)
 
             val selfXAmount = SelfXAmount

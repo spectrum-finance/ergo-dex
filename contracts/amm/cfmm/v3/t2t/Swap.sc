@@ -12,7 +12,7 @@
     val poolIn = INPUTS(0)
 
     val validTrade =
-        if (INPUTS.size == 2 && poolIn.tokens.size == 4) {
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 4) {
             val base       = SELF.tokens(0)
             val baseId     = base._1
             val baseAmount = (if (baseId != SpectrumId) base._2 else base._2 - MaxExFee).toBigInt
