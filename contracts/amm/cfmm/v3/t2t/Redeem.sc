@@ -29,7 +29,6 @@
 
             validPoolIn &&
             returnOut.propositionBytes == Pk.propBytes &&
-            returnOut.value >= SELF.value - DexFee &&
             returnX._1 == reservesX._1 &&
             returnY._1 == reservesY._1 &&
             returnX._2 >= minReturnX &&
