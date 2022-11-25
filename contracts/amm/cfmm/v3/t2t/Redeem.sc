@@ -7,7 +7,7 @@
 
     val validRedeem =
         if (INPUTS.size >= 2 && poolIn.tokens.size == 4) {
-            val validPoolIn = poolIn.tokens(0) == (PoolNFT, 1L)
+            val validPoolIn = poolIn.tokens(0)._1 == PoolNFT
 
             val poolLP    = poolIn.tokens(1)
             val reservesX = poolIn.tokens(2)
