@@ -50,12 +50,12 @@
             }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
             validPoolIn &&
-            rewardOut.propositionBytes == Pk.propBytes &&
+            rewardOut.propositionBytes == RedeemerPropBytes &&
             validChange &&
             rewardLP._1 == poolLP._1 &&
             rewardLP._2 >= minimalReward &&
             validMinerFee
         } else false
 
-    sigmaProp(Pk || validDeposit)
+    sigmaProp(RefundProp || validDeposit)
 }

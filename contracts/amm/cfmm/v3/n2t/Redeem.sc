@@ -28,12 +28,12 @@
             }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
             validPoolIn &&
-            returnOut.propositionBytes == Pk.propBytes &&
+            returnOut.propositionBytes == RedeemerPropBytes &&
             returnY._1 == reservesY._1 && // token id matches
             returnXAmount >= minReturnX &&
             returnY._2 >= minReturnY &&
             validMinerFee
         } else false
 
-    sigmaProp(Pk || validRedeem)
+    sigmaProp(RefundProp || validRedeem)
 }
