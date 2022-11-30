@@ -19,7 +19,7 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 
 _Notes_:
 * `execBudget` is not necessary for Self-Hosted LM Pool
-* 
+
 ### Tokens
 | Name           | Description                            |
 |----------------|----------------------------------------|
