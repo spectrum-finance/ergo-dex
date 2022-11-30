@@ -1,45 +1,69 @@
 package io.ergodex.core.sim.lqmining.simple
 
+import io.ergodex.core.sim.Helpers.tokenId
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
 import io.ergodex.core.sim.{Box, RuntimeState, SigmaProp}
 import io.ergodex.core.syntax._
 
-final class DepositBox[F[_]: RuntimeState](
-  override val id: Coll[Byte],
-  override val value: Long,
-  override val tokens: Vector[(Coll[Byte], Long)],
-  override val registers: Map[Int, Any]
-) extends Box[F] {
+final class DepositBox[F[_] : RuntimeState](
+                                             override val id: Coll[Byte],
+                                             override val value: Long,
+                                             override val tokens: Vector[(Coll[Byte], Long)],
+                                             override val registers: Map[Int, Any]
+                                           ) extends Box[F] {
   override val validatorTag = "deposit_order"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
-      val expectedNumEpochs = SELF.R5[Int].get
-      val poolId            = SELF.R6[Coll[Byte]].get
-      val redeemerPk        = SELF.R4[SigmaProp].get
+      // Context (declarations here are only for simulations):
+      val ExpectedNumEpochs = SELF.R5[Int].get
+      val RedeemerPk = SigmaProp("user")
+      val PoolId = tokenId("LM_Pool_NFT_ID")
 
-      val redeemerOut = OUTPUTS(1) // 0 -> pool_out, 1 -> redeemer_out, 2 -> bundle_out
-      val bundleOut   = OUTPUTS(2)
+      // ===== Contract Information ===== //
+      // Name: Deposit
+      // Description: Contract that validates user's deposit into the LM Pool.
+      //
+      // ===== Deposit Box ===== //
+      // Tokens:
+      //   0:
+      //     _1: LQ Token ID  // identifier for the stake pool box.
+      //     _2: Amount of LQ Tokens to deposit
+      //
+      // Validations:
+      // 1. Assets are deposited into the correct LM Pool;
+      // 2. Redeemer PubKey matches and correct Bundle identification token is received;
+      // 3. Bundle stores correct: Redeemer PubKey; bundleKeyId; vLQ token ID; vLQ token amount; TMP token ID; TMP token amount.
+      //
+      // ===== Getting SELF data ===== //
+      val deposit = SELF.tokens(0)
 
-      val poolIn      = INPUTS(0)
+      // ===== Getting INPUTS data ===== //
+      val poolIn = INPUTS(0)
       val bundleKeyId = poolIn.id
 
-      val deposit     = SELF.tokens(0)
+      // ===== Getting OUTPUTS data ===== //
+      val redeemerOut = OUTPUTS(1) // 0 -> pool_out, 1 -> redeemer_out, 2 -> bundle_out
+      val bundleOut = OUTPUTS(2)
+
+      // ===== Calculations ===== //
       val expectedVLQ = deposit._2
-      val expectedTMP = expectedVLQ * expectedNumEpochs
+      val expectedTMP = expectedVLQ * ExpectedNumEpochs
 
-      val validPoolIn = poolIn.tokens(0)._1 == poolId
+      // ===== Validating conditions ===== //
+      // 1.
+      val validPoolIn = poolIn.tokens(0)._1 == PoolId
+      // 2.
       val validRedeemerOut =
-        redeemerOut.propositionBytes == redeemerPk.propBytes &&
-        (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
-
+        redeemerOut.propositionBytes == RedeemerPk.propBytes &&
+          (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
+      // 3.
       val validBundle =
-        bundleOut.R4[SigmaProp].get.propBytes == redeemerPk.propBytes &&
-        bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
-        (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(1) &&
-        (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(2)
+        bundleOut.R4[SigmaProp].get.propBytes == RedeemerPk.propBytes &&
+          bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
+          (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(1) &&
+          (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(2)
 
-      redeemerPk || (validPoolIn && validRedeemerOut && validBundle)
+      RedeemerPk || (validPoolIn && validRedeemerOut && validBundle)
     }
-
 }
