@@ -16,6 +16,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
   val epochLen = 5
   val programStart = 20000
   val minValue = 1000L
+  val epochReg = 8
 
   val pool01: LMPool[Ledger] = {
     LMPool.init(epochLen, epochNum, programStart, programBudget = 9000L * minValue, minValue = minValue)
@@ -36,10 +37,23 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val action = pool01.deposit(input0)
     val currEpoch = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
     val (_, Right((pool1, _))) = action.run(RuntimeCtx.at(startAtHeight)).value
-    val poolBox0 = pool01.toLedger[Ledger].setRegister(7, currEpoch)
-    val poolBox1 = pool1.toLedger[Ledger].setRegister(7, currEpoch)
+    val poolBox0 = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
+    val poolBox1 = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
     val (_, isValid) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
     isValid shouldBe true
+  }
+
+  it should "validate deposit behaviour during LM program mirrored from simulation during compounding" in {
+    val startAtHeight = programStart - 1
+    val action = pool01.deposit(input0)
+    val (_, Right((pool1, sb1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+    val action1 = pool1.deposit(input0)
+    val (_, Right((pool2, sb2))) = action1.run(RuntimeCtx.at(startAtHeight)).value
+    val action2 = pool2.compound(sb1, epoch = 1)
+    val (_, Right((pool3, _, w))) = action2.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val action3 = pool3.deposit(input0)
+    val (_, Left(pool4)) = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    pool4 shouldBe PrevEpochNotWithdrawn
   }
 
   it should "validate deposit behaviour after LM program end mirrored from simulation" in {
@@ -62,9 +76,9 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
 
     val (_, (pool2, pool3, pool4)) = action.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox2 = pool2.toLedger[Ledger].setRegister(7, 1)
-    val poolBox3 = pool3.toLedger[Ledger].setRegister(7, 1)
-    val poolBox4 = pool4.toLedger[Ledger].setRegister(7, 1)
+    val poolBox2 = pool2.toLedger[Ledger].setRegister(epochReg, 1)
+    val poolBox3 = pool3.toLedger[Ledger].setRegister(epochReg, 1)
+    val poolBox4 = pool4.toLedger[Ledger].setRegister(epochReg, 1)
 
     val (_, isValidFirstCompounding) =
       poolBox2.validator.run(RuntimeCtx(startAtHeight + epochStep, outputs = List(poolBox3))).value
@@ -102,12 +116,12 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         4 -> Vector(pool01.conf),
         5 -> pool01.conf.programBudget,
         6 -> MinCollateralErg,
-        8 -> pool01.conf.minValue,
+        7 -> pool01.conf.minValue,
       )
     )
 
     val (_, isValid) =
-      poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1.setRegister(7, 2)))).value
+      poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1.setRegister(epochReg, 2)))).value
 
     pool2 shouldBe IllegalEpoch
     isValid shouldBe false

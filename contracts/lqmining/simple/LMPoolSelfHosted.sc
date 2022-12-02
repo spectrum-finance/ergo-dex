@@ -1,3 +1,4 @@
+
 { // ===== Contract Information ===== //
   // Name: LMPoolSelfHosted
   // Description: Contract that validates a change in the LM pool's state.
@@ -9,8 +10,8 @@
   //      1: Number of epochs in the LM program
   //      2: Program start
   //   R5[Long]: Program budget  // total budget of LM program.
+  //   R6[Long]: MinValue // Tokens delta min Value.
   //   R7[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
-  //   R8[Long]: MinValue // ERG min Value.
   //
   // Tokens:
   //   0:
@@ -64,7 +65,7 @@
   val programStart = conf0(2)
 
   val programBudget0 = SELF.R5[Long].get
-  val minValue0 = SELF.R8[Long].get
+  val minValue0 = SELF.R6[Long].get
 
   // ===== Getting OUTPUTS data ===== //
   val successor = OUTPUTS(0)
@@ -78,7 +79,7 @@
   val conf1 = successor.R4[Coll[Int]].get
 
   val programBudget1 = successor.R5[Long].get
-  val minValue1 = successor.R8[Long].get
+  val minValue1 = successor.R6[Long].get
 
   // ===== Getting deltas ===== //
   val reservesX = poolX0._2
@@ -123,7 +124,8 @@
       val epochsAllocated = epochNum - max(0L, curEpochIx)
       val releasedTMP = releasedVLQ * epochsAllocated
       // 6.1.1.
-      val prevEpochsCompoundedForDeposit = reservesX - (epochNum - curEpochIx + 1) * programBudget0 / epochNum >= epochAlloc
+      val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+      val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
 
       (prevEpochsCompoundedForDeposit || (reservesX == programBudget0)) &&
         // 6.1.2. && 6.1.3.
@@ -133,7 +135,6 @@
     } else if (deltaLQ < 0) { // redeem
       // 6.2.
       val releasedLQ = deltaVLQ
-      val curEpochToCalc = if (curEpochIx < epochNum) curEpochIx else epochNum + 1
       val minReturnedTMP = {
         if (curEpochIx > epochNum) 0L
         else {
@@ -142,7 +143,8 @@
         }
       }
       // 6.2.1.
-      val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * programBudget0 / epochNum
+      val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+      val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
 
       (prevEpochsCompoundedForRedeem || (reservesX == programBudget0)) &&
         // 6.2.2. & 6.2.3.
@@ -154,7 +156,7 @@
       // 6.3.
       val epoch = successor.R7[Int].get
       val epochsToCompound = epochNum - epoch
-      val prevEpochCompounded = (reservesX - epochsToCompound * programBudget0.toBigInt / epochNum).toLong <= (epochAlloc + minValue0)
+      val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + minValue0)
 
       val legalEpoch = epoch <= curEpochIx - 1
       val reward = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
@@ -167,7 +169,6 @@
         (deltaVLQ == 0L)
     }
   }
-
   sigmaProp(nftPreserved &&
     configPreserved &&
     scriptPreserved &&

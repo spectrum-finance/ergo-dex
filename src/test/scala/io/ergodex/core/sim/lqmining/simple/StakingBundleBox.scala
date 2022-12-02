@@ -92,7 +92,8 @@ final class StakingBundleBox[F[_] : RuntimeState](
           val bundleVLQ1 = successor.tokens(1)
           val bundleTMP1 = successor.tokens(2)
           val redeemerRewardToken = redeemer.tokens(2)
-          val epoch = pool1.R7[Int].get
+          val epoch_ = pool1.R8[Int]
+          val epoch = if (epoch_.isDefined) epoch_.get else pool1.R7[Int].get
 
           // ===== Getting deltas and calculate reward ===== //
           val epochsToCompound = epochNum - epoch

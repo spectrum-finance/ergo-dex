@@ -13,9 +13,9 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epochNum`      | `Integer`   | Number of epochs in LM program         |
 | `programStart`  | `Integer`   | Block the program starts at            |
 | `programBudget` | `Long`      | Total LM program budget                |
+| `minValue`      | `Long`      | Total allowable residual from rounding |
 | `execBudget`    | `Long`      | Total execution budget                 |
 | `epoch`         | `Int`       | Index of the epoch being compounded    |
-| `minValue`      | `Long`      | Total allowable residual from rounding |
 
 _Notes_:
 * `execBudget` is not necessary for Self-Hosted LM Pool
@@ -70,7 +70,8 @@ Alice wants to participate in LM program X. To do that, she sends `LQa` ADA/Xt L
 address and receives bundled (see "Staking bundle" section above) `vLQa` vLQ tokens + `TMPa` temporal tokens in return,
 where `vLQa` - amount of LQ tokens deposited, `LQa = vLQa`, `TMPa = (EpochNum - (Height - ProgramStart + 1)) * vLQa`
 
-![LMDeposit0](./../img/LMDeposit.png)
+![LMDeposit0](./../img/LMDeposit0.png)
+![LMDeposit1](./../img/LMDeposit1.png)
 
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
@@ -87,7 +88,7 @@ Each staker automatically receives a reward of `EpochReward * StakerLQ / LockedL
 Once Alice decided to unstake her liquidity she returns her staking bundle to LM Pool and receives proportional amount of LQ tokens
 to the amount of vLQ returned. Redemption is only allowed when all epochs Alice is eligible for are compounded.
 
-![LMRedeem0](./../img/LMRedeem.png)
+![LMRedeem](./../img/LMRedeem.png)
 
 _Notes_:
 * User can redeem his LQ tokens before and after program end

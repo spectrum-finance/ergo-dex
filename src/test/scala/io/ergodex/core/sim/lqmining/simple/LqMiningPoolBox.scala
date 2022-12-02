@@ -17,7 +17,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       // ===== Contract Information ===== //
       // Name: LMPool
       // Description: Contract that validates a change in the LM pool's state.
-
+      //
       // ===== LM Pool Box ===== //
       // Registers:
       //   R4[Coll[Int]]: LM program config
@@ -25,9 +25,9 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       //      1: Number of epochs in the LM program
       //      2: Program start
       //   R5[Long]: Program budget  // total budget of LM program.
-      //   R6[Long]: Execution budget  // total execution budget.
-      //   R7[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
-      //   R8[Long]: MinValue // Tokens delta min Value.
+      //   R6[Long]: MinValue // Tokens delta min Value.
+      //   R7[Long]: Execution budget  // total execution budget.
+      //   R8[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
       //
       // Tokens:
       //   0:
@@ -61,14 +61,14 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       //         6.2.1. Previous epochs are compounded;
       //         6.2.2. Delta LQ tokens amount is correct;
       //         6.2.3. Delta TMP tokens amount is correct.
-      //    6.3. Compound: else + if (execBudgetRem1 < execBudgetRem0 && execBudgetRem1 != 0)
+      //    6.3. Compound: if (execBudgetRem1 < execBudgetRem0)
       //         6.3.1. Epoch is legal to perform compounding;
       //         6.3.2. Previous epoch is compounded;
       //         6.3.3. Delta reward tokens amount equals to calculated reward amount;
       //         6.3.4. Delta LQ tokens amount is 0;
       //         6.3.5. Delta vLQ tokens amount is 0;
       //         6.3.6. Execution fee amount is valid.
-      //    6.4. Increase execution budget: else if (execBudgetRem1 > execBudgetRem0 && execBudgetRem1 != 0)
+      //    6.4. Increase execution budget: else
       //         6.4.1. execBudgetRem1 >= execBudgetRem0;
       //         6.4.2. Delta LQ tokens amount is 0;
       //         6.4.3. Delta vLQ tokens amount is 0;
@@ -88,8 +88,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       val programStart = conf0(2)
 
       val programBudget0 = SELF.R5[Long].get
-      val execBudget0 = SELF.R6[Long].get
-      val minValue0 = SELF.R8[Long].get
+      val minValue0 = SELF.R6[Long].get
+      val execBudget0 = SELF.R7[Long].get
 
       // ===== Getting OUTPUTS data ===== //
       val successor = OUTPUTS(0)
@@ -103,8 +103,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       val conf1 = successor.R4[Coll[Int]].get
 
       val programBudget1 = successor.R5[Long].get
-      val execBudget1 = successor.R6[Long].get
-      val minValue1 = successor.R8[Long].get
+      val minValue1 = successor.R6[Long].get
+      val execBudget1 = successor.R7[Long].get
 
       // ===== Getting deltas ===== //
       val reservesX = poolX0._2
@@ -148,8 +148,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
           val epochsAllocated = epochNum - max(0L, curEpochIx)
           val releasedTMP = releasedVLQ * epochsAllocated
           // 6.1.1.
-          val prevEpochsCompoundedForDeposit = reservesX - (epochNum - curEpochIx + 1) * programBudget0 / epochNum >= epochAlloc
-
+          val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+          val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
           (prevEpochsCompoundedForDeposit || (reservesX == programBudget0)) &&
             // 6.1.2. && 6.1.3.
             (deltaLQ == -deltaVLQ) &&
@@ -158,7 +158,6 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
         } else if (deltaLQ < 0) { // redeem
           // 6.2.
           val releasedLQ = deltaVLQ
-          val curEpochToCalc = if (curEpochIx < epochNum) curEpochIx else epochNum + 1
           val minReturnedTMP = {
             if (curEpochIx > epochNum) 0L
             else {
@@ -167,7 +166,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
             }
           }
           // 6.2.1.
-          val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * programBudget0 / epochNum
+          val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+          val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
 
           (prevEpochsCompoundedForRedeem || (reservesX == programBudget0)) &&
             // 6.2.2. & 6.2.3.
@@ -177,13 +177,13 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
         } else {
           val execBudgetRem0 = SELF.value
           val execBudgetRem1 = successor.value
-          if (execBudgetRem1 < execBudgetRem0 && execBudgetRem1 != 0) { // compound
+          if (execBudgetRem1 <= execBudgetRem0) { // compound
             // 6.3.
-            val epoch = successor.R7[Int].get
+            val epoch = successor.R8[Int].get
             val epochsToCompound = epochNum - epoch
             // 6.3.1.
             val legalEpoch = epoch <= curEpochIx - 1
-            val prevEpochCompounded = (reservesX - epochsToCompound * programBudget0.toBigInt / epochNum).toLong <= (epochAlloc + minValue0)
+            val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + minValue0)
 
             val reward = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
             val execFee = (reward.toBigInt * execBudget0 / programBudget0).toLong
@@ -196,16 +196,15 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
               (deltaVLQ == 0L) &&
               (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
           }
-          else if (execBudgetRem1 > execBudgetRem0 && execBudgetRem1 != 0) { // increase execution budget
+          else { // increase execution budget
             // 6.4.
             // 6.4.1. && 6.4.2. && 6.4.3. && 6.4.4. && 6.4.5.
-            (execBudgetRem1 >= execBudgetRem0) &&
+            (execBudgetRem1 > execBudgetRem0) &&
               (deltaLQ == 0L) &&
               (deltaVLQ == 0L) &&
               (deltaX == 0L) &&
               (deltaTMP == 0L)
           }
-          else false
         }
       }
       nftPreserved &&

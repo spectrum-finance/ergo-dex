@@ -87,8 +87,9 @@ final case class LMPool[Ledger[_] : RuntimeState](
           } else {
             lastUpdatedAtEpochIx
           }
-        if ((reserves.X - (conf.epochNum - curEpochIx + 1) * conf.programBudget / conf.epochNum +
-          conf.minValue >= conf.epochAlloc) || (reserves.X == conf.programBudget)) {
+        val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
+        val prevEpochsCompounded = ((conf.programBudget - reserves.X) + conf.minValue) >= (curEpochToCalc - 1) * conf.epochAlloc
+        if (prevEpochsCompounded || (reserves.X == conf.programBudget)) {
           Right(
             copy(
               reserves = reserves.copy(
@@ -141,7 +142,8 @@ final case class LMPool[Ledger[_] : RuntimeState](
     RuntimeState.withRuntimeState { ctx =>
       val curEpochIx = if (ctx.height < conf.programEnd) epochIx(ctx) else conf.epochNum + 1
       val releasedLQ = bundle.vLQ
-      val prevEpochsCompounded = (conf.programBudget - reserves.X) + conf.minValue >= (curEpochIx - 1) * conf.programBudget / conf.epochNum
+      val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
+      val prevEpochsCompounded = ((conf.programBudget - reserves.X) + conf.minValue) >= (curEpochToCalc - 1) * conf.epochAlloc
       if (prevEpochsCompounded || (reserves.X == conf.programBudget)) {
         Right(
           (
@@ -210,8 +212,8 @@ object LMPool {
             pool.conf.programStart
           ),
           5 -> pool.conf.programBudget,
-          6 -> pool.execution.execBudget,
-          8 -> pool.conf.minValue,
+          6 -> pool.conf.minValue,
+          7 -> pool.execution.execBudget,
         )
       )
 

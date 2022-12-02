@@ -14,7 +14,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   val minValue = 1000L
   val KK = 10000L * minValue
-  val epochLen = 10
+  val epochLen = 11
   val epochNum = 3
   val programStart = 100
 

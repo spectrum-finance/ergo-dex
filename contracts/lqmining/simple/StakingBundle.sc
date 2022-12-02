@@ -76,7 +76,8 @@
       val bundleVLQ1 = successor.tokens(1)
       val bundleTMP1 = successor.tokens(2)
       val redeemerRewardToken = redeemer.tokens(2)
-      val epoch = pool1.R7[Int].get
+      val epoch_ = pool1.R8[Int]
+      val epoch = if (epoch_.isDefined == true) epoch_.get else pool1.R7[Int].get
 
       // ===== Getting deltas and calculate reward ===== //
       val epochsToCompound = epochNum - epoch
@@ -86,18 +87,19 @@
       val epochRewardTotal = programBudget / epochNum
       val epochsBurned = (bundleTMP / bundleVLQ) - epochsToCompound
       val reward = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / lqLockedInPoolTotal
+
       // ===== Validating conditions ===== //
       // 2.1.1.
       val validRedeemer = redeemer.propositionBytes == redeemerProp0.propBytes
       // 2.1.2.
       val validSuccessor =
-      (successor.R4[SigmaProp].get.propBytes == redeemerProp0.propBytes) &&
-        (successor.R5[Coll[Byte]].get == bundleKey0) &&
-        (successor.R6[Coll[Byte]].get == poolId0) &&
-        (bundleTMP1._1 == bundleTMP0._1) &&
-        ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
-        (bundleId1 == bundleId0) &&
-        (bundleVLQ1 == bundleVLQ0)
+        (successor.R4[SigmaProp].get.propBytes == redeemerProp0.propBytes) &&
+          (successor.R5[Coll[Byte]].get == bundleKey0) &&
+          (successor.R6[Coll[Byte]].get == poolId0) &&
+          (bundleTMP1._1 == bundleTMP0._1) &&
+          ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
+          (bundleId1 == bundleId0) &&
+          (bundleVLQ1 == bundleVLQ0)
       // 2.1.3.
       val validReward =
         (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
@@ -109,9 +111,11 @@
 
     } else if (deltaLQ < 0L) { // redeem (validated by redeem order)
       // 2.2.
+
       // ===== Getting INPUTS data ===== //
       val permitIn = INPUTS(2)
       val requiredPermit = (bundleKey0, 0x7fffffffffffffffL)
+
       // ===== Validating conditions ===== //
       // 2.2.1.
       permitIn.tokens(0) == requiredPermit
