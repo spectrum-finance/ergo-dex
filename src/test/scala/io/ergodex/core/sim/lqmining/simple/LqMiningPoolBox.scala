@@ -88,7 +88,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       val programStart = conf0(2)
 
       val programBudget0 = SELF.R5[Long].get
-      val minValue0 = SELF.R6[Long].get
+      val MaxRoundingError0 = SELF.R6[Long].get
       val execBudget0 = SELF.R7[Long].get
 
       // ===== Getting OUTPUTS data ===== //
@@ -103,7 +103,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       val conf1 = successor.R4[Coll[Int]].get
 
       val programBudget1 = successor.R5[Long].get
-      val minValue1 = successor.R6[Long].get
+      val MaxRoundingError1 = successor.R6[Long].get
       val execBudget1 = successor.R7[Long].get
 
       // ===== Getting deltas ===== //
@@ -129,7 +129,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
         (conf1 == conf0) &&
           (programBudget1 == programBudget0) &&
           (execBudget1 == execBudget0) &&
-          (minValue1 == minValue0)
+          (MaxRoundingError1 == MaxRoundingError0)
       // 3.
       val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
       // 4.
@@ -149,7 +149,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
           val releasedTMP = releasedVLQ * epochsAllocated
           // 6.1.1.
           val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-          val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
+          val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
           (prevEpochsCompoundedForDeposit || (reservesX == programBudget0)) &&
             // 6.1.2. && 6.1.3.
             (deltaLQ == -deltaVLQ) &&
@@ -167,7 +167,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
           }
           // 6.2.1.
           val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-          val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
+          val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
 
           (prevEpochsCompoundedForRedeem || (reservesX == programBudget0)) &&
             // 6.2.2. & 6.2.3.
@@ -183,7 +183,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
             val epochsToCompound = epochNum - epoch
             // 6.3.1.
             val legalEpoch = epoch <= curEpochIx - 1
-            val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + minValue0)
+            val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + MaxRoundingError0)
 
             val reward = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
             val execFee = (reward.toBigInt * execBudget0 / programBudget0).toLong

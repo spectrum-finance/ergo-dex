@@ -7,15 +7,15 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 
 
 ### Datum (LM configuration)
-| Field           | Type        | Description                            |
-|-----------------|-------------|----------------------------------------|
-| `epochLen`      | `Integer`   | Length of one epoch in blocks          |
-| `epochNum`      | `Integer`   | Number of epochs in LM program         |
-| `programStart`  | `Integer`   | Block the program starts at            |
-| `programBudget` | `Long`      | Total LM program budget                |
-| `minValue`      | `Long`      | Total allowable residual from rounding |
-| `execBudget`    | `Long`      | Total execution budget                 |
-| `epoch`         | `Int`       | Index of the epoch being compounded    |
+| Field              | Type        | Description                            |
+|--------------------|-------------|----------------------------------------|
+| `epochLen`         | `Integer`   | Length of one epoch in blocks          |
+| `epochNum`         | `Integer`   | Number of epochs in LM program         |
+| `programStart`     | `Integer`   | Block the program starts at            |
+| `programBudget`    | `Long`      | Total LM program budget                |
+| `MaxRoundingError` | `Long`      | Total allowable residual from rounding |
+| `execBudget`       | `Long`      | Total execution budget                 |
+| `epoch`            | `Int`       | Index of the epoch being compounded    |
 
 _Notes_:
 * `execBudget` is not necessary for Self-Hosted LM Pool

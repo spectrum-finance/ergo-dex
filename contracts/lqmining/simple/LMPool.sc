@@ -9,7 +9,7 @@
   //      1: Number of epochs in the LM program
   //      2: Program start
   //   R5[Long]: Program budget  // total budget of LM program.
-  //   R6[Long]: MinValue // Tokens delta min Value.
+  //   R6[Long]: MaxRoundingError // Tokens rounding delta max value.
   //   R7[Long]: Execution budget  // total execution budget.
   //   R8[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
   //
@@ -72,7 +72,7 @@
   val programStart = conf0(2)
 
   val programBudget0 = SELF.R5[Long].get
-  val minValue0 = SELF.R6[Long].get
+  val MaxRoundingError0 = SELF.R6[Long].get
   val execBudget0 = SELF.R7[Long].get
 
   // ===== Getting OUTPUTS data ===== //
@@ -87,7 +87,7 @@
   val conf1 = successor.R4[Coll[Int]].get
 
   val programBudget1 = successor.R5[Long].get
-  val minValue1 = successor.R6[Long].get
+  val MaxRoundingError1 = successor.R6[Long].get
   val execBudget1 = successor.R7[Long].get
 
   // ===== Getting deltas ===== //
@@ -113,7 +113,7 @@
     (conf1 == conf0) &&
       (programBudget1 == programBudget0) &&
       (execBudget1 == execBudget0) &&
-      (minValue1 == minValue0)
+      (MaxRoundingError1 == MaxRoundingError0)
   // 3.
   val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
   // 4.
@@ -167,7 +167,7 @@
         val epochsToCompound = epochNum - epoch
         // 6.3.1.
         val legalEpoch = epoch <= curEpochIx - 1
-        val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + minValue0)
+        val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + MaxRoundingError0)
 
         val reward = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
         val execFee = (reward.toBigInt * execBudget0 / programBudget0).toLong
