@@ -5,6 +5,15 @@
   //   0:
   //     _1: BundleKeyId
   //     _2: 0x7fffffffffffffffL
+  //
+  // Constants:
+  // {1}  -> RefundPk[ProveDlog]
+  // {2}  -> RedeemerProp[Coll[Byte]]
+  // {3}  -> ExpectedLQ[Coll[Byte]]
+  // {4}  -> ExpectedLQAmount[Long]
+  //
+  // ErgoTreeTemplate: d801d601b2a5730000eb027301d1ed93c27201730293860273037304b2db63087201730500
+  //
   // Validations:
   // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token ID; vLQ token amount; bundle key ID.
   //

@@ -8,6 +8,18 @@
   //     _1: LQ Token ID  // identifier for the stake pool box.
   //     _2: Amount of LQ Tokens to deposit
   //
+  // Constants:
+  // {2}  -> RedeemerProp[Coll[Byte]]
+  // {5}  -> RefundPk[ProveDlog]
+  // {7}  -> PoolId[Coll[Byte]]
+  // {13} -> ExpectedNumEpochs[Int]
+  //
+  // ErgoTreeTemplate: d807d601b2a4730000d602db63087201d603b2a5730100d6047302d605c57201d606b2a5730300
+  //                   d6078cb2db6308a773040002eb027305d1eded938cb27202730600017307ed93c2720372049386
+  //                   0272057308b2db63087203730900ededed93e4c67206040e720493e4c67206050e72059386028c
+  //                   b27202730a00017207b2db63087206730b009386028cb27202730c00019c7207730db2db630872
+  //                   06730e00
+  //
   // Validations:
   // 1. Assets are deposited into the correct LM Pool;
   // 2. Redeemer PubKey matches and correct Bundle Key token is received;
