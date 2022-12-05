@@ -29,10 +29,11 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       boxId("redeem_box"),
       0,
       tokens = Vector(
+        tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
         tokenId("LQ") -> expectedLQAmount,
       ),
       registers = Map(
-        5 -> tokenId("LM_Pool_NFT_ID"),
+        5 -> tokenId("lm_pool_id"),
       )
     )
 
@@ -40,13 +41,12 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       boxId("bundle_box"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 1,
         tokenId("vLQ") -> redeemedVLQAmount,
         tokenId("TMP") -> bundleTMPAmount
       ),
       registers = Map(
-        4 -> SigmaProp("user"),
-        5 -> tokenId("LM_Pool_NFT_ID"),
+        4 -> tokenId("user"),
+        5 -> tokenId("lm_pool_id"),
         6 -> tokenId("LM_Pool_NFT_ID"),
       )
     )

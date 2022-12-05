@@ -196,7 +196,7 @@ object LMPool {
   implicit def toLedger[F[_] : RuntimeState]: ToLedger[LMPool[F], F] =
     (pool: LMPool[F]) =>
       new LqMiningPoolBox[F](
-        boxId("LM_Pool_NFT_ID"),
+        boxId("lm_pool_id"),
         pool.reserves.value,
         tokens = Vector(
           tokenId("LM_Pool_NFT_ID") -> 1L,

@@ -16,13 +16,16 @@ final class RedeemBox[F[_] : RuntimeState](
     withRuntimeState { implicit ctx =>
       // Context (declarations here are only for simulations):
       val RedeemerPk = SigmaProp("user")
-      val ExpectedLQ = SELF.tokens(0)._1
-      val ExpectedLQAmount = SELF.tokens(0)._2
+      val ExpectedLQ = SELF.tokens(1)._1
+      val ExpectedLQAmount = SELF.tokens(1)._2
 
       // ===== Contract Information ===== //
       // Name: Redeem
       // Description: Contract that validates user's redeem from the LM Pool.
-      //
+      // Tokens:
+      //   0:
+      //     _1: BundleKeyId
+      //     _2: 0x7fffffffffffffffL
       // Validations:
       // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token ID; vLQ token amount; bundle key ID.
       //
@@ -35,6 +38,7 @@ final class RedeemBox[F[_] : RuntimeState](
         (redeemerOut.propositionBytes == RedeemerPk.propBytes) &&
           ((ExpectedLQ, ExpectedLQAmount) == redeemerOut.tokens(0))
       }
+
       RedeemerPk || validRedeemerOut
     }
 }

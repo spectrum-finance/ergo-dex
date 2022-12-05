@@ -1,21 +1,19 @@
+
 { // ===== Contract Information ===== //
   // Name: StakingBundle
   // Description: Contract that validates a compounding in the LM pool.
-
+  //
   // ===== Bundle Box ===== //
   // Registers:
-  //   R4[SigmaProp]: Redeemer Proposition  // where the reward should be sent.
+  //   R4[Coll[Byte]]: Redeemer Proposition  // where the reward should be sent.
   //   R5[Coll[Byte]]: Bundle Key ID (tokenId) // used to authenticate redeem.
   //   R6[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
   //
   // Tokens:
   //   0:
-  //     _1: Bundle ID
-  //     _2: Amount: 0x7fffffffffffffffL
-  //   1:
   //     _1: vLQ Token ID  // tokens representing locked share of LQ.
   //     _2: Amount of vLQ tokens
-  //   2:
+  //   1:
   //     _1: TMP Token ID  // left program epochs times liquidity.
   //     _2: Amount of the TMP tokens
   //
@@ -37,11 +35,10 @@
   //         2.3.2 Valid successor.
   //
   // ===== Getting SELF data ===== //
-  val bundleId0 = SELF.tokens(0)
-  val bundleVLQ0 = SELF.tokens(1)
-  val bundleTMP0 = SELF.tokens(2)
+  val bundleVLQ0 = SELF.tokens(0)
+  val bundleTMP0 = SELF.tokens(1)
 
-  val redeemerProp0 = SELF.R4[SigmaProp].get
+  val redeemerProp0 = SELF.R4[Coll[Byte]].get
   val bundleKey0 = SELF.R5[Coll[Byte]].get
   val poolId0 = SELF.R6[Coll[Byte]].get
 
@@ -72,12 +69,11 @@
       val redeemer = OUTPUTS(redeemerOutIx)
       val successor = OUTPUTS(successorIndex)
 
-      val bundleId1 = successor.tokens(0)
-      val bundleVLQ1 = successor.tokens(1)
-      val bundleTMP1 = successor.tokens(2)
-      val redeemerRewardToken = redeemer.tokens(2)
+      val bundleVLQ1 = successor.tokens(0)
+      val bundleTMP1 = successor.tokens(1)
+      val redeemerRewardToken = redeemer.tokens(0)
       val epoch_ = pool1.R8[Int]
-      val epoch = if (epoch_.isDefined == true) epoch_.get else pool1.R7[Int].get
+      val epoch = if (epoch_.isDefined) epoch_.get else pool1.R7[Int].get
 
       // ===== Getting deltas and calculate reward ===== //
       val epochsToCompound = epochNum - epoch
@@ -87,19 +83,19 @@
       val epochRewardTotal = programBudget / epochNum
       val epochsBurned = (bundleTMP / bundleVLQ) - epochsToCompound
       val reward = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / lqLockedInPoolTotal
-
       // ===== Validating conditions ===== //
       // 2.1.1.
-      val validRedeemer = redeemer.propositionBytes == redeemerProp0.propBytes
+      val validRedeemer = redeemer.propositionBytes == redeemerProp0
+      // PubKey matches
+      // PubKey matches; bundleKeyID; LM Pool ID; TMP token ID;  TMP token amount;
       // 2.1.2.
       val validSuccessor =
-        (successor.R4[SigmaProp].get.propBytes == redeemerProp0.propBytes) &&
-          (successor.R5[Coll[Byte]].get == bundleKey0) &&
-          (successor.R6[Coll[Byte]].get == poolId0) &&
-          (bundleTMP1._1 == bundleTMP0._1) &&
-          ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
-          (bundleId1 == bundleId0) &&
-          (bundleVLQ1 == bundleVLQ0)
+      (successor.R4[Coll[Byte]].get == redeemerProp0) &&
+        (successor.R5[Coll[Byte]].get == bundleKey0) &&
+        (successor.R6[Coll[Byte]].get == poolId0) &&
+        (bundleTMP1._1 == bundleTMP0._1) &&
+        ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
+        (bundleVLQ1 == bundleVLQ0)
       // 2.1.3.
       val validReward =
         (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
@@ -111,11 +107,9 @@
 
     } else if (deltaLQ < 0L) { // redeem (validated by redeem order)
       // 2.2.
-
       // ===== Getting INPUTS data ===== //
       val permitIn = INPUTS(2)
       val requiredPermit = (bundleKey0, 0x7fffffffffffffffL)
-
       // ===== Validating conditions ===== //
       // 2.2.1.
       permitIn.tokens(0) == requiredPermit

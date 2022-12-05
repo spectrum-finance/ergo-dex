@@ -10,7 +10,7 @@
   //
   // Validations:
   // 1. Assets are deposited into the correct LM Pool;
-  // 2. Redeemer PubKey matches and correct Bundle identification token is received;
+  // 2. Redeemer PubKey matches and correct Bundle Key token is received;
   // 3. Bundle stores correct: Redeemer PubKey; bundleKeyId; vLQ token ID; vLQ token amount; TMP token ID; TMP token amount.
   //
   // ===== Getting SELF data ===== //
@@ -37,10 +37,10 @@
       (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
   // 3.
   val validBundle =
-    bundleOut.R4[SigmaProp].get.propBytes == RedeemerPk.propBytes &&
+    bundleOut.R4[Coll[Byte]].get == RedeemerPk.propBytes &&
       bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
-      (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(1) &&
-      (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(2)
+      (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
+      (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
 
   sigmaProp(RedeemerPk || (validPoolIn && validRedeemerOut && validBundle))
 }

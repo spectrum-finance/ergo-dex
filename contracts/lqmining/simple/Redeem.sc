@@ -1,10 +1,13 @@
 { // ===== Contract Information ===== //
   // Name: Redeem
   // Description: Contract that validates user's redeem from the LM Pool.
-  //
+  // Tokens:
+  //   0:
+  //     _1: BundleKeyId
+  //     _2: 0x7fffffffffffffffL
   // Validations:
-  // 1. Redeemer out is valid: LQ token ID; LQ token amount.
-
+  // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token ID; vLQ token amount; bundle key ID.
+  //
   // ===== Getting OUTPUTS data ===== //
   val redeemerOut = OUTPUTS(1)
 

@@ -1,4 +1,3 @@
-
 { // ===== Contract Information ===== //
   // Name: LMPoolSelfHosted
   // Description: Contract that validates a change in the LM pool's state.

@@ -20,7 +20,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       boxId("user"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 0x7fffffffffffffffL,
+        tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
       ),
       registers = Map(
       )
@@ -41,13 +41,12 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       boxId("bundle_box"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 1,
         tokenId("vLQ") -> expectedVLQAmount,
         tokenId("TMP") -> expectedTMPAmount
       ),
       registers = Map(
-        4 -> SigmaProp("user"),
-        5 -> tokenId("LM_Pool_NFT_ID"),
+        4 -> tokenId("user"),
+        5 -> tokenId("lm_pool_id"),
         6 -> tokenId("LM_Pool_NFT_ID"),
       )
     )

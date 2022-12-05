@@ -59,10 +59,10 @@ final class DepositBox[F[_] : RuntimeState](
           (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
       // 3.
       val validBundle =
-        bundleOut.R4[SigmaProp].get.propBytes == RedeemerPk.propBytes &&
+        bundleOut.R4[Coll[Byte]].get == RedeemerPk.propBytes &&
           bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
-          (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(1) &&
-          (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(2)
+          (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
+          (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
 
       RedeemerPk || (validPoolIn && validRedeemerOut && validBundle)
     }

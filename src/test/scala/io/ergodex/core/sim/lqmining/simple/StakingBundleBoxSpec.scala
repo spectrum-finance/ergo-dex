@@ -11,6 +11,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
   val minValue = 1000L
+  val epochReg = 8
   val pool01: LMPool[Ledger] =
     LMPool.init(epochLen = 3, epochNum = 4, programStart = 2, programBudget = 900000000L * minValue, minValue)
 
@@ -33,8 +34,6 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       boxId("user"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 0x7fffffffffffffffL,
-        tokenId("LQ") -> 0,
         tokenId("X") -> reward.value,
 
       ),
@@ -45,13 +44,12 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       boxId("bundle_box"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 1,
         tokenId("VLQ") -> sb1.vLQ,
         tokenId("TMP") -> sb1.TMP
       ),
       registers = Map(
-        4 -> SigmaProp("user"),
-        5 -> tokenId("LM_Pool_NFT_ID"),
+        4 -> tokenId("user"),
+        5 -> tokenId("lm_pool_id"),
         6 -> tokenId("LM_Pool_NFT_ID"),
       ))
 
@@ -59,13 +57,12 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       boxId("bundle_box"),
       0,
       tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 1,
         tokenId("VLQ") -> bundle2.vLQ,
         tokenId("TMP") -> bundle2.TMP
       ),
       registers = Map(
-        4 -> SigmaProp("user"),
-        5 -> tokenId("LM_Pool_NFT_ID"),
+        4 -> tokenId("user"),
+        5 -> tokenId("lm_pool_id"),
         6 -> tokenId("LM_Pool_NFT_ID"),
       ))
 
@@ -85,21 +82,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
 
     val (_, isValidCompound) = bundleBox1.validator.run(RuntimeCtx(startAtHeight, vars = Map(0 -> 1, 1 -> 2),
-      inputs = List(poolBox1.setRegister(7, 1), bundleBox1),
-      outputs = List(poolBox2.setRegister(7, 1), userBox0, bundleBox2))).value
-
-    val (_, isValidRedeem) = bundleBox2.validator.run(RuntimeCtx(startAtHeight,
-      inputs = List(poolBox2.setRegister(7, 1), bundleBox2, userBox0),
-      outputs = List(poolBox3.setRegister(7, 1)))).value
-    isValidCompound shouldBe true
-    isValidRedeem shouldBe true
+      inputs = List(poolBox1.setRegister(epochReg, 1), bundleBox1),
+      outputs = List(poolBox2.setRegister(epochReg, 1), userBox0, bundleBox2))).value
 
     val (_, isValidPool) = poolBox2.validator.run(RuntimeCtx(startAtHeight,
       outputs = List(poolBox3))).value
 
     isValidPool shouldBe true
     isValidCompound shouldBe true
-    isValidRedeem shouldBe true
-
   }
 }

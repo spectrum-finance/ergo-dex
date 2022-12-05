@@ -36,7 +36,6 @@ tokens and controls Compounding and Redeem operations (see "User scenarios" belo
 ### Tokens
 | Name | Description                                              | Emission |
 |------|----------------------------------------------------------|----------|
-| Key  | Bundle key                                               | 2^63     |
 | vLQ  | Virtual LQ token. Represents certain amount of liquidity |          |
 | TMP  | Temporal token                                           |          |
 
@@ -68,7 +67,8 @@ _Notes_:
 #### Deposit
 Alice wants to participate in LM program X. To do that, she sends `LQa` ADA/Xt LQ tokens to LM script
 address and receives bundled (see "Staking bundle" section above) `vLQa` vLQ tokens + `TMPa` temporal tokens in return,
-where `vLQa` - amount of LQ tokens deposited, `LQa = vLQa`, `TMPa = (EpochNum - (Height - ProgramStart + 1)) * vLQa`
+where `vLQa` - amount of LQ tokens deposited, `LQa = vLQa`, `TMPa = (EpochNum - (Height - ProgramStart + 1)) * vLQa`.
+She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bundle" redemption.
 
 ![LMDeposit0](./../img/LMDeposit0.png)
 ![LMDeposit1](./../img/LMDeposit1.png)
@@ -88,7 +88,8 @@ Each staker automatically receives a reward of `EpochReward * StakerLQ / LockedL
 Once Alice decided to unstake her liquidity she returns her staking bundle to LM Pool and receives proportional amount of LQ tokens
 to the amount of vLQ returned. Redemption is only allowed when all epochs Alice is eligible for are compounded.
 
-![LMRedeem](./../img/LMRedeem.png)
+![LMRedeem](./../img/LMRedeem0.png)
+![LMRedeem](./../img/LMRedeem1.png)
 
 _Notes_:
 * User can redeem his LQ tokens before and after program end
