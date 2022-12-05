@@ -14,6 +14,17 @@
   // {7}  -> PoolId[Coll[Byte]]
   // {13} -> ExpectedNumEpochs[Int]
   //
+  // ErgoTree:         19f3020f040004020e69aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  //                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  //                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0404
+  //                   040008cd03d36d7e86b0fe7d8aec204f0ae6c2be6563fc7a443d69501d73dfe9c2adddb15a0400
+  //                   0e20000000000000000000000000000000000000000000000000000000000000000005feffffff
+  //                   ffffffffff01040004060400040805f00d0402d807d601b2a4730000d602db63087201d603b2a5
+  //                   730100d6047302d605c57201d606b2a5730300d6078cb2db6308a773040002eb027305d1eded93
+  //                   8cb27202730600017307ed93c27203720493860272057308b2db63087203730900ededed93e4c6
+  //                   7206040e720493e4c67206050e72059386028cb27202730a00017207b2db63087206730b009386
+  //                   028cb27202730c00019c7207730db2db63087206730e00
+  //
   // ErgoTreeTemplate: d807d601b2a4730000d602db63087201d603b2a5730100d6047302d605c57201d606b2a5730300
   //                   d6078cb2db6308a773040002eb027305d1eded938cb27202730600017307ed93c2720372049386
   //                   0272057308b2db63087203730900ededed93e4c67206040e720493e4c67206050e72059386028c
