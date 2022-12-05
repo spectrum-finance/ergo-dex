@@ -14,8 +14,8 @@
   // ===== Validating conditions ===== //
   // 1.
   val validRedeemerOut = {
-    (redeemerOut.propositionBytes == RedeemerPk.propBytes) &&
+    (redeemerOut.propositionBytes == RedeemerProp) &&
       ((ExpectedLQ, ExpectedLQAmount) == redeemerOut.tokens(0))
   }
-  sigmaProp(RedeemerPk || validRedeemerOut)
+  sigmaProp(RefundPk || validRedeemerOut)
 }

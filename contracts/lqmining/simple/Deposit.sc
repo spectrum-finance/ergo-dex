@@ -33,14 +33,14 @@
   val validPoolIn = poolIn.tokens(0)._1 == PoolId
   // 2.
   val validRedeemerOut =
-    redeemerOut.propositionBytes == RedeemerPk.propBytes &&
+    redeemerOut.propositionBytes == RedeemerProp &&
       (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
   // 3.
   val validBundle =
-    bundleOut.R4[Coll[Byte]].get == RedeemerPk.propBytes &&
+    bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
       bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
       (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
       (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
 
-  sigmaProp(RedeemerPk || (validPoolIn && validRedeemerOut && validBundle))
+  sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle))
 }

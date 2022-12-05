@@ -1,7 +1,8 @@
 package io.ergodex.core.sim.lqmining.simple
 
+import io.ergodex.core.sim.Helpers.tokenId
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{Box, RuntimeState, SigmaProp}
+import io.ergodex.core.sim.{Box, RuntimeState}
 import io.ergodex.core.syntax._
 
 final class RedeemBox[F[_] : RuntimeState](
@@ -15,7 +16,8 @@ final class RedeemBox[F[_] : RuntimeState](
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
       // Context (declarations here are only for simulations):
-      val RedeemerPk = SigmaProp("user")
+      val RedeemerProp = tokenId("user")
+      val RefundPk = true
       val ExpectedLQ = SELF.tokens(1)._1
       val ExpectedLQAmount = SELF.tokens(1)._2
 
@@ -35,10 +37,10 @@ final class RedeemBox[F[_] : RuntimeState](
       // ===== Validating conditions ===== //
       // 1.
       val validRedeemerOut = {
-        (redeemerOut.propositionBytes == RedeemerPk.propBytes) &&
+        (redeemerOut.propositionBytes == RedeemerProp) &&
           ((ExpectedLQ, ExpectedLQAmount) == redeemerOut.tokens(0))
       }
 
-      RedeemerPk || validRedeemerOut
+      RefundPk || validRedeemerOut
     }
 }

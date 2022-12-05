@@ -2,7 +2,7 @@ package io.ergodex.core.sim.lqmining.simple
 
 import io.ergodex.core.sim.Helpers.tokenId
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{Box, RuntimeState, SigmaProp}
+import io.ergodex.core.sim.{Box, RuntimeState}
 import io.ergodex.core.syntax._
 
 final class DepositBox[F[_] : RuntimeState](
@@ -17,7 +17,8 @@ final class DepositBox[F[_] : RuntimeState](
     withRuntimeState { implicit ctx =>
       // Context (declarations here are only for simulations):
       val ExpectedNumEpochs = SELF.R5[Int].get
-      val RedeemerPk = SigmaProp("user")
+      val RedeemerProp = tokenId("user")
+      val RefundPk = true
       val PoolId = tokenId("LM_Pool_NFT_ID")
 
       // ===== Contract Information ===== //
@@ -55,15 +56,15 @@ final class DepositBox[F[_] : RuntimeState](
       val validPoolIn = poolIn.tokens(0)._1 == PoolId
       // 2.
       val validRedeemerOut =
-        redeemerOut.propositionBytes == RedeemerPk.propBytes &&
+        redeemerOut.propositionBytes == RedeemerProp &&
           (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
       // 3.
       val validBundle =
-        bundleOut.R4[Coll[Byte]].get == RedeemerPk.propBytes &&
+        bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
           bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
           (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
           (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
 
-      RedeemerPk || (validPoolIn && validRedeemerOut && validBundle)
+      RefundPk || (validPoolIn && validRedeemerOut && validBundle)
     }
 }
