@@ -133,7 +133,7 @@
       val releasedTMP = releasedVLQ * epochsAllocated
       // 6.1.1.
       val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-      val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
+      val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
       (prevEpochsCompoundedForDeposit || (reservesX == programBudget0)) &&
         // 6.1.2. && 6.1.3.
         (deltaLQ == -deltaVLQ) &&
@@ -151,7 +151,7 @@
       }
       // 6.2.1.
       val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-      val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + minValue0) >= (curEpochToCalc - 1) * epochAlloc
+      val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
 
       (prevEpochsCompoundedForRedeem || (reservesX == programBudget0)) &&
         // 6.2.2. & 6.2.3.
