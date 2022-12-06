@@ -10,12 +10,13 @@ import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
-  val minValue = 1000L
+  val maxRoundingError = 1000L
+  val redeemDelta = 10
   val epochReg = 8
   val pool01: LMPool[Ledger] =
-    LMPool.init(epochLen = 3, epochNum = 4, programStart = 2, programBudget = 900000000L * minValue, minValue)
+    LMPool.init(epochLen = 3, epochNum = 4, programStart = 2, redeemDelta, programBudget = 900000000L * maxRoundingError, maxRoundingError)
 
-  val input0: AssetInput[LQ] = AssetInput(1000 * minValue)
+  val input0: AssetInput[LQ] = AssetInput(1000 * maxRoundingError)
 
   it should "validate compound and redeem behaviour" in {
     val startAtHeight = 5
@@ -63,20 +64,6 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       registers = Map(
         4 -> tokenId("user"),
         5 -> tokenId("lm_pool_id"),
-        6 -> tokenId("LM_Pool_NFT_ID"),
-      ))
-
-    val bundleBox3 = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      tokens = Vector(
-        tokenId("LM_Pool_NFT_ID") -> 1,
-        tokenId("VLQ") -> 0,
-        tokenId("TMP") -> 0
-      ),
-      registers = Map(
-        4 -> SigmaProp("user"),
-        5 -> tokenId("LM_Pool_NFT_ID"),
         6 -> tokenId("LM_Pool_NFT_ID"),
       ))
 

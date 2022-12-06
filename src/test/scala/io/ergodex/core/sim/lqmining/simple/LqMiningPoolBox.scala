@@ -24,8 +24,9 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       //      0: Length of every epoch in blocks
       //      1: Number of epochs in the LM program
       //      2: Program start
+      //      3: Redeem blocks delta  // the number of blocks after the end of LM program, at which redeems can be performed without any restrictions.
       //   R5[Long]: Program budget  // total budget of LM program.
-      //   R6[Long]: MinValue // Tokens delta min Value.
+      //   R6[Long]: Max Rounding Error // tokens rounding delta max value.
       //   R7[Long]: Execution budget  // total execution budget.
       //   R8[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
       //
@@ -86,6 +87,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
       val epochLen = conf0(0)
       val epochNum = conf0(1)
       val programStart = conf0(2)
+      val redeemLimitDelta = conf0(3)
+
 
       val programBudget0 = SELF.R5[Long].get
       val MaxRoundingError0 = SELF.R6[Long].get
@@ -150,7 +153,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
           // 6.1.1.
           val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
           val prevEpochsCompoundedForDeposit = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
-          (prevEpochsCompoundedForDeposit || (reservesX == programBudget0)) &&
+
+          prevEpochsCompoundedForDeposit &&
             // 6.1.2. && 6.1.3.
             (deltaLQ == -deltaVLQ) &&
             (releasedTMP == -deltaTMP)
@@ -168,8 +172,8 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
           // 6.2.1.
           val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
           val prevEpochsCompoundedForRedeem = ((programBudget0 - reservesX) + MaxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
-
-          (prevEpochsCompoundedForRedeem || (reservesX == programBudget0)) &&
+          val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
+          (prevEpochsCompoundedForRedeem || redeemNoLimit) &&
             // 6.2.2. & 6.2.3.
             (deltaVLQ == -deltaLQ) &&
             (deltaTMP >= minReturnedTMP)

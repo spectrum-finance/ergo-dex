@@ -57,20 +57,21 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
   val epochNum = 4
   val epochLen = 3
   val programStart = 2
-  val minValue = 1000L
+  val redeemDelta = 10
+  val maxRoundingError = 1000L
 
   val pool01: LMPool[Ledger] = {
-    LMPool.init(epochLen, epochNum, programStart, programBudget = 900000000L * minValue, minValue)
+    LMPool.init(epochLen, epochNum, programStart, redeemDelta, programBudget = 900000000L * maxRoundingError, maxRoundingError)
   }
 
 
-  val depositedLQAmount = 100000L * minValue // 1L, 1000000L
+  val depositedLQAmount = 100000L * maxRoundingError // 1L, 1000000L
   val input0: AssetInput[LQ] = AssetInput(depositedLQAmount)
 
 
   it should "validate deposit behaviour before LM program start mirrored from simulation" in {
     val expectedNumEpochs = epochNum
-    val startAtHeight = programStart - 1
+    val startAtHeight = programStart - epochLen * 3
     val action = pool01.deposit(input0)
     val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
@@ -116,32 +117,6 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
 
     bundle1.vLQ shouldBe expectedVLQAmount
     bundle1.TMP shouldBe expectedTMPAmount
-    isValidDeposit shouldBe true
-    isValidPool shouldBe true
-  }
-
-  it should "validate deposit behaviour at last epoch of LM program mirrored from simulation" in {
-    val expectedNumEpochs = 0
-    val startAtHeight = programStart + epochLen * epochNum - 1
-    val action = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
-
-    val expectedVLQAmount = depositedLQAmount
-    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
-
-    val poolBox0 = pool01.toLedger[Ledger]
-    val poolBox1 = pool1.toLedger[Ledger]
-
-    val (userBox1, depositBox1, bundleBox1) = getBoxes(depositedLQAmount, expectedNumEpochs,
-      expectedVLQAmount, expectedTMPAmount)
-
-
-    val (_, isValidDeposit) = depositBox1.validator.run(RuntimeCtx(startAtHeight, inputs = List(poolBox0),
-      outputs = List(poolBox1, userBox1, bundleBox1))).value
-    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
-
-    bundle1.vLQ shouldBe expectedVLQAmount
-    bundle1.TMP shouldBe 0
     isValidDeposit shouldBe true
     isValidPool shouldBe true
   }

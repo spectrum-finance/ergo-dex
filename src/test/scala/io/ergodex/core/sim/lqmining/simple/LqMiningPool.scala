@@ -4,6 +4,7 @@ import cats.kernel.Monoid
 import io.ergodex.core.sim.Helpers.{boxId, tokenId}
 import io.ergodex.core.sim.lqmining.simple.LMPool.MaxCapTMP
 import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger}
+import io.ergodex.core.syntax.HEIGHT
 
 
 object Token {
@@ -30,8 +31,9 @@ final case class BurnAsset[T](value: Long)
 final case class LMConfig(epochLen: Int,
                           epochNum: Int,
                           programStart: Int,
+                          redeemLimitDelta: Int,
                           programBudget: Long,
-                          minValue: Long,
+                          MaxRoundingError: Long,
                          ) {
   val programEnd: Int = programStart + epochNum * epochLen
   val epochAlloc: Long = programBudget / epochNum
@@ -88,8 +90,8 @@ final case class LMPool[Ledger[_] : RuntimeState](
             lastUpdatedAtEpochIx
           }
         val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
-        val prevEpochsCompounded = ((conf.programBudget - reserves.X) + conf.minValue) >= (curEpochToCalc - 1) * conf.epochAlloc
-        if (prevEpochsCompounded || (reserves.X == conf.programBudget)) {
+        val prevEpochsCompounded = ((conf.programBudget - reserves.X) + conf.MaxRoundingError) >= (curEpochToCalc - 1) * conf.epochAlloc
+        if (prevEpochsCompounded) {
           Right(
             copy(
               reserves = reserves.copy(
@@ -114,7 +116,7 @@ final case class LMPool[Ledger[_] : RuntimeState](
       val epochsToCompound = conf.epochNum - epoch
 
       if (epoch <= curEpochIx - 1) {
-        if (reserves.X - epochsToCompound * conf.programBudget / conf.epochNum <= conf.epochAlloc + conf.minValue) {
+        if (reserves.X - epochsToCompound * conf.programBudget / conf.epochNum <= conf.epochAlloc + conf.MaxRoundingError) {
           val revokedTMP = bundle.TMP - epochsToCompound * bundle.vLQ
           val epochsBurned = (bundle.TMP / bundle.vLQ) - epochsToCompound
           val reward = if (revokedTMP > 0) {
@@ -143,8 +145,9 @@ final case class LMPool[Ledger[_] : RuntimeState](
       val curEpochIx = if (ctx.height < conf.programEnd) epochIx(ctx) else conf.epochNum + 1
       val releasedLQ = bundle.vLQ
       val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
-      val prevEpochsCompounded = ((conf.programBudget - reserves.X) + conf.minValue) >= (curEpochToCalc - 1) * conf.epochAlloc
-      if (prevEpochsCompounded || (reserves.X == conf.programBudget)) {
+      val prevEpochsCompoundedForRedeem = ((conf.programBudget - reserves.X) + conf.MaxRoundingError) >= (curEpochToCalc - 1) * conf.epochAlloc
+      val redeemNoLimit = ctx.height >= conf.programStart + conf.epochNum * conf.epochLen + conf.redeemLimitDelta
+      if ((prevEpochsCompoundedForRedeem || redeemNoLimit)) {
         Right(
           (
             copy(
@@ -209,10 +212,11 @@ object LMPool {
           4 -> Vector(
             pool.conf.epochLen,
             pool.conf.epochNum,
-            pool.conf.programStart
+            pool.conf.programStart,
+            pool.conf.redeemLimitDelta
           ),
           5 -> pool.conf.programBudget,
-          6 -> pool.conf.minValue,
+          6 -> pool.conf.MaxRoundingError,
           7 -> pool.execution.execBudget,
         )
       )
@@ -220,11 +224,12 @@ object LMPool {
   def init[Ledger[_] : RuntimeState](epochLen: Int,
                                      epochNum: Int,
                                      programStart: Int,
+                                     redeemLimitDelta: Int,
                                      programBudget: Long,
-                                     minValue: Long,
+                                     MaxRoundingError: Long,
                                     ): LMPool[Ledger] =
     LMPool(
-      LMConfig(epochLen, epochNum, programStart, programBudget, minValue),
+      LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget, MaxRoundingError),
       PoolReserves(MinCollateralErg, programBudget, 0L, MaxCapVLQ, MaxCapTMP),
       PoolExecution(MinCollateralErg),
       lastUpdatedAtEpochIx = 0

@@ -15,14 +15,15 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
   val epochNum = 3
   val epochLen = 5
   val programStart = 20000
-  val minValue = 1000L
+  val redeemDelta = 10
+  val maxRoundingError = 1000L
   val epochReg = 8
 
   val pool01: LMPool[Ledger] = {
-    LMPool.init(epochLen, epochNum, programStart, programBudget = 9000L * minValue, minValue = minValue)
+    LMPool.init(epochLen, epochNum, programStart, redeemDelta, programBudget = 9000L * maxRoundingError, maxRoundingError)
   }
-  val input0: AssetInput[LQ] = AssetInput(1 * minValue)
-  val input1: AssetInput[LQ] = AssetInput(2 * minValue)
+  val input0: AssetInput[LQ] = AssetInput(1 * maxRoundingError)
+  val input1: AssetInput[LQ] = AssetInput(2 * maxRoundingError)
 
   def epochIx(ctx: RuntimeCtx, conf: LMConfig): Int = {
     val curBlockIx = ctx.height - conf.programStart + 1
@@ -36,6 +37,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val startAtHeight = programStart + 1
     val action = pool01.deposit(input0)
     val currEpoch = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
+    println(currEpoch)
     val (_, Right((pool1, _))) = action.run(RuntimeCtx.at(startAtHeight)).value
     val poolBox0 = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
     val poolBox1 = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
@@ -116,7 +118,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         4 -> Vector(pool01.conf),
         5 -> pool01.conf.programBudget,
         6 -> MinCollateralErg,
-        7 -> pool01.conf.minValue,
+        7 -> pool01.conf.MaxRoundingError,
       )
     )
 
@@ -191,7 +193,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val (_, Right((pool1, sb1))) = action.run(RuntimeCtx.at(startAtHeight)).value
     val poolBox1 = pool1.toLedger[Ledger]
     val action1 = pool1.redeem(sb1)
-    val startAtHeight1 = programStart + epochNum * epochLen + 1
+    val startAtHeight1 = programStart + epochNum * epochLen + pool01.conf.redeemLimitDelta
     val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight1)).value
     val poolBox2 = pool2.toLedger[Ledger]
     val (_, isValid) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value

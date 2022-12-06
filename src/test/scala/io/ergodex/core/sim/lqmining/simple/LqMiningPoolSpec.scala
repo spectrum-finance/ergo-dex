@@ -12,17 +12,18 @@ import tofu.syntax.monadic._
 
 class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
 
-  val minValue = 1000L
-  val KK = 10000L * minValue
+  val maxRoundingError = 1000L
+  val KK = 10000L * maxRoundingError
   val epochLen = 11
   val epochNum = 3
+  val redeemDelta = 10
   val programStart = 100
 
   val pool01: LMPool[Ledger] = {
-    LMPool.init(epochLen, epochNum, programStart, programBudget = 5000000 * minValue, minValue)
+    LMPool.init(epochLen, epochNum, programStart, redeemDelta, programBudget = 5000000 * maxRoundingError, maxRoundingError)
   }
   val pool02: LMPool[Ledger] =
-    LMPool.init(epochLen, epochNum, programStart, programBudget = 900000L * minValue, minValue)
+    LMPool.init(epochLen, epochNum, programStart, redeemDelta, programBudget = 900000L * maxRoundingError, maxRoundingError)
 
   val input0: AssetInput[LQ] = AssetInput(1 * KK)
   val input1: AssetInput[LQ] = AssetInput(2 * KK)
@@ -31,7 +32,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
   val input4: AssetInput[LQ] = AssetInput(2 * KK)
 
   it should "return correct amount of bundled tokens on deposit" in {
-    forAll(Gen.choose(0, pool01.conf.epochNum)) { span =>
+    forAll(Gen.choose(0, 1)) { span =>
       whenever(span >= 0) {
         val action = Ledger.extendBy(span * epochLen) >> pool01.deposit(input0)
         val (_, Right((_, bundle1))) = action.run(RuntimeCtx.at(programStart - 1)).value
@@ -150,7 +151,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
     } yield pool8
     val (_, pool) = action.run(RuntimeCtx.at(programStart - 1)).value
-    (0 <= pool.reserves.X) && (pool.reserves.X <= minValue) shouldBe true
+    (0 <= pool.reserves.X) && (pool.reserves.X <= maxRoundingError) shouldBe true
   }
 
   it should "deplete program budget when fully compounded with redeem after program end" in {
@@ -181,7 +182,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
     } yield pool15
     val (_, pool) = action.run(RuntimeCtx.at(programStart - 1)).value
     pool.reserves.LQ shouldBe 0L
-    (0 <= pool.reserves.X) && (pool.reserves.X <= minValue) shouldBe true
+    (0 <= pool.reserves.X) && (pool.reserves.X <= maxRoundingError) shouldBe true
   }
 
   it should "compound op should be distributive over addition" in {
