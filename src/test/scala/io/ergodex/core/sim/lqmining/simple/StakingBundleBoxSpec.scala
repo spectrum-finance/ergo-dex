@@ -34,6 +34,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
     val userBox0 = new UserBox(
       boxId("user"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("X") -> reward.value,
 
@@ -44,6 +45,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
     val bundleBox1 = new StakingBundleBox(
       boxId("bundle_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("VLQ") -> sb1.vLQ,
         tokenId("TMP") -> sb1.TMP
@@ -57,6 +59,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
     val bundleBox2 = new StakingBundleBox(
       boxId("bundle_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("VLQ") -> bundle2.vLQ,
         tokenId("TMP") -> bundle2.TMP

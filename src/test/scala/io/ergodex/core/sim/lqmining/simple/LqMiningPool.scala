@@ -195,12 +195,14 @@ object LMPool {
   type VerifiedST[+A] = Either[LMPoolErr, A]
 
   val MinCollateralErg = 5000000L
+  val DefaultCreationHeight = 1000
 
   implicit def toLedger[F[_] : RuntimeState]: ToLedger[LMPool[F], F] =
     (pool: LMPool[F]) =>
       new LqMiningPoolBox[F](
         boxId("lm_pool_id"),
         pool.reserves.value,
+        DefaultCreationHeight,
         tokens = Vector(
           tokenId("LM_Pool_NFT_ID") -> 1L,
           tokenId("X") -> pool.reserves.X,

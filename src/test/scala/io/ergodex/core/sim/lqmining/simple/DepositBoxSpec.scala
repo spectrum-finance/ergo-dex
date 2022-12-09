@@ -19,6 +19,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val userBox = new UserBox(
       boxId("user"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
       ),
@@ -29,6 +30,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val depositBox = new DepositBox(
       boxId("deposit_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("LQ") -> depositedLQAmount,
       ),
@@ -40,6 +42,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val bundleBox = new StakingBundleBox(
       boxId("bundle_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("vLQ") -> expectedVLQAmount,
         tokenId("TMP") -> expectedTMPAmount

@@ -37,7 +37,6 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val startAtHeight = programStart + 1
     val action = pool01.deposit(input0)
     val currEpoch = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
-    println(currEpoch)
     val (_, Right((pool1, _))) = action.run(RuntimeCtx.at(startAtHeight)).value
     val poolBox0 = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
     val poolBox1 = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
@@ -107,6 +106,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val poolBox1 = new LqMiningPoolBox(
       boxId("LM_Pool_NFT_ID"),
       MinCollateralErg,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("LM_Pool_NFT_ID") -> 1L,
         tokenId("X") -> X1,
@@ -117,8 +117,8 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       registers = Map(
         4 -> Vector(pool01.conf),
         5 -> pool01.conf.programBudget,
-        6 -> MinCollateralErg,
-        7 -> pool01.conf.MaxRoundingError,
+        6 -> pool01.conf.MaxRoundingError,
+        7 -> pool01.execution.execBudget,
       )
     )
 
@@ -209,5 +209,30 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val poolBox2 = pool1.toLedger[Ledger]
     val (_, isValid) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
     isValid shouldBe true
+  }
+
+  it should "prevent creation height decreasing" in {
+    val startAtHeight = programStart + 1
+    val poolBox1 = pool01.toLedger[Ledger]
+    val poolBox2 = new LqMiningPoolBox(
+      boxId("LM_Pool_NFT_ID"),
+      pool01.reserves.value,
+      0,
+      tokens = Vector(
+        tokenId("LM_Pool_NFT_ID") -> 1L,
+        tokenId("X") -> pool01.reserves.X,
+        tokenId("LQ") -> 10,
+        tokenId("vLQ") -> pool01.reserves.vLQ,
+        tokenId("TMP") -> pool01.reserves.TMP
+      ),
+      registers = Map(
+        4 -> Vector(pool01.conf),
+        5 -> pool01.conf.programBudget,
+        6 -> pool01.conf.MaxRoundingError,
+        7 -> pool01.execution.execBudget,
+      )
+    )
+    val (_, isValid) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
+    isValid shouldBe false
   }
 }

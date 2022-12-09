@@ -18,6 +18,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val userBox = new UserBox(
       boxId("user"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("LQ") -> expectedLQAmount,
       ),
@@ -28,6 +29,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val redeemBox = new RedeemBox(
       boxId("redeem_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
         tokenId("LQ") -> expectedLQAmount,
@@ -40,6 +42,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val bundleBox = new StakingBundleBox(
       boxId("bundle_box"),
       0,
+      DefaultCreationHeight,
       tokens = Vector(
         tokenId("vLQ") -> redeemedVLQAmount,
         tokenId("TMP") -> bundleTMPAmount

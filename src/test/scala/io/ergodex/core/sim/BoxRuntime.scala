@@ -11,6 +11,7 @@ final case class TaggedValidator[F[_]](tag: String, validator: F[Boolean])
 trait Box[+F[_]] { self =>
   val id: Coll[Byte]
   val value: Long
+  val creationHeight: Int
   val tokens: Vector[(Coll[Byte], Long)]
   val registers: Map[Int, Any]
   val validatorTag: String
@@ -24,6 +25,7 @@ trait Box[+F[_]] { self =>
     new Box[F] {
       override val id: Coll[Byte]                     = self.id
       override val value: Long                        = self.value
+      override val creationHeight: Int                = self.creationHeight
       override val tokens: Vector[(Coll[Byte], Long)] = self.tokens
       override val registers: Map[Int, Any]           = self.registers + (reg -> v)
       override val validatorTag: String               = self.validatorTag

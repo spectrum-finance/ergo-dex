@@ -7,6 +7,7 @@ import io.ergodex.core.syntax._
 final class LqMiningPoolBoxSelfHosted[F[_] : RuntimeState](
                                                             override val id: Coll[Byte],
                                                             override val value: Long,
+                                                            override val creationHeight: Int,
                                                             override val tokens: Vector[(Coll[Byte], Long)],
                                                             override val registers: Map[Int, Any]
                                                           ) extends Box[F] {
@@ -48,7 +49,7 @@ final class LqMiningPoolBoxSelfHosted[F[_] : RuntimeState](
       //
       // Validations:
       // 1. LM Pool NFT is preserved;
-      // 2. LM Pool Config, LM program budget and maxRoundingError are preserved;
+      // 2. LM Pool Config, LM program budget, maxRoundingError and creationHeight are preserved;
       // 3. LMPool validation script is preserved;
       // 4. LM Pool assets are preserved;
       // 5. There are no illegal tokens in LM Pool;
@@ -81,6 +82,8 @@ final class LqMiningPoolBoxSelfHosted[F[_] : RuntimeState](
       val programStart = conf0(2)
       val redeemLimitDelta = conf0(3)
 
+      val creationHeight0 = SELF.creationHeight
+
       val programBudget0 = SELF.R5[Long].get
       val MaxRoundingError0 = SELF.R6[Long].get
 
@@ -93,6 +96,7 @@ final class LqMiningPoolBoxSelfHosted[F[_] : RuntimeState](
       val poolVLQ1 = successor.tokens(3)
       val poolTMP1 = successor.tokens(4)
 
+      val creationHeight1 = successor.creationHeight
       val conf1 = successor.R4[Coll[Int]].get
 
       val programBudget1 = successor.R5[Long].get
@@ -121,7 +125,8 @@ final class LqMiningPoolBoxSelfHosted[F[_] : RuntimeState](
       val configPreserved =
         (conf1 == conf0) &&
           (programBudget1 == programBudget0) &&
-          (MaxRoundingError1 == MaxRoundingError0)
+          (MaxRoundingError1 == MaxRoundingError0) &&
+          (creationHeight1 >= creationHeight0)
 
       // 3.
       val scriptPreserved = successor.propositionBytes == SELF.propositionBytes

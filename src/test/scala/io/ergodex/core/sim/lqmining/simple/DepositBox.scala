@@ -8,6 +8,7 @@ import io.ergodex.core.syntax._
 final class DepositBox[F[_] : RuntimeState](
                                              override val id: Coll[Byte],
                                              override val value: Long,
+                                             override val creationHeight: Int,
                                              override val tokens: Vector[(Coll[Byte], Long)],
                                              override val registers: Map[Int, Any]
                                            ) extends Box[F] {
