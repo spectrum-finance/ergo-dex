@@ -19,8 +19,9 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |
 
 _Notes_:
-* `maxRoundingError` value is recommended to choose as the smallest unit of the Reward token
-* `execBudget` is not necessary for Self-Hosted LM Pool
+* `maxRoundingError` value is recommended to choose as the **smallest unit of the Reward token**
+* `execBudget` is **not necessary** for Self-Hosted LM Pool
+* `epoch` **indexing starts from 1**
 
 ### Tokens
 | Name           | Description                            |
@@ -57,16 +58,13 @@ To do that, Bob sets parameters `epochLen` and `epochNum` sends `L` tokens Xt to
 In case of Delegated LM Pool he should additionally send `Y` ERGs to the LM script address as `execBudget` for executing transactions.
 
 _Notes_:
-* Deposited ERGs as `execBudget` will be spent almost completely!
-* Once deposited during program initialization, tokens Xt can't be redeemed!
+* Deposited ERGs as `execBudget` **will be spent almost completely**!
+* Once deposited during program initialization, **tokens Xt can't be redeemed**!
 
 #### Increase execution budget
 When created, the budget will be spent linearly.
 However, the exact number of ERGs needed depends on the number of program participants. 
 Creator will have to monitor ERGs balance and perform additional deposits.
-
-_Notes_:
-* Deposited ERGs as `execBudget` will be spent almost completely!
 
 ### Participant
 
@@ -81,7 +79,7 @@ She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bund
 
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
-* New "Staking bundle" can't be released until all previous epochs are compounded
+* New "Staking bundle" **can't be released until all previous epochs are compounded**
 
 #### Reward
 After each epoch rewards, allocated for each epoch, are fully distributed among stakers. 
@@ -98,5 +96,4 @@ to the amount of vLQ returned. Redemption is only allowed when all epochs Alice 
 ![LMRedeem](./../img/LMRedeem1.png)
 
 _Notes_:
-* User can redeem his LQ tokens before and after program end
-* LQ tokens cannot be redeemed until all previous epochs are compounded or until `redeemLimitDelta` is reached after the end of the program
+* LQ tokens cannot be redeemed **until all previous epochs are compounded** or until `redeemLimitDelta` is reached after the end of the program
