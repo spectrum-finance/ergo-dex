@@ -31,11 +31,10 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
+        tokenId("bundle_key_id") -> BundleKeyTokenAmount,
         tokenId("LQ") -> expectedLQAmount,
       ),
       registers = Map(
-        5 -> tokenId("lm_pool_id"),
       )
     )
 
@@ -45,12 +44,12 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       DefaultCreationHeight,
       tokens = Vector(
         tokenId("vLQ") -> redeemedVLQAmount,
-        tokenId("TMP") -> bundleTMPAmount
+        tokenId("TMP") -> bundleTMPAmount,
+        tokenId("bundle_key_id") -> 1L,
       ),
       registers = Map(
         4 -> tokenId("user"),
         5 -> tokenId("lm_pool_id"),
-        6 -> tokenId("LM_Pool_NFT_ID"),
       )
     )
 
@@ -71,7 +70,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
   val input0: AssetInput[LQ] = AssetInput(depositedLQAmount)
 
   it should "validate redeem behaviour before LM program start mirrored from simulation" in {
-    val startAtHeight = programStart - 1
+    val startAtHeight = programStart - 10000
     val action = pool01.deposit(input0)
     val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
     val action1 = pool1.redeem(bundle1)

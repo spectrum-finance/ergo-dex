@@ -21,8 +21,8 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
   it should "validate compound and redeem behaviour" in {
     val startAtHeight = 5
     val action = pool01.deposit(input0)
-    val (_, Right((pool1, sb1))) = action.run(RuntimeCtx.at(0)).value
-    val action1 = pool1.compound(sb1, epoch = 1)
+    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(0)).value
+    val action1 = pool1.compound(bundle1, epoch = 1)
     val (_, Right((pool2, bundle2, reward))) = action1.run(RuntimeCtx.at(startAtHeight)).value
     val action2 = pool2.redeem(bundle2)
     val (_, Right((pool3, rew))) = action2.run(RuntimeCtx.at(startAtHeight)).value
@@ -37,7 +37,6 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       DefaultCreationHeight,
       tokens = Vector(
         tokenId("X") -> reward.value,
-
       ),
       registers = Map(
       ))
@@ -47,13 +46,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("VLQ") -> sb1.vLQ,
-        tokenId("TMP") -> sb1.TMP
+        tokenId("VLQ") -> bundle1.vLQ,
+        tokenId("TMP") -> bundle1.TMP,
+        tokenId("bundle_key_id") -> 1L,
       ),
       registers = Map(
         4 -> tokenId("user"),
-        5 -> tokenId("lm_pool_id"),
-        6 -> tokenId("LM_Pool_NFT_ID"),
+        5 -> tokenId("LM_Pool_NFT_ID"),
       ))
 
     val bundleBox2 = new StakingBundleBox(
@@ -62,12 +61,12 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       DefaultCreationHeight,
       tokens = Vector(
         tokenId("VLQ") -> bundle2.vLQ,
-        tokenId("TMP") -> bundle2.TMP
+        tokenId("TMP") -> bundle2.TMP,
+        tokenId("bundle_key_id") -> 1L,
       ),
       registers = Map(
         4 -> tokenId("user"),
-        5 -> tokenId("lm_pool_id"),
-        6 -> tokenId("LM_Pool_NFT_ID"),
+        5 -> tokenId("LM_Pool_NFT_ID"),
       ))
 
 

@@ -16,12 +16,13 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
                expectedVLQAmount: Long, expectedTMPAmount: Long): (UserBox[Ledger],
     DepositBox[Ledger], StakingBundleBox[Ledger]) = {
 
+
     val userBox = new UserBox(
       boxId("user"),
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("lm_pool_id") -> 0x7fffffffffffffffL,
+        tokenId("lm_pool_id") -> BundleKeyTokenAmount,
       ),
       registers = Map(
       )
@@ -45,12 +46,12 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       DefaultCreationHeight,
       tokens = Vector(
         tokenId("vLQ") -> expectedVLQAmount,
-        tokenId("TMP") -> expectedTMPAmount
+        tokenId("TMP") -> expectedTMPAmount,
+        tokenId("lm_pool_id") -> 1L,
       ),
       registers = Map(
         4 -> tokenId("user"),
-        5 -> tokenId("lm_pool_id"),
-        6 -> tokenId("LM_Pool_NFT_ID"),
+        5 -> tokenId("LM_Pool_NFT_ID"),
       )
     )
 

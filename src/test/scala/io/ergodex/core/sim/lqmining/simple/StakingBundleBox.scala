@@ -22,8 +22,7 @@ final class StakingBundleBox[F[_] : RuntimeState](
       // ===== Bundle Box ===== //
       // Registers:
       //   R4[Coll[Byte]]: Redeemer Proposition  // where the reward should be sent.
-      //   R5[Coll[Byte]]: Bundle Key ID (tokenId) // used to authenticate redeem.
-      //   R6[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
+      //   R5[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
       //
       // Tokens:
       //   0:
@@ -32,6 +31,9 @@ final class StakingBundleBox[F[_] : RuntimeState](
       //   1:
       //     _1: TMP Token ID  // left program epochs times liquidity.
       //     _2: Amount of the TMP tokens
+      //   2:
+      //     _1: BundleKeyId
+      //     _2: 0x7fffffffffffffffL - 1L
       //
       // ContextExtension constants:
       // 0: Int - redeemer output index;
@@ -55,8 +57,9 @@ final class StakingBundleBox[F[_] : RuntimeState](
       val bundleTMP0 = SELF.tokens(1)
 
       val redeemerProp0 = SELF.R4[Coll[Byte]].get
-      val bundleKey0 = SELF.R5[Coll[Byte]].get
-      val poolId0 = SELF.R6[Coll[Byte]].get
+      val poolId0 = SELF.R5[Coll[Byte]].get
+      val bundleKey0 = SELF.tokens(2)._1
+
 
       // ===== Getting INPUTS data ===== //
       val pool0 = INPUTS(0)
@@ -102,16 +105,14 @@ final class StakingBundleBox[F[_] : RuntimeState](
           // ===== Validating conditions ===== //
           // 2.1.1.
           val validRedeemer = redeemer.propositionBytes == redeemerProp0
-          // PubKey matches
-          // PubKey matches; bundleKeyID; LM Pool ID; TMP token ID;  TMP token amount;
           // 2.1.2.
           val validSuccessor =
-          (successor.R4[Coll[Byte]].get == redeemerProp0) &&
-            (successor.R5[Coll[Byte]].get == bundleKey0) &&
-            (successor.R6[Coll[Byte]].get == poolId0) &&
-            (bundleTMP1._1 == bundleTMP0._1) &&
-            ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
-            (bundleVLQ1 == bundleVLQ0)
+            (successor.R4[Coll[Byte]].get == redeemerProp0) &&
+              (successor.R5[Coll[Byte]].get == poolId0) &&
+              (bundleKey0, 1L) == successor.tokens(2) &&
+              (bundleTMP1._1 == bundleTMP0._1) &&
+              ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
+              (bundleVLQ1 == bundleVLQ0)
           // 2.1.3.
           val validReward =
             (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
@@ -125,7 +126,7 @@ final class StakingBundleBox[F[_] : RuntimeState](
           // 2.2.
           // ===== Getting INPUTS data ===== //
           val permitIn = INPUTS(2)
-          val requiredPermit = (bundleKey0, 0x7fffffffffffffffL)
+          val requiredPermit = (bundleKey0, 0x7fffffffffffffffL - 1L)
           // ===== Validating conditions ===== //
           // 2.2.1.
           permitIn.tokens(0) == requiredPermit

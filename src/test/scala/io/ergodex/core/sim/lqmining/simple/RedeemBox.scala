@@ -28,9 +28,9 @@ final class RedeemBox[F[_] : RuntimeState](
       // Tokens:
       //   0:
       //     _1: BundleKeyId
-      //     _2: 0x7fffffffffffffffL
+      //     _2: 0x7fffffffffffffffL - 1L
       // Validations:
-      // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token ID; vLQ token amount; bundle key ID.
+      // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token amount; Bundle Key token amount.
       //
       // ===== Getting OUTPUTS data ===== //
       val redeemerOut = OUTPUTS(1)
@@ -42,6 +42,6 @@ final class RedeemBox[F[_] : RuntimeState](
           ((ExpectedLQ, ExpectedLQAmount) == redeemerOut.tokens(0))
       }
 
-      RefundPk || validRedeemerOut
+      validRedeemerOut
     }
 }

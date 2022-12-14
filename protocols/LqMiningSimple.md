@@ -24,23 +24,25 @@ _Notes_:
 * `epoch` **indexing starts from 1**
 
 ### Tokens
-| Name           | Description                            |
-|----------------|----------------------------------------|
-| Pool ID        | An NFT to identify the pool            |
-| Reward token   | Budget of the LM program               |
-| LQ token       | Locked LQ tokens                       |
-| vLQ token      | Tokens representing locked share of LQ |
-| Temporal Token | Left program epochs times liquidity    |
+| Name             | Description                                                           |
+|------------------|-----------------------------------------------------------------------|
+| Pool ID          | An NFT to identify the pool                                           |
+| Reward token     | Budget of the LM program                                              |
+| LQ token         | Locked LQ tokens                                                      |
+| vLQ token        | Tokens representing locked share of LQ                                |
+| Temporal Token   | Left program epochs times liquidity                                   |
+| Bundle Key Token | Token that is used to identify the ownership of the Staking bundle    |
 
 ## Staking bundle
 Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking bundle script guarantees bundling of
 tokens and controls Compounding and Redeem operations (see "User scenarios" below).
 
 ### Tokens
-| Name | Description                                              |
-|------|----------------------------------------------------------|
-| vLQ  | Virtual LQ token. Represents certain amount of liquidity |
-| TMP  | Temporal token                                           |
+| Name             | Description                                              |
+|------------------|----------------------------------------------------------|
+| vLQ              | Virtual LQ token. Represents certain amount of liquidity |
+| TMP              | Temporal token                                           |
+| Bundle Key Token | Token to identify the ownership                          |
 
 
 ## User scenarios
@@ -80,6 +82,7 @@ She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bund
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
 * New "Staking bundle" **can't be released until all previous epochs are compounded**
+* Amount of received Bundle Key Tokens is 0x7fffffffffffffffL - 1L
 
 #### Reward
 After each epoch rewards, allocated for each epoch, are fully distributed among stakers. 

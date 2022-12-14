@@ -34,8 +34,8 @@ final class DepositBox[F[_] : RuntimeState](
       //
       // Validations:
       // 1. Assets are deposited into the correct LM Pool;
-      // 2. Redeemer PubKey matches and correct Bundle identification token is received;
-      // 3. Bundle stores correct: Redeemer PubKey; bundleKeyId; vLQ token ID; vLQ token amount; TMP token ID; TMP token amount.
+      // 2. Redeemer PubKey matches and correct Bundle Key token amount token is received;
+      // 3. Bundle stores correct: Redeemer PubKey; vLQ token amount; TMP token amount; Bundle Key token amount.
       //
       // ===== Getting SELF data ===== //
       val deposit = SELF.tokens(0)
@@ -58,14 +58,15 @@ final class DepositBox[F[_] : RuntimeState](
       // 2.
       val validRedeemerOut =
         redeemerOut.propositionBytes == RedeemerProp &&
-          (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
+          (bundleKeyId, 0x7fffffffffffffffL - 1L) == redeemerOut.tokens(0)
       // 3.
       val validBundle =
         bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
-          bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
+          bundleOut.R5[Coll[Byte]].get ==  PoolId &&
           (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
-          (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
+          (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1) &&
+          (bundleKeyId, 1L) == bundleOut.tokens(2)
 
-      RefundPk || (validPoolIn && validRedeemerOut && validBundle)
+      validPoolIn && validRedeemerOut && validBundle
     }
 }
