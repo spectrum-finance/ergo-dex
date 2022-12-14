@@ -9,32 +9,33 @@
   //     _2: Amount of LQ Tokens to deposit
   //
   // Constants:
-  // {2}  -> RedeemerProp[Coll[Byte]]
-  // {5}  -> RefundPk[ProveDlog]
-  // {7}  -> PoolId[Coll[Byte]]
+  // {1}  -> PoolId[Coll[Byte]]
+  // {3}  -> RedeemerProp[Coll[Byte]]
+  // {6}  -> RefundPk[ProveDlog]
   // {13} -> ExpectedNumEpochs[Int]
   //
-  // ErgoTree:         19f3020f040004020e69aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  // ErgoTree:         198c031104000e2000000000000000000000000000000000000000000000000000000000000000
+  //                   0004020e69aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   //                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-  //                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0404
-  //                   040008cd03d36d7e86b0fe7d8aec204f0ae6c2be6563fc7a443d69501d73dfe9c2adddb15a0400
-  //                   0e20000000000000000000000000000000000000000000000000000000000000000005feffffff
-  //                   ffffffffff01040004060400040805f00d0402d807d601b2a4730000d602db63087201d603b2a5
-  //                   730100d6047302d605c57201d606b2a5730300d6078cb2db6308a773040002eb027305d1eded93
-  //                   8cb27202730600017307ed93c27203720493860272057308b2db63087203730900ededed93e4c6
-  //                   7206040e720493e4c67206050e72059386028cb27202730a00017207b2db63087206730b009386
-  //                   028cb27202730c00019c7207730db2db63087206730e00
+  //                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0404040008cd03
+  //                   d36d7e86b0fe7d8aec204f0ae6c2be6563fc7a443d69501d73dfe9c2adddb15a040005fcffffff
+  //                   ffffffffff01040004060400040805f00d040205020404d808d601b2a4730000d602db63087201
+  //                   d6037301d604b2a5730200d6057303d606c57201d607b2a5730400d6088cb2db6308a773050002
+  //                   eb027306d1eded938cb27202730700017203ed93c27204720593860272067308b2db6308720473
+  //                   0900edededed93e4c67207040e720593e4c67207050e72039386028cb27202730a00017208b2db
+  //                   63087207730b009386028cb27202730c00019c7208730db2db63087207730e009386027206730f
+  //                   b2db63087207731000
   //
-  // ErgoTreeTemplate: d807d601b2a4730000d602db63087201d603b2a5730100d6047302d605c57201d606b2a5730300
-  //                   d6078cb2db6308a773040002eb027305d1eded938cb27202730600017307ed93c2720372049386
-  //                   0272057308b2db63087203730900ededed93e4c67206040e720493e4c67206050e72059386028c
-  //                   b27202730a00017207b2db63087206730b009386028cb27202730c00019c7207730db2db630872
-  //                   06730e00
+  // ErgoTreeTemplate: d808d601b2a4730000d602db63087201d6037301d604b2a5730200d6057303d606c57201d607b2
+  //                   a5730400d6088cb2db6308a773050002eb027306d1eded938cb27202730700017203ed93c27204
+  //                   720593860272067308b2db63087204730900edededed93e4c67207040e720593e4c67207050e72
+  //                   039386028cb27202730a00017208b2db63087207730b009386028cb27202730c00019c7208730d
+  //                   b2db63087207730e009386027206730fb2db63087207731000
   //
   // Validations:
   // 1. Assets are deposited into the correct LM Pool;
-  // 2. Redeemer PubKey matches and correct Bundle Key token is received;
-  // 3. Bundle stores correct: Redeemer PubKey; bundleKeyId; vLQ token ID; vLQ token amount; TMP token ID; TMP token amount.
+  // 2. Redeemer PubKey matches and correct Bundle Key token amount token is received;
+  // 3. Bundle stores correct: Redeemer PubKey; vLQ token amount; TMP token amount; Bundle Key token amount.
   //
   // ===== Getting SELF data ===== //
   val deposit = SELF.tokens(0)
@@ -57,13 +58,14 @@
   // 2.
   val validRedeemerOut =
     redeemerOut.propositionBytes == RedeemerProp &&
-      (bundleKeyId, 0x7fffffffffffffffL) == redeemerOut.tokens(0)
+      (bundleKeyId, 0x7fffffffffffffffL - 1L) == redeemerOut.tokens(0)
   // 3.
   val validBundle =
     bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
-      bundleOut.R5[Coll[Byte]].get == bundleKeyId &&
+      bundleOut.R5[Coll[Byte]].get == PoolId &&
       (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
-      (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1)
+      (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1) &&
+      (bundleKeyId, 1L) == bundleOut.tokens(2)
 
   sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle))
 }

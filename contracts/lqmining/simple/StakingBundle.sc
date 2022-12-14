@@ -1,4 +1,3 @@
-
 { // ===== Contract Information ===== //
   // Name: StakingBundle
   // Description: Contract that validates a compounding in the LM pool.
@@ -6,8 +5,7 @@
   // ===== Bundle Box ===== //
   // Registers:
   //   R4[Coll[Byte]]: Redeemer Proposition  // where the reward should be sent.
-  //   R5[Coll[Byte]]: Bundle Key ID (tokenId) // used to authenticate redeem.
-  //   R6[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
+  //   R5[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
   //
   // Tokens:
   //   0:
@@ -16,35 +14,38 @@
   //   1:
   //     _1: TMP Token ID  // left program epochs times liquidity.
   //     _2: Amount of the TMP tokens
+  //   2:
+  //     _1: BundleKeyId
+  //     _2: 0x7fffffffffffffffL - 1L
   //
   // ContextExtension constants:
   // 0: Int - redeemer output index;
   // 1: Int - successor output index;
   // * indexes are dynamic to allow batch compounding.
   //
-  // ErgoTree:         199e0312040004000404040404020400040005000402040204000400040205000404040005f
-  //                   effffffffffffffff010100d80ed601b2a5730000d602db63087201d603e4c6a7060ed604b2
-  //                   a4730100d605db63087204d6068cb2720573020002d607998cb27202730300027206d608e4c
-  //                   6a7040ed609e4c6a7050ed60adb6308a7d60bb2720a730400d60cb2720a730500d60d8c720c
-  //                   02d60e8c720b02d1ed938cb27202730600017203959372077307d808d60fb2a5e4e3000400d
-  //                   610b2a5e4e3010400d611db63087210d612b27211730800d613b2e4c672040410730900d614
-  //                   c672010804d6157e99721395e67214e47214e4c67201070405d616b2db6308720f730a00ede
-  //                   d93c2720f7208ededededed93e4c67210040e720893e4c67210050e720993e4c67210060e72
-  //                   03938c7212018c720b019399720e8c72120299720e9c7215720d93b27211730b00720ced938
-  //                   c7216018cb27205730c0001927e8c721602069d9c9c7e9de4c6720405057e721305067e720d
-  //                   067e999d720e720d7215067e720606958f7207730d93b2db6308b2a4730e00730f008602720
-  //                   973107311
+  // ErgoTree:         19ab03150400040004040404040404020400040005000402040204000502040404000402050
+  //                   00404040005fcffffffffffffffff010100d80ed601b2a5730000d602db63087201d603e4c6
+  //                   a7050ed604b2a4730100d605db63087204d6068cb2720573020002d607998cb272027303000
+  //                   27206d608e4c6a7040ed609db6308a7d60a8cb2720973040001d60bb27209730500d60cb272
+  //                   09730600d60d8c720c02d60e8c720b02d1ed938cb27202730700017203959372077308d808d
+  //                   60fb2a5e4e3000400d610b2a5e4e3010400d611db63087210d612b27211730900d613b2e4c6
+  //                   72040410730a00d614c672010804d6157e99721395e67214e47214e4c67201070405d616b2d
+  //                   b6308720f730b00eded93c2720f7208ededededed93e4c67210040e720893e4c67210050e72
+  //                   03938602720a730cb27211730d00938c7212018c720b019399720e8c72120299720e9c72157
+  //                   20d93b27211730e00720ced938c7216018cb27205730f0001927e8c721602069d9c9c7e9de4
+  //                   c6720405057e721305067e720d067e999d720e720d7215067e720606958f7207731093b2db6
+  //                   308b2a47311007312008602720a73137314
   //
-  // ErgoTreeTemplate: d80ed601b2a5730000d602db63087201d603e4c6a7060ed604b2a4730100d605db63087204d
-  //                   6068cb2720573020002d607998cb27202730300027206d608e4c6a7040ed609e4c6a7050ed6
-  //                   0adb6308a7d60bb2720a730400d60cb2720a730500d60d8c720c02d60e8c720b02d1ed938cb
-  //                   27202730600017203959372077307d808d60fb2a5e4e3000400d610b2a5e4e3010400d611db
-  //                   63087210d612b27211730800d613b2e4c672040410730900d614c672010804d6157e9972139
-  //                   5e67214e47214e4c67201070405d616b2db6308720f730a00eded93c2720f7208ededededed
-  //                   93e4c67210040e720893e4c67210050e720993e4c67210060e7203938c7212018c720b01939
-  //                   9720e8c72120299720e9c7215720d93b27211730b00720ced938c7216018cb27205730c0001
-  //                   927e8c721602069d9c9c7e9de4c6720405057e721305067e720d067e999d720e720d7215067
-  //                   e720606958f7207730d93b2db6308b2a4730e00730f008602720973107311
+  // ErgoTreeTemplate: d80ed601b2a5730000d602db63087201d603e4c6a7050ed604b2a4730100d605db63087204d
+  //                   6068cb2720573020002d607998cb27202730300027206d608e4c6a7040ed609db6308a7d60a
+  //                   8cb2720973040001d60bb27209730500d60cb27209730600d60d8c720c02d60e8c720b02d1e
+  //                   d938cb27202730700017203959372077308d808d60fb2a5e4e3000400d610b2a5e4e3010400
+  //                   d611db63087210d612b27211730900d613b2e4c672040410730a00d614c672010804d6157e9
+  //                   9721395e67214e47214e4c67201070405d616b2db6308720f730b00eded93c2720f7208eded
+  //                   ededed93e4c67210040e720893e4c67210050e7203938602720a730cb27211730d00938c721
+  //                   2018c720b019399720e8c72120299720e9c7215720d93b27211730e00720ced938c7216018c
+  //                   b27205730f0001927e8c721602069d9c9c7e9de4c6720405057e721305067e720d067e999d7
+  //                   20e720d7215067e720606958f7207731093b2db6308b2a47311007312008602720a73137314
   //
   // Validations:
   // 1. LM Pool NFT (Token ID) is valid;
@@ -63,8 +64,9 @@
   val bundleTMP0 = SELF.tokens(1)
 
   val redeemerProp0 = SELF.R4[Coll[Byte]].get
-  val bundleKey0 = SELF.R5[Coll[Byte]].get
-  val poolId0 = SELF.R6[Coll[Byte]].get
+  val poolId0 = SELF.R5[Coll[Byte]].get
+  val bundleKey0 = SELF.tokens(2)._1
+
 
   // ===== Getting INPUTS data ===== //
   val pool0 = INPUTS(0)
@@ -110,16 +112,14 @@
       // ===== Validating conditions ===== //
       // 2.1.1.
       val validRedeemer = redeemer.propositionBytes == redeemerProp0
-      // PubKey matches
-      // PubKey matches; bundleKeyID; LM Pool ID; TMP token ID;  TMP token amount;
       // 2.1.2.
       val validSuccessor =
-      (successor.R4[Coll[Byte]].get == redeemerProp0) &&
-        (successor.R5[Coll[Byte]].get == bundleKey0) &&
-        (successor.R6[Coll[Byte]].get == poolId0) &&
-        (bundleTMP1._1 == bundleTMP0._1) &&
-        ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
-        (bundleVLQ1 == bundleVLQ0)
+        (successor.R4[Coll[Byte]].get == redeemerProp0) &&
+          (successor.R5[Coll[Byte]].get == poolId0) &&
+          (bundleKey0, 1L) == successor.tokens(2) &&
+          (bundleTMP1._1 == bundleTMP0._1) &&
+          ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
+          (bundleVLQ1 == bundleVLQ0)
       // 2.1.3.
       val validReward =
         (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
@@ -133,7 +133,7 @@
       // 2.2.
       // ===== Getting INPUTS data ===== //
       val permitIn = INPUTS(2)
-      val requiredPermit = (bundleKey0, 0x7fffffffffffffffL)
+      val requiredPermit = (bundleKey0, 0x7fffffffffffffffL - 1L)
       // ===== Validating conditions ===== //
       // 2.2.1.
       permitIn.tokens(0) == requiredPermit

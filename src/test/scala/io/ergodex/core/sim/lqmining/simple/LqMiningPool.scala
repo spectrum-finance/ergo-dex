@@ -196,6 +196,7 @@ object LMPool {
 
   val MinCollateralErg = 5000000L
   val DefaultCreationHeight = 1000
+  val BundleKeyTokenAmount = 0x7fffffffffffffffL - 1L
 
   implicit def toLedger[F[_] : RuntimeState]: ToLedger[LMPool[F], F] =
     (pool: LMPool[F]) =>

@@ -7,7 +7,7 @@
   // Tokens:
   //   0:
   //     _1: BundleKeyId
-  //     _2: 0x7fffffffffffffffL
+  //     _2: 0x7fffffffffffffffL - 1L
   //
   // Constants:
   // {1}  -> RefundPk[ProveDlog]
@@ -28,7 +28,7 @@
   // ErgoTreeTemplate: d801d601b2a5730000eb027301d1ed93c27201730293860273037304b2db63087201730500
   //
   // Validations:
-  // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token ID; vLQ token amount.
+  // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token amount; Bundle Key token amount.
   //
   // ===== Getting OUTPUTS data ===== //
   val redeemerOut = OUTPUTS(1)
