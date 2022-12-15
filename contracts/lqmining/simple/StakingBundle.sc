@@ -16,7 +16,7 @@
   //     _2: Amount of the TMP tokens
   //   2:
   //     _1: BundleKeyId
-  //     _2: 0x7fffffffffffffffL - 1L
+  //     _2: 1L
   //
   // ContextExtension constants:
   // 0: Int - redeemer output index;
