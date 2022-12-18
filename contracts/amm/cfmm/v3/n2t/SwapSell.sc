@@ -1,12 +1,13 @@
 // Constants:
 // ================================
+// FeeNum              : Int
 // FeeDenom            : Int
+// BaseAmount          : Long
 // ExFeePerTokenNum    : Long
 // ExFeePerTokenDenom  : Long
 // MinQuoteAmount      : Long
 // MaxExFee            : Long
 // MaxMinerFee         : Long
-// BaseAmount_x_FeeNum : BigInt
 // SpectrumIsQuote     : Boolean
 // SpectrumId          : Coll[Byte]
 // QuoteId             : Coll[Byte]
@@ -62,7 +63,8 @@
                 }
 
             val relaxedOutput = quoteAmount + 1 // handle rounding loss
-            val fairPrice     = poolReservesY * BaseAmount_x_FeeNum <= relaxedOutput * (poolReservesX * FeeDenom + BaseAmount_x_FeeNum)
+            val base_x_feeNum = BaseAmount.toBigInt * FeeNum
+            val fairPrice     = poolReservesY * base_x_feeNum <= relaxedOutput * (poolReservesX * FeeDenom + base_x_feeNum)
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
                 if (o.propositionBytes == MinerPropBytes) o.value else 0L

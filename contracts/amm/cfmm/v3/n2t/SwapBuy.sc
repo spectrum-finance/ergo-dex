@@ -2,13 +2,13 @@
 // ================================
 // FeeDenom            : Int
 // FeeNum              : Int
+// BaseAmount          : Long
 // ExFeePerTokenNum    : Long
 // ExFeePerTokenDenom  : Long
 // MinQuoteAmount      : Long
 // MaxExFee            : Long
 // MaxMinerFee         : Long
 // SpectrumId          : Coll[Byte]
-// QuoteId             : Coll[Byte]
 // PoolNFT             : Coll[Byte]
 // MinerPropBytes      : Coll[Byte]
 // RedeemerPropBytes   : Coll[Byte]
@@ -22,7 +22,6 @@
     val ExFeePerTokenDenom = 10L
     val MinQuoteAmount     = 800L
     val MaxExFee           = 1400L
-    val SpectrumIsQuote    = true // todo: make sure sigma produces same templates regardless of this const.
 
     val poolIn = INPUTS(0)
 
@@ -52,7 +51,8 @@
                 }
             }
             val relaxedOutput = quoteAmount + 1 // handle rounding loss
-            val fairPrice     = poolReservesX * BaseAmount_x_FeeNum <= relaxedOutput * (poolReservesY * FeeDenom + BaseAmount_x_FeeNum)
+            val base_x_feeNum = BaseAmount.toBigInt * FeeNum
+            val fairPrice     = poolReservesX * base_x_feeNum <= relaxedOutput * (poolReservesY * FeeDenom + base_x_feeNum)
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
                 if (o.propositionBytes == MinerPropBytes) o.value else 0L

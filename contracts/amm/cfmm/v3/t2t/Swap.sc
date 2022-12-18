@@ -1,12 +1,13 @@
 // Constants:
 // ================================
+// FeeNum            : Int
 // FeeDenom            : Int
 // ExFeePerTokenNum    : Long
 // ExFeePerTokenDenom  : Long
 // MinQuoteAmount      : Long
 // MaxExFee            : Long
 // MaxMinerFee         : Long
-// BaseAmount_x_FeeNum : BigInt
+// BaseAmount          : Long
 // SpectrumIsQuote     : Boolean
 // SpectrumId          : Coll[Byte]
 // QuoteId             : Coll[Byte]
@@ -16,13 +17,6 @@
 // RefundProp          : ProveDlog
 {
     val FeeDenom = 1000
-
-    // Those constants are replaced when instantiating order:
-    val ExFeePerTokenNum    = 1L
-    val ExFeePerTokenDenom  = 10L
-    val MinQuoteAmount      = 800L
-    val MaxExFee            = 1400L
-    val SpectrumIsQuote     = true // todo: make sure sigma produces same templates regardless of this const.
 
     val poolIn = INPUTS(0)
 
@@ -65,11 +59,13 @@
             val relaxedOutput = quoteAmount + 1L // handle rounding loss
             val poolX         = poolAssetX._2.toBigInt
             val poolY         = poolAssetY._2.toBigInt
+            val base_x_feeNum = BaseAmount.toBigInt * FeeNum
             val fairPrice     =
-                if (poolAssetX._1 == QuoteId)
-                    poolX * BaseAmount_x_FeeNum <= relaxedOutput * (poolY * FeeDenom + BaseAmount_x_FeeNum)
-                else
-                    poolY * BaseAmount_x_FeeNum <= relaxedOutput * (poolX * FeeDenom + BaseAmount_x_FeeNum)
+                if (poolAssetX._1 == QuoteId) {
+                    poolX * base_x_feeNum <= relaxedOutput * (poolY * FeeDenom + base_x_feeNum)
+                } else {
+                    poolY * base_x_feeNum <= relaxedOutput * (poolX * FeeDenom + base_x_feeNum)
+                }
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
                 if (o.propositionBytes == MinerPropBytes) o.value else 0L

@@ -1,3 +1,7 @@
+// Constants:
+// ================================
+// SelfXAmount : Long - SELF.tokens(0)._2 - ExFee
+// SelfYAmount : Long - SELF.tokens(1)._2 - ExFee
 {
     val InitiallyLockedLP = 0x7fffffffffffffffL
 
@@ -16,13 +20,8 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val selfX       = SELF.tokens(0)
-            val selfY       = SELF.tokens(1)
-            val selfXAmount = if (SpectrumIsX) selfX._2 - ExFee else selfX._2
-            val selfYAmount = if (SpectrumIsY) selfY._2 - ExFee else selfY._2
-
-            val minByX = selfXAmount.toBigInt * supplyLP / reservesXAmount
-            val minByY = selfYAmount.toBigInt * supplyLP / reservesYAmount
+            val minByX = SelfXAmount.toBigInt * supplyLP / reservesXAmount
+            val minByY = SelfYAmount.toBigInt * supplyLP / reservesYAmount
 
             val minimalReward = min(minByX, minByY)
 
