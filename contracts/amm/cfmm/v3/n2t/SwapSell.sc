@@ -1,13 +1,28 @@
+// Constants:
+// ================================
+// FeeDenom            : Int
+// ExFeePerTokenNum    : Long
+// ExFeePerTokenDenom  : Long
+// MinQuoteAmount      : Long
+// MaxExFee            : Long
+// MaxMinerFee         : Long
+// BaseAmount_x_FeeNum : BigInt
+// SpectrumIsQuote     : Boolean
+// SpectrumId          : Coll[Byte]
+// QuoteId             : Coll[Byte]
+// PoolNFT             : Coll[Byte]
+// MinerPropBytes      : Coll[Byte]
+// RedeemerPropBytes   : Coll[Byte]
+// RefundProp          : ProveDlog
 {   // ERG -> Token
     val FeeDenom = 1000
-    val FeeNum   = 996
 
     // Those constants are replaced when instantiating order:
     val ExFeePerTokenNum   = 2L
     val ExFeePerTokenDenom = 10L
     val MinQuoteAmount     = 800L
     val BaseAmount         = 1200L
-    val ReservedExFee      = 1400L
+    val MaxExFee           = 1400L
     val SpectrumIsQuote    = true // todo: make sure sigma produces same templates regardless of this const.
 
     val poolIn = INPUTS(0)
@@ -26,14 +41,18 @@
 
             val quoteAsset  = rewardBox.tokens(0)
             val quoteAmount =
-                if (SpectrumIsQuote) FeeDenom * (quoteAsset._2.toBigInt - ReservedExFee) / (FeeDenom - FeeNum)
-                else quoteAsset._2.toBigInt
+                if (SpectrumIsQuote) {
+                    val deltaQuote = quoteAsset._2.toBigInt - MaxExFee
+                    deltaQuote * ExFeePerTokenDenom / (ExFeePerTokenDenom - ExFeePerTokenNum)
+                } else {
+                    quoteAsset._2.toBigInt
+                }
 
             val fairExFee =
                 if (SpectrumIsQuote) true
                 else {
                     val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
-                    val remainder = ReservedExFee - exFee
+                    val remainder = MaxExFee - exFee
                     if (remainder > 0) {
                         val spectrumRem = rewardBox.tokens(1)
                         spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
@@ -43,7 +62,7 @@
                 }
 
             val relaxedOutput = quoteAmount + 1 // handle rounding loss
-            val fairPrice     = poolReservesY * BaseAmount * FeeNum <= relaxedOutput * (poolReservesX * FeeDenom + BaseAmount * FeeNum)
+            val fairPrice     = poolReservesY * BaseAmount_x_FeeNum <= relaxedOutput * (poolReservesX * FeeDenom + BaseAmount_x_FeeNum)
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
                 if (o.propositionBytes == MinerPropBytes) o.value else 0L

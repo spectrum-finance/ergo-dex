@@ -1,3 +1,18 @@
+// Constants:
+// ================================
+// FeeDenom            : Int
+// FeeNum              : Int
+// ExFeePerTokenNum    : Long
+// ExFeePerTokenDenom  : Long
+// MinQuoteAmount      : Long
+// MaxExFee            : Long
+// MaxMinerFee         : Long
+// SpectrumId          : Coll[Byte]
+// QuoteId             : Coll[Byte]
+// PoolNFT             : Coll[Byte]
+// MinerPropBytes      : Coll[Byte]
+// RedeemerPropBytes   : Coll[Byte]
+// RefundProp          : ProveDlog
 {   // Token -> ERG
     val FeeDenom = 1000
     val FeeNum   = 996
@@ -6,7 +21,7 @@
     val ExFeePerTokenNum   = 1L
     val ExFeePerTokenDenom = 10L
     val MinQuoteAmount     = 800L
-    val ReservedExFee      = 1400L
+    val MaxExFee           = 1400L
     val SpectrumIsQuote    = true // todo: make sure sigma produces same templates regardless of this const.
 
     val poolIn = INPUTS(0)
@@ -15,7 +30,6 @@
         if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
             val base       = SELF.tokens(0)
             val baseId     = base._1
-            val baseAmount = (if (baseId != SpectrumId) base._2 else base._2 - ReservedExFee).toBigInt
 
             val poolNFT = poolIn.tokens(0)._1  // first token id is NFT
 
@@ -29,7 +43,7 @@
             val quoteAmount   = rewardBox.value - SELF.value
             val fairExFee     = {
                 val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
-                val remainder = ReservedExFee - exFee
+                val remainder = MaxExFee - exFee
                 if (remainder > 0) {
                     val spectrumRem = rewardBox.tokens(0)
                     spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
@@ -38,7 +52,7 @@
                 }
             }
             val relaxedOutput = quoteAmount + 1 // handle rounding loss
-            val fairPrice     = poolReservesX * baseAmount * FeeNum <= relaxedOutput * (poolReservesY * FeeDenom + baseAmount * FeeNum)
+            val fairPrice     = poolReservesX * BaseAmount_x_FeeNum <= relaxedOutput * (poolReservesY * FeeDenom + BaseAmount_x_FeeNum)
 
             val validMinerFee = OUTPUTS.map { (o: Box) =>
                 if (o.propositionBytes == MinerPropBytes) o.value else 0L
