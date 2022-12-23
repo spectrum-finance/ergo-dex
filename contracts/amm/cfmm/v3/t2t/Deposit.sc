@@ -5,6 +5,9 @@
 {
     val InitiallyLockedLP = 0x7fffffffffffffffL
 
+    val SelfXAmount = 1000L
+    val SelfYAmount = 2000L
+
     val poolIn = INPUTS(0)
 
     val validDeposit =
@@ -20,11 +23,8 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val selfXAmount = SelfXAmount
-            val selfYAmount = SelfYAmount
-
-            val minByX = selfXAmount.toBigInt * supplyLP / reservesXAmount
-            val minByY = selfYAmount.toBigInt * supplyLP / reservesYAmount
+            val minByX = SelfXAmount.toBigInt * supplyLP / reservesXAmount
+            val minByY = SelfYAmount.toBigInt * supplyLP / reservesYAmount
 
             val minimalReward = min(minByX, minByY)
 

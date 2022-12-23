@@ -15,12 +15,13 @@
 // RefundProp          : ProveDlog
 {   // Token -> ERG
     val FeeDenom = 1000
-    val FeeNum   = 996
 
     // Those constants are replaced when instantiating order:
+    val FeeNum             = 996
     val ExFeePerTokenNum   = 1L
     val ExFeePerTokenDenom = 10L
     val MinQuoteAmount     = 800L
+    val BaseAmount         = 1200L
     val MaxExFee           = 1400L
 
     val poolIn = INPUTS(0)

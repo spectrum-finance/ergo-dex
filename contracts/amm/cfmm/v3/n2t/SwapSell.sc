@@ -19,6 +19,7 @@
     val FeeDenom = 1000
 
     // Those constants are replaced when instantiating order:
+    val FeeNum             = 996
     val ExFeePerTokenNum   = 2L
     val ExFeePerTokenDenom = 10L
     val MinQuoteAmount     = 800L

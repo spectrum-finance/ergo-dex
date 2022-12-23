@@ -18,11 +18,11 @@
 {
     val FeeDenom = 1000
 
-    val feeNum             = FeeNum
-    val baseAmount         = BaseAmount
-    val maxExFee           = MaxExFee
-    val exFeePerTokenNum   = ExFeePerTokenNum
-    val exFeePerTokenDenom = ExFeePerTokenDenom
+    val FeeNum             = 996
+    val BaseAmount         = 1000L
+    val MaxExFee           = 2000L
+    val ExFeePerTokenNum   = 3000L
+    val ExFeePerTokenDenom = 40000L
 
     val poolIn = INPUTS(0)
 
@@ -39,8 +39,8 @@
             val quoteAsset  = rewardBox.tokens(0)
             val quoteAmount =
                 if (SpectrumIsQuote) {
-                    val deltaQuote = quoteAsset._2.toBigInt - maxExFee
-                    deltaQuote.toBigInt * exFeePerTokenDenom / (exFeePerTokenDenom - exFeePerTokenNum)
+                    val deltaQuote = quoteAsset._2.toBigInt - MaxExFee
+                    deltaQuote.toBigInt * ExFeePerTokenDenom / (ExFeePerTokenDenom - ExFeePerTokenNum)
                 } else {
                     quoteAsset._2.toBigInt
                 }
@@ -50,8 +50,8 @@
             val fairExFee =
                 if (SpectrumIsQuote) true
                 else {
-                    val exFee     = quoteAmount * exFeePerTokenNum / exFeePerTokenDenom
-                    val remainder = maxExFee - exFee
+                    val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
+                    val remainder = MaxExFee - exFee
                     if (remainder > 0) {
                         val spectrumRem = rewardBox.tokens(1)
                         spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
@@ -63,7 +63,7 @@
             val relaxedOutput = quoteAmount + 1L // handle rounding loss
             val poolX         = poolAssetX._2.toBigInt
             val poolY         = poolAssetY._2.toBigInt
-            val base_x_feeNum = baseAmount.toBigInt * feeNum
+            val base_x_feeNum = BaseAmount.toBigInt * feeNum
             val fairPrice     =
                 if (poolAssetX._1 == QuoteId) {
                     poolX * base_x_feeNum <= relaxedOutput * (poolY * FeeDenom + base_x_feeNum)
