@@ -18,6 +18,12 @@
 {
     val FeeDenom = 1000
 
+    val feeNum             = FeeNum
+    val baseAmount         = BaseAmount
+    val maxExFee           = MaxExFee
+    val exFeePerTokenNum   = ExFeePerTokenNum
+    val exFeePerTokenDenom = ExFeePerTokenDenom
+
     val poolIn = INPUTS(0)
 
     val validTrade =
@@ -35,8 +41,8 @@
             val quoteAsset  = rewardBox.tokens(0)
             val quoteAmount =
                 if (SpectrumIsQuote) {
-                    val deltaQuote = quoteAsset._2.toBigInt - MaxExFee
-                    deltaQuote.toBigInt * ExFeePerTokenDenom / (ExFeePerTokenDenom - ExFeePerTokenNum)
+                    val deltaQuote = quoteAsset._2.toBigInt - maxExFee
+                    deltaQuote.toBigInt * exFeePerTokenDenom / (exFeePerTokenDenom - exFeePerTokenNum)
                 } else {
                     quoteAsset._2.toBigInt
                 }
@@ -46,8 +52,8 @@
             val fairExFee =
                 if (SpectrumIsQuote) true
                 else {
-                    val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
-                    val remainder = MaxExFee - exFee
+                    val exFee     = quoteAmount * exFeePerTokenNum / exFeePerTokenDenom
+                    val remainder = maxExFee - exFee
                     if (remainder > 0) {
                         val spectrumRem = rewardBox.tokens(1)
                         spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
@@ -59,8 +65,7 @@
             val relaxedOutput = quoteAmount + 1L // handle rounding loss
             val poolX         = poolAssetX._2.toBigInt
             val poolY         = poolAssetY._2.toBigInt
-            val baseAmount    = BaseAmount
-            val base_x_feeNum = baseAmount.toBigInt * FeeNum
+            val base_x_feeNum = baseAmount.toBigInt * feeNum
             val fairPrice     =
                 if (poolAssetX._1 == QuoteId) {
                     poolX * base_x_feeNum <= relaxedOutput * (poolY * FeeDenom + base_x_feeNum)
