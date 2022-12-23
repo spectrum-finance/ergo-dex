@@ -22,8 +22,6 @@
 
     val validTrade =
         if (INPUTS.size >= 2 && poolIn.tokens.size == 4) {
-            val base       = SELF.tokens(0)
-            val baseId     = base._1
 
             val poolNFT    = poolIn.tokens(0)._1
             val poolAssetX = poolIn.tokens(2)
@@ -76,6 +74,7 @@
             rewardBox.propositionBytes == RedeemerPropBytes &&
             quoteAsset._1 == QuoteId &&
             quoteAsset._2 >= MinQuoteAmount &&
+            valuePreserved &&
             fairExFee &&
             fairPrice &&
             validMinerFee
