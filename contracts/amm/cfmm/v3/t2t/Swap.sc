@@ -63,7 +63,7 @@
             val relaxedOutput = quoteAmount + 1L // handle rounding loss
             val poolX         = poolAssetX._2.toBigInt
             val poolY         = poolAssetY._2.toBigInt
-            val base_x_feeNum = BaseAmount.toBigInt * feeNum
+            val base_x_feeNum = BaseAmount.toBigInt * FeeNum
             val fairPrice     =
                 if (poolAssetX._1 == QuoteId) {
                     poolX * base_x_feeNum <= relaxedOutput * (poolY * FeeDenom + base_x_feeNum)
