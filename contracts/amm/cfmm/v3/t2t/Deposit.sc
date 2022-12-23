@@ -20,8 +20,11 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val minByX = SelfXAmount.toBigInt * supplyLP / reservesXAmount
-            val minByY = SelfYAmount.toBigInt * supplyLP / reservesYAmount
+            val selfXAmount = SelfXAmount
+            val selfYAmount = SelfYAmount
+
+            val minByX = selfXAmount.toBigInt * supplyLP / reservesXAmount
+            val minByY = selfYAmount.toBigInt * supplyLP / reservesYAmount
 
             val minimalReward = min(minByX, minByY)
 
