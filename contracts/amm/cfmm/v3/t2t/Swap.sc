@@ -1,6 +1,6 @@
 // Constants:
 // ================================
-// FeeNum            : Int
+// FeeNum              : Int
 // FeeDenom            : Int
 // ExFeePerTokenNum    : Long
 // ExFeePerTokenDenom  : Long

@@ -27,9 +27,6 @@
 
     val validTrade =
         if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
-            val base       = SELF.tokens(0)
-            val baseId     = base._1
-
             val poolNFT = poolIn.tokens(0)._1  // first token id is NFT
 
             val poolReservesX = poolIn.value.toBigInt   // nanoErgs is X asset amount

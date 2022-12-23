@@ -15,8 +15,9 @@
 
             val supplyLP = InitiallyLockedLP - poolLP._2
 
-            val minReturnX = selfLP._2.toBigInt * reservesX._2 / supplyLP
-            val minReturnY = selfLP._2.toBigInt * reservesY._2 / supplyLP
+            val selfLPAmount = selfLP._2.toBigInt
+            val minReturnX   = selfLPAmount * reservesX._2 / supplyLP
+            val minReturnY   = selfLPAmount * reservesY._2 / supplyLP
 
             val returnOut = OUTPUTS(1)
 
