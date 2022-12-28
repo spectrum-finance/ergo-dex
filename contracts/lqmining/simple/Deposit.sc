@@ -37,7 +37,7 @@
   // ===== Calculations ===== //
   val expectedVLQ = deposit._2
   val expectedNumEpochs = ExpectedNumEpochs
-  val expectedTMP = expectedVLQ * ExpectedNumEpochs
+  val expectedTMP = expectedVLQ * expectedNumEpochs
 
   // ===== Validating conditions ===== //
   // 1.
