@@ -11,7 +11,7 @@ final class UserBox[F[_]: RuntimeState](
                                            override val tokens: Vector[(Coll[Byte], Long)],
                                            override val registers: Map[Int, Any]
                                          ) extends Box[F] {
-  override val validatorTag = "user"
+  override val validatorBytes = "user"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>

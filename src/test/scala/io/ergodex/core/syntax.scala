@@ -1,6 +1,8 @@
 package io.ergodex.core
 
 import io.ergodex.core.sim.{Box, BoxRuntime, RuntimeCtx, SigmaProp}
+import scorex.crypto.hash.Blake2b256
+import sigmastate.eval.CostingSigmaDslBuilder.blake2b256
 
 import scala.util.Try
 
@@ -31,6 +33,10 @@ object syntax {
     ctx.inputs(i)
 
   def HEIGHT(implicit ctx: RuntimeCtx): Int = ctx.height
+
+  def sigmaProp(x: Boolean): Boolean = x
+
+  def blake2b256(xs: Coll[Byte]): Coll[Byte] = Blake2b256.hash(xs.toArray).toVector
 
   def getVar[T](i: Byte)(implicit ctx: RuntimeCtx): Option[T] =
     ctx.vars.get(i.toInt).flatMap(a => Try(a.asInstanceOf[T]).toOption)

@@ -11,7 +11,7 @@ final class LqMiningPoolBox[F[_] : RuntimeState](
                                                   override val tokens: Vector[(Coll[Byte], Long)],
                                                   override val registers: Map[Int, Any]
                                                 ) extends Box[F] {
-  override val validatorTag = "lm_pool"
+  override val validatorBytes = "lm_pool"
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>

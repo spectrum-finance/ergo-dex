@@ -11,7 +11,7 @@ final class StakingBundleBox[F[_]: RuntimeState](
   override val tokens: Vector[(Coll[Byte], Long)],
   override val registers: Map[Int, Any]
 ) extends Box[F] {
-  override val validatorTag = "staking_bundle"
+  override val validatorBytes = "staking_bundle"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>

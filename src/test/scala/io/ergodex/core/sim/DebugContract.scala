@@ -1,0 +1,93 @@
+package io.ergodex.core.sim
+
+import io.ergodex.core.sim.lqmining.simple.LqMiningPoolBoxSelfHosted
+import org.ergoplatform.{ErgoBox, JsonCodecs}
+
+object DebugContract extends App with JsonCodecs with LedgerPlatform {
+  val poolBoxInJson =
+    """
+      |{
+      |    "boxId": "8b61199da78831529ca8611d97c6652028a58d934f35d9a890d1bc6e2290fde5",
+      |    "value": 1250000,
+      |    "ergoTree": "19e9041f04000402040204040404040604060408040804040402040004000402040204000400040a0500040204020500050004020402040605000500040205000500d81bd601b2a5730000d602db63087201d603db6308a7d604e4c6a70410d605e4c6a70505d606e4c6a70605d607b27202730100d608b27203730200d609b27202730300d60ab27203730400d60bb27202730500d60cb27203730600d60db27202730700d60eb27203730800d60f8c720a02d610998c720902720fd6118c720802d612b27204730900d6139a99a37212730ad614b27204730b00d6159d72137214d61695919e72137214730c9a7215730d7215d617b27204730e00d6187e721705d6199d72057218d61a998c720b028c720c02d61b998c720d028c720e02d1ededededed93b27202730f00b27203731000ededed93e4c672010410720493e4c672010505720593e4c6720106057206928cc77201018cc7a70193c27201c2a7ededed938c7207018c720801938c7209018c720a01938c720b018c720c01938c720d018c720e0193b172027311959172107312eded929a997205721172069c7e9995907216721772169a721773137314057219937210f0721a939c7210997218a273157e721605f0721b958f72107316ededec929a997205721172069c7e9995907216721772169a72177317731805721992a39a9a72129c72177214b2720473190093721af0721092721b959172167217731a9c721a997218a2731b7e721605d801d61ce4c672010704edededed90721c997216731c909972119c7e997217721c0572199a7219720693f0998c72070272117d9d9c7e7219067e721b067e720f0605937210731d93721a731e",
+      |    "assets": [
+      |        {
+      |            "tokenId": "c81ef1ac135bae12778705d13e2827fbaa6984e60a8ad8547c1d5b01c787b033",
+      |            "amount": 1
+      |        },
+      |        {
+      |            "tokenId": "0779ec04f2fae64e87418a1ad917639d4668f78484f45df962b0dec14a2591d2",
+      |            "amount": 10000
+      |        },
+      |        {
+      |            "tokenId": "98da76cecb772029cfec3d53727d5ff37d5875691825fbba743464af0c89ce45",
+      |            "amount": 100
+      |        },
+      |        {
+      |            "tokenId": "3fdce3da8d364f13bca60998c20660c79c19923f44e141df01349d2e63651e86",
+      |            "amount": 10000000
+      |        },
+      |        {
+      |            "tokenId": "c256908dd9fd477bde350be6a41c0884713a1b1d589357ae731763455ef28c10",
+      |            "amount": 99999000
+      |        }
+      |    ],
+      |    "creationHeight": 906755,
+      |    "additionalRegisters": {
+      |        "R4": "1004d00f1486d86ed00f",
+      |        "R5": "05a09c01",
+      |        "R6": "05d00f"
+      |    },
+      |    "transactionId": "a5f19382c8c6f6b94895926b8e79ce3a32d42a6fb3650e2382343e3d1e2c9d4b",
+      |    "index": 0
+      |}
+      |""".stripMargin
+
+  val poolBoxOutJson =
+    """
+      |{
+      |            "boxId": "3dd88f31b5d271dec3d7c63028ad4e54e341d931737e46bdeab609218cb684eb",
+      |            "value": 1250000,
+      |            "ergoTree": "19e9041f04000402040204040404040604060408040804040402040004000402040204000400040a0500040204020500050004020402040605000500040205000500d81bd601b2a5730000d602db63087201d603db6308a7d604e4c6a70410d605e4c6a70505d606e4c6a70605d607b27202730100d608b27203730200d609b27202730300d60ab27203730400d60bb27202730500d60cb27203730600d60db27202730700d60eb27203730800d60f8c720a02d610998c720902720fd6118c720802d612b27204730900d6139a99a37212730ad614b27204730b00d6159d72137214d61695919e72137214730c9a7215730d7215d617b27204730e00d6187e721705d6199d72057218d61a998c720b028c720c02d61b998c720d028c720e02d1ededededed93b27202730f00b27203731000ededed93e4c672010410720493e4c672010505720593e4c6720106057206928cc77201018cc7a70193c27201c2a7ededed938c7207018c720801938c7209018c720a01938c720b018c720c01938c720d018c720e0193b172027311959172107312eded929a997205721172069c7e9995907216721772169a721773137314057219937210f0721a939c7210997218a273157e721605f0721b958f72107316ededec929a997205721172069c7e9995907216721772169a72177317731805721992a39a9a72129c72177214b2720473190093721af0721092721b959172167217731a9c721a997218a2731b7e721605d801d61ce4c672010704edededed90721c997216731c909972119c7e997217721c0572199a7219720693f0998c72070272117d9d9c7e7219067e721b067e720f0605937210731d93721a731e",
+      |            "assets": [
+      |                {
+      |                    "tokenId": "c81ef1ac135bae12778705d13e2827fbaa6984e60a8ad8547c1d5b01c787b033",
+      |                    "amount": 1
+      |                },
+      |                {
+      |                    "tokenId": "0779ec04f2fae64e87418a1ad917639d4668f78484f45df962b0dec14a2591d2",
+      |                    "amount": 10000
+      |                },
+      |                {
+      |                    "tokenId": "98da76cecb772029cfec3d53727d5ff37d5875691825fbba743464af0c89ce45",
+      |                    "amount": 669
+      |                },
+      |                {
+      |                    "tokenId": "3fdce3da8d364f13bca60998c20660c79c19923f44e141df01349d2e63651e86",
+      |                    "amount": 9999431
+      |                },
+      |                {
+      |                    "tokenId": "c256908dd9fd477bde350be6a41c0884713a1b1d589357ae731763455ef28c10",
+      |                    "amount": 99993879
+      |                }
+      |            ],
+      |            "additionalRegisters": {
+      |                "R5": "05a09c01",
+      |                "R6": "05d00f",
+      |                "R4": "1004d00f1486d86ed00f"
+      |            },
+      |            "creationHeight": 906756,
+      |            "transactionId": "381ffae848743687b2fb97d6651fd188ed3780a889d4a1380aa7695ad051b0de",
+      |            "index": 0
+      |        }
+      |""".stripMargin
+
+  val Right(poolIn) = io.circe.parser.decode[ErgoBox](poolBoxInJson)
+  val Right(poolOut) = io.circe.parser.decode[ErgoBox](poolBoxOutJson)
+
+  val Some(setup) = RuntimeSetup.fromIOs[LqMiningPoolBoxSelfHosted, Ledger](List(poolIn), List(poolOut), 0, 906756)(LqMiningPoolBoxSelfHosted.tryFromBox)
+
+  val res = setup.box.validator.run(setup.ctx)
+
+  println(res.value)
+}

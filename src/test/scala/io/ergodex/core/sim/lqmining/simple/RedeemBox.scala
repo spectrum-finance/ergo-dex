@@ -12,7 +12,7 @@ final class RedeemBox[F[_] : RuntimeState](
                                             override val tokens: Vector[(Coll[Byte], Long)],
                                             override val registers: Map[Int, Any]
                                           ) extends Box[F] {
-  override val validatorTag = "redeem_order"
+  override val validatorBytes = "redeem_order"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
