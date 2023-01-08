@@ -5,6 +5,7 @@ import io.ergodex.core.sim.ToLedger._
 import io.ergodex.core.sim.lqmining.simple.LMPool._
 import io.ergodex.core.sim.lqmining.simple.Token._
 import io.ergodex.core.sim.{LedgerPlatform, RuntimeCtx}
+import io.ergodex.core.syntax.blake2b256
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -15,7 +16,8 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     depositedLQAmount: Long,
     expectedNumEpochs: Int,
     expectedVLQAmount: Long,
-    expectedTMPAmount: Long
+    expectedTMPAmount: Long,
+    bundleValidatorBytesTag: String = "staking_bundle"
   ): (UserBox[Ledger], DepositBox[Ledger], StakingBundleBox[Ledger]) = {
 
     val userBox = new UserBox(
@@ -25,8 +27,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       tokens = Vector(
         tokenId("lm_pool_id") -> BundleKeyTokenAmount
       ),
-      registers = Map(
-      )
+      registers = Map.empty
     )
 
     val depositBox = new DepositBox(
@@ -36,11 +37,17 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       tokens = Vector(
         tokenId("LQ") -> depositedLQAmount
       ),
-      registers = Map(
-        5 -> expectedNumEpochs
+      registers = Map.empty,
+      constants = Map(
+        1  -> tokenId("LM_Pool_NFT_ID"),
+        3  -> tokenId("user"),
+        6  -> false,
+        10 -> blake2b256(bundleValidatorBytesTag.getBytes().toVector),
+        14 -> expectedNumEpochs,
+        18 -> tokenId("miner"),
+        21 -> 100L
       ),
-      constants = Map.empty,
-      validatorBytes = ""
+      validatorBytes = "deposit_order"
     )
 
     val bundleBox = new StakingBundleBox(
@@ -129,6 +136,37 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     bundle1.vLQ shouldBe expectedVLQAmount
     bundle1.TMP shouldBe expectedTMPAmount
     isValidDeposit shouldBe true
+    isValidPool shouldBe true
+  }
+
+  it should "validate invalid deposit behaviour than bundle script is not preserved mirrored from simulation" in {
+    val expectedNumEpochs            = epochNum - 1
+    val startAtHeight                = programStart + epochLen - 1
+    val action                       = pool01.deposit(input0)
+    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+
+    val expectedVLQAmount = depositedLQAmount
+    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
+
+    val poolBox0 = pool01.toLedger[Ledger]
+    val poolBox1 = pool1.toLedger[Ledger]
+
+    val (userBox1, depositBox1, bundleBox1) = getBoxes(
+      depositedLQAmount,
+      expectedNumEpochs,
+      expectedVLQAmount,
+      expectedTMPAmount,
+      bundleValidatorBytesTag = "bad_box"
+    )
+
+    val (_, isValidDeposit) = depositBox1.validator
+      .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0), outputs = List(poolBox1, userBox1, bundleBox1)))
+      .value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+
+    bundle1.vLQ shouldBe expectedVLQAmount
+    bundle1.TMP shouldBe expectedTMPAmount
+    isValidDeposit shouldBe false
     isValidPool shouldBe true
   }
 }
