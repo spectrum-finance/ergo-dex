@@ -1,7 +1,6 @@
 package io.ergodex.core.sim.lqmining.simple
 
 import io.ergodex.core.sim.BoxRuntime.NonRunnable
-import io.ergodex.core.sim.Helpers.tokenId
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
 import io.ergodex.core.sim.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
@@ -12,9 +11,9 @@ final class RedeemBox[F[_]: RuntimeState](
   override val creationHeight: Int,
   override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
-  override val constants: Map[Int, Any]
+  override val constants: Map[Int, Any],
+  override val validatorBytes: String
 ) extends BoxSim[F] {
-  override val validatorBytes = "redeem_order"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
@@ -63,18 +62,18 @@ final class RedeemBox[F[_]: RuntimeState](
         ((ExpectedLQ, ExpectedLQAmount) == redeemerOut.tokens(0))
       }
       // 2.
-      val validMinerFee = MinerPropBytes == tokenId("miner") && MaxMinerFee == 100L
-      // replace in contract with:
-      // val validMinerFee = OUTPUTS.map { (o: Box) =>
-      // if (o.propositionBytes == MinerPropBytes) o.value else 0L
-      // }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+      val validMinerFee = OUTPUTS
+        .map { (o: Box) =>
+          if (o.propositionBytes == MinerPropBytes) o.value else 0L
+        }
+        .fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
       sigmaProp(RefundPk || validRedeemerOut && validMinerFee && validMinerFee)
     }
 }
 object RedeemBox {
   def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F] =
-    new RedeemBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants)
+    new RedeemBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[RedeemBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }

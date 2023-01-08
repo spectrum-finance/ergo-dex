@@ -44,7 +44,8 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
         4 -> expectedLQAmount,
         6 -> tokenId("miner"),
         9 -> 100L
-      )
+      ),
+      validatorBytes = ""
     )
 
     val bundleBox = new StakingBundleBox(

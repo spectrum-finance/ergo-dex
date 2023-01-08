@@ -91,7 +91,7 @@ final class DepositBox[F[_]: RuntimeState](
         .map { (o: Box) =>
           if (o.propositionBytes == MinerPropBytes) o.value else 0L
         }
-        .fold(0L, (a: Long, b: Long) => a + b) <= MaxMinerFee
+        .fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
       sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle && validMinerFee))
     }
