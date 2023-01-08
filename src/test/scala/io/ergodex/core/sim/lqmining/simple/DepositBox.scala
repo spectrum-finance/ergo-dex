@@ -1,8 +1,8 @@
 package io.ergodex.core.sim.lqmining.simple
 
-import io.ergodex.core.sim.Helpers.tokenId
+import io.ergodex.core.sim.BoxRuntime.NonRunnable
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{Box, RuntimeState}
+import io.ergodex.core.sim.{AnyBox, Box, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
 
 final class DepositBox[F[_]: RuntimeState](
@@ -10,18 +10,19 @@ final class DepositBox[F[_]: RuntimeState](
   override val value: Long,
   override val creationHeight: Int,
   override val tokens: Vector[(Coll[Byte], Long)],
-  override val registers: Map[Int, Any]
+  override val registers: Map[Int, Any],
+  override val constants: Map[Int, Any]
 ) extends Box[F] {
   override val validatorBytes = "deposit_order"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
       // Context (declarations here are only for simulations):
-      val ExpectedNumEpochs = SELF.R5[Int].get
-      val RedeemerProp      = tokenId("user")
-      val BundlePropHash    = blake2b256("bundle_prop".getBytes().toVector)
-      val RefundPk          = true
-      val PoolId            = tokenId("LM_Pool_NFT_ID")
+      val PoolId: Coll[Byte]         = getConstant(1).get
+      val RedeemerProp: Coll[Byte]   = getConstant(3).get
+      val BundlePropHash: Coll[Byte] = getConstant(10).get
+      val ExpectedNumEpochs: Int     = getConstant(14).get
+      val RefundPk                   = false
 
       // ===== Contract Information ===== //
       // Name: Deposit
@@ -83,4 +84,11 @@ final class DepositBox[F[_]: RuntimeState](
 
       sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle))
     }
+}
+
+object DepositBox {
+  def apply[F[_]: RuntimeState, G[_]](bx: Box[G]): DepositBox[F] =
+    new DepositBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants)
+  implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[DepositBox, F] =
+    AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }

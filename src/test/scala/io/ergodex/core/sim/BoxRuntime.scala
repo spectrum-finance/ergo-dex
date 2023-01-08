@@ -6,6 +6,8 @@ import org.ergoplatform.{ErgoBox, JsonCodecs}
 import scorex.util.encode.Base16
 import sigmastate.Values.ConstantNode
 
+import scala.util.Try
+
 object BoxRuntime {
   type NonRunnable[_] = Any
 }
@@ -20,12 +22,15 @@ trait Box[+F[_]] { self =>
   val registers: Map[Int, Any]
   val validatorBytes: String
   val validator: F[Boolean]
+  val constants: Map[Int, Any] = Map.empty
 
   final def SELF: Box[F] = self
 
   final def creationInfo: (Int, Int) = (creationHeight, creationHeight)
 
   final def propositionBytes: Coll[Byte] = validatorBytes.getBytes().toVector
+
+  final def getConstant[T](i: Int): Option[T] = constants.get(i).flatMap(c => Try(c.asInstanceOf[T]).toOption)
 
   final def setRegister[T](reg: Int, v: T): Box[F] =
     new Box[F] {
@@ -36,6 +41,7 @@ trait Box[+F[_]] { self =>
       override val registers: Map[Int, Any]           = self.registers + (reg -> v)
       override val validatorBytes: String             = self.validatorBytes
       override val validator: F[Boolean]              = self.validator
+      override val constants: Map[Int, Any]           = self.constants
     }
 }
 
@@ -51,8 +57,10 @@ object ToLedger {
   }
 }
 
-trait TryFromBox[Box[_[_]], F[_]] {
+trait TryFromBox[Box[_[_]], F[_]] { self =>
   def tryFromBox(bx: ErgoBox): Option[Box[F]]
+  final def translate[ToBox[_[_]], G[_]](fk: Box[F] => ToBox[G]): TryFromBox[ToBox, G] =
+    (bx: ErgoBox) => self.tryFromBox(bx).map(fk)
 }
 
 object TryFromBox {
@@ -64,22 +72,23 @@ object TryFromBox {
 }
 
 // Non-runnable projection of a box.
-final case class BoxProjection(
+final case class AnyBox(
   override val id: Coll[Byte],
   override val value: Long,
   override val creationHeight: Int,
   override val tokens: Vector[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
-  override val validatorBytes: String
+  override val validatorBytes: String,
+  override val constants: Map[Int, Any]
 ) extends Box[BoxRuntime.NonRunnable] {
   override val validator: NonRunnable[Boolean] = ()
 }
 
-object BoxProjection {
+object AnyBox {
   implicit val tryFromBox: TryFromBox[Box, BoxRuntime.NonRunnable] =
     (bx: ErgoBox) =>
       Some(
-        BoxProjection(
+        AnyBox(
           id             = bx.id.toVector,
           value          = bx.value,
           creationHeight = bx.creationHeight,
@@ -88,6 +97,15 @@ object BoxProjection {
           registers = bx.additionalRegisters.toVector.map { case (r, v) =>
             r.number.toInt -> {
               v match {
+                case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) => array.toArray.toVector
+                case ConstantNode(v, _)                                                       => v
+                case v                                                                        => v
+              }
+            }
+          }.toMap,
+          constants = bx.ergoTree.constants.toVector.zipWithIndex.map { case (c, ix) =>
+            ix -> {
+              c match {
                 case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) => array.toArray.toVector
                 case ConstantNode(v, _)                                                       => v
                 case v                                                                        => v
@@ -112,8 +130,8 @@ object RuntimeSetup extends JsonCodecs {
       selfBox <- fromBox.tryFromBox(selfIn)
       ctx = RuntimeCtx(
         height,
-        inputs  = inputs.map(BoxProjection.tryFromBox.tryFromBox).collect { case Some(x) => x },
-        outputs = outputs.map(BoxProjection.tryFromBox.tryFromBox).collect { case Some(x) => x }
+        inputs  = inputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x },
+        outputs = outputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x }
       )
     } yield RuntimeSetup(selfBox, ctx)
   }
