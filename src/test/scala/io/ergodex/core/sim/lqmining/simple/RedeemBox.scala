@@ -3,17 +3,17 @@ package io.ergodex.core.sim.lqmining.simple
 import io.ergodex.core.sim.BoxRuntime.NonRunnable
 import io.ergodex.core.sim.Helpers.tokenId
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{AnyBox, Box, RuntimeState, TryFromBox}
-import io.ergodex.core.syntax.{Coll, _}
+import io.ergodex.core.sim.{AnyBox, BoxSim, RuntimeState, TryFromBox}
+import io.ergodex.core.syntax._
 
 final class RedeemBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
   override val value: Long,
   override val creationHeight: Int,
-  override val tokens: Vector[(Coll[Byte], Long)],
+  override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
   override val constants: Map[Int, Any]
-) extends Box[F] {
+) extends BoxSim[F] {
   override val validatorBytes = "redeem_order"
 
   override val validator: F[Boolean] =
@@ -73,7 +73,7 @@ final class RedeemBox[F[_]: RuntimeState](
     }
 }
 object RedeemBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: Box[G]): RedeemBox[F] =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F] =
     new RedeemBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[RedeemBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

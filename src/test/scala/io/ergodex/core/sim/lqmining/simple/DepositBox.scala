@@ -2,19 +2,18 @@ package io.ergodex.core.sim.lqmining.simple
 
 import io.ergodex.core.sim.BoxRuntime.NonRunnable
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{AnyBox, Box, RuntimeState, TryFromBox}
-import io.ergodex.core.sim.Helpers.{tokenId}
+import io.ergodex.core.sim.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
 
 final class DepositBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
   override val value: Long,
   override val creationHeight: Int,
-  override val tokens: Vector[(Coll[Byte], Long)],
+  override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
   override val constants: Map[Int, Any],
   override val validatorBytes: String
-) extends Box[F] {
+) extends BoxSim[F] {
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
@@ -88,20 +87,18 @@ final class DepositBox[F[_]: RuntimeState](
         (bundleKeyId, 1L) == bundleOut.tokens(2)
       }
       // 4.
-      val validMinerFee = MinerPropBytes == tokenId("miner") && MaxMinerFee == 100L
-      // replace in contract with:
-      //val validMinerFee = OUTPUTS
-      //.map { (o: Box) =>
-      //if (o.propositionBytes == MinerPropBytes) o.value else 0L
-      //}
-      //.fold(0L, (a: Long, b: Long) => a + b) <= MaxMinerFee
+      val validMinerFee = OUTPUTS
+        .map { (o: Box) =>
+          if (o.propositionBytes == MinerPropBytes) o.value else 0L
+        }
+        .fold(0L, (a: Long, b: Long) => a + b) <= MaxMinerFee
 
       sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle && validMinerFee))
     }
 }
 
 object DepositBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: Box[G]): DepositBox[F] =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): DepositBox[F] =
     new DepositBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[DepositBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

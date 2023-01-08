@@ -43,7 +43,7 @@ trait LedgerPlatform extends JsonCodecs {
 }
 
 final case class RuntimeSetup[B[_[_]]](box: B[Ledger], ctx: RuntimeCtx) {
-  def run(implicit ev: B[Ledger] <:< Box[Ledger]): Eval[Boolean] = ev(box).validator.run(ctx).map(_._2)
+  def run(implicit ev: B[Ledger] <:< BoxSim[Ledger]): Eval[Boolean] = ev(box).validator.run(ctx).map(_._2)
 }
 
 object RuntimeSetup extends JsonCodecs {

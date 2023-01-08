@@ -1,20 +1,18 @@
 package io.ergodex.core.sim.lqmining.simple
 
+import io.ergodex.core.sim.BoxRuntime.NonRunnable
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{Box, RuntimeState, TryFromBox}
+import io.ergodex.core.sim.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
-import org.ergoplatform.ErgoBox
-import scorex.util.encode.Base16
-import sigmastate.Values.ConstantNode
 
 final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
   override val id: Coll[Byte],
   override val value: Long,
   override val creationHeight: Int,
-  override val tokens: Vector[(Coll[Byte], Long)],
+  override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
   override val validatorBytes: String
-) extends Box[F] {
+) extends BoxSim[F] {
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
@@ -211,24 +209,8 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
 }
 
 object LqMiningPoolBoxSelfHosted {
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): LqMiningPoolBoxSelfHosted[F] =
+    new LqMiningPoolBoxSelfHosted(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[LqMiningPoolBoxSelfHosted, F] =
-    (bx: ErgoBox) =>
-      Some(
-        new LqMiningPoolBoxSelfHosted(
-          id             = bx.id.toVector,
-          value          = bx.value,
-          creationHeight = bx.creationHeight,
-          validatorBytes = Base16.encode(bx.ergoTree.bytes),
-          tokens         = bx.additionalTokens.toArray.map { case (id, v) => id.toVector -> v }.toVector,
-          registers = bx.additionalRegisters.toVector.map { case (r, v) =>
-            r.number.toInt -> {
-              v match {
-                case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) => array.toArray.toVector
-                case ConstantNode(v, _)                                                       => v
-                case v                                                                        => v
-              }
-            }
-          }.toMap
-        )
-      )
+    AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }

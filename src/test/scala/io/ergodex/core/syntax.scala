@@ -1,14 +1,13 @@
 package io.ergodex.core
 
-import io.ergodex.core.sim.{Box, BoxRuntime, RuntimeCtx, SigmaProp}
+import io.ergodex.core.sim.{BoxRuntime, BoxSim, RuntimeCtx, SigmaProp}
 import scorex.crypto.hash.Blake2b256
-import sigmastate.eval.CostingSigmaDslBuilder.blake2b256
 
 import scala.util.Try
 
 object syntax {
 
-  implicit class ToValidatorOps[F[_]](box: Box[F]) {
+  implicit class ToValidatorOps[F[_]](box: BoxSim[F]) {
 
     def R4[T]: Option[T] = getR(4)
 
@@ -26,17 +25,23 @@ object syntax {
       box.registers.get(i).flatMap(a => Try(a.asInstanceOf[T]).toOption)
   }
 
-  def OUTPUTS(i: Int)(implicit ctx: RuntimeCtx): Box[BoxRuntime.NonRunnable] =
+  def OUTPUTS(i: Int)(implicit ctx: RuntimeCtx): BoxSim[BoxRuntime.NonRunnable] =
     ctx.outputs(i)
 
-  def INPUTS(i: Int)(implicit ctx: RuntimeCtx): Box[BoxRuntime.NonRunnable] =
+  def OUTPUTS(implicit ctx: RuntimeCtx): Coll[BoxSim[BoxRuntime.NonRunnable]] =
+    ctx.outputs.toVector
+
+  def INPUTS(i: Int)(implicit ctx: RuntimeCtx): BoxSim[BoxRuntime.NonRunnable] =
     ctx.inputs(i)
+
+  def INPUTS(implicit ctx: RuntimeCtx): Coll[BoxSim[BoxRuntime.NonRunnable]] =
+    ctx.inputs.toVector
 
   def HEIGHT(implicit ctx: RuntimeCtx): Int = ctx.height
 
   def sigmaProp(x: Boolean): Boolean = x
 
-  def blake2b256(xs: Coll[Byte]): Coll[Byte] = Blake2b256.hash(xs.toArray).toVector
+  def blake2b256(xs: Coll[Byte]): Coll[Byte] = Blake2b256.hash(xs.inner.toArray).toVector
 
   def getVar[T](i: Byte)(implicit ctx: RuntimeCtx): Option[T] =
     ctx.vars.get(i.toInt).flatMap(a => Try(a.asInstanceOf[T]).toOption)
@@ -59,5 +64,18 @@ object syntax {
     def propBytes: Coll[Byte] = prop.value.getBytes().toVector
   }
 
-  type Coll[A] = Vector[A]
+  final case class CollOpaque[+A](inner: Vector[A]) {
+    def fold[A1 >: A](z: A1, op: (A1, A1) => A1): A1 = inner.fold(z)(op)
+    def map[B](f: A => B): CollOpaque[B]             = inner.map(f)
+    def apply(i: Int): A                             = inner.apply(i)
+    def size: Int                                    = inner.size
+  }
+
+  implicit def toColl[A](vec: Vector[A]): Coll[A] = CollOpaque(vec)
+
+  type Coll[A] = CollOpaque[A]
+
+  object Coll {
+    def apply[A](elems: A*): Coll[A] = CollOpaque(Vector.apply(elems:_*))
+  }
 }

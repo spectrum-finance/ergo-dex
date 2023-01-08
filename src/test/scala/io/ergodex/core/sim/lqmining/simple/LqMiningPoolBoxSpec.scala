@@ -5,6 +5,7 @@ import io.ergodex.core.sim.ToLedger._
 import io.ergodex.core.sim.lqmining.simple.LMPool._
 import io.ergodex.core.sim.lqmining.simple.Token._
 import io.ergodex.core.sim.{LedgerPlatform, RuntimeCtx}
+import io.ergodex.core.syntax.Coll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -223,7 +224,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       boxId("LM_Pool_NFT_ID"),
       pool01.reserves.value,
       0,
-      tokens = Vector(
+      tokens = Coll(
         tokenId("LM_Pool_NFT_ID") -> 1L,
         tokenId("X")              -> pool01.reserves.X,
         tokenId("LQ")             -> 10,

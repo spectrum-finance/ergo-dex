@@ -1,16 +1,16 @@
 package io.ergodex.core.sim.lqmining
 
 import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{Box, RuntimeState}
+import io.ergodex.core.sim.{BoxSim, RuntimeState}
 import io.ergodex.core.syntax._
 
 final class LqMiningPoolBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
   override val value: Long,
   override val creationHeight: Int,
-  override val tokens: Vector[(Coll[Byte], Long)],
+  override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any]
-) extends Box[F] {
+) extends BoxSim[F] {
   override val validatorBytes = "lm_pool"
 
   val validator: F[Boolean] =
