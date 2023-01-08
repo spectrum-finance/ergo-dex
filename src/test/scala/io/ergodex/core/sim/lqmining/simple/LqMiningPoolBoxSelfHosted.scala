@@ -18,8 +18,7 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
-      { // ===== Contract Information ===== //
-        // Name: LMPoolSelfHosted
+      { // Name: LMPoolSelfHosted
         // Description: Contract that validates a change in the LM pool's state.
         //
         // ===== LM Pool Box ===== //
