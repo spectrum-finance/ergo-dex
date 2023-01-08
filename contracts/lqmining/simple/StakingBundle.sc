@@ -31,13 +31,12 @@
   // 1. LM Pool NFT (Token ID) is valid;
   // 2. Action is valid:
   //    2.1. Compound:
-  //         2.1.1 Delta LQ tokens amount is correct;
-  //         2.1.2 Delta TMP tokens amount is correct.
+  //         2.1.1 Valid redeemer;
+  //         2.1.2 Valid successor;
+  //         2.1.2 Valid reward.
   //    2.2. Redeem:
   //         2.2.1 bundleKeyId matches.
-  //    2.3. Compound:
-  //         2.3.1 Valid redeemer;
-  //         2.3.2 Valid successor.
+  //
   //
   // ===== Getting SELF data ===== //
   val bundleVLQ0 = SELF.tokens(0)
