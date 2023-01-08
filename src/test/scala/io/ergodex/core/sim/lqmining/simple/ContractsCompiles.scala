@@ -27,8 +27,21 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
       "RedeemerProp"      -> Array.fill(32)(0: Byte),
       "BundlePropHash"    -> Array.fill(32)(1: Byte),
       "RefundPk"          -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "PoolId"            -> Array.fill(32)(2: Byte)
+      "PoolId"            -> Array.fill(32)(2: Byte),
+      "MinerPropBytes"    -> Array.fill(32)(3: Byte),
+      "MaxMinerFee"       -> 100L
     )
     printTree("Deposit", sourceDeposit, envDeposit)
+
+    val sourceRedeem = readSource("contracts/lqmining/simple/Redeem.sc")
+    val envRedeem = Map(
+      "ExpectedLQ"       -> 10,
+      "ExpectedLQAmount" -> 1000L,
+      "RedeemerProp"     -> Array.fill(32)(0: Byte),
+      "RefundPk"         -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
+      "MinerPropBytes"   -> Array.fill(32)(3: Byte),
+      "MaxMinerFee"      -> 100L
+    )
+    printTree("Redeem", sourceRedeem, envRedeem)
   }
 }
