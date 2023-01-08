@@ -1,6 +1,8 @@
 package io.ergodex.core.sim
 
+import cats.Eval
 import cats.data.State
+import io.ergodex.core.sim.DebugContract.Ledger
 import org.ergoplatform.ErgoBox.BoxId
 import org.ergoplatform.{ErgoBox, ErgoLikeTransaction, JsonCodecs}
 import scorex.util.encode.Base16
@@ -38,4 +40,27 @@ trait LedgerPlatform extends JsonCodecs {
     .body
     .right
     .toOption
+}
+
+final case class RuntimeSetup[B[_[_]]](box: B[Ledger], ctx: RuntimeCtx) {
+  def run(implicit ev: B[Ledger] <:< Box[Ledger]): Eval[Boolean] = ev(box).validator.run(ctx).map(_._2)
+}
+
+object RuntimeSetup extends JsonCodecs {
+  def fromIOs[Box[_[_]]](
+    inputs: List[ErgoBox],
+    outputs: List[ErgoBox],
+    selfInputIx: Int,
+    height: Int
+  )(implicit fromBox: TryFromBox[Box, Ledger]): Option[RuntimeSetup[Box]] = {
+    val selfIn = inputs(selfInputIx)
+    for {
+      selfBox <- fromBox.tryFromBox(selfIn)
+      ctx = RuntimeCtx(
+        height,
+        inputs  = inputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x },
+        outputs = outputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x }
+      )
+    } yield RuntimeSetup(selfBox, ctx)
+  }
 }

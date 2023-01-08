@@ -11,9 +11,9 @@ final class DepositBox[F[_]: RuntimeState](
   override val creationHeight: Int,
   override val tokens: Vector[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
-  override val constants: Map[Int, Any]
+  override val constants: Map[Int, Any],
+  override val validatorBytes: String
 ) extends Box[F] {
-  override val validatorBytes = "deposit_order"
 
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
@@ -88,7 +88,7 @@ final class DepositBox[F[_]: RuntimeState](
 
 object DepositBox {
   def apply[F[_]: RuntimeState, G[_]](bx: Box[G]): DepositBox[F] =
-    new DepositBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants)
+    new DepositBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[DepositBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }

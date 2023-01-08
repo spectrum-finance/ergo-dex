@@ -39,7 +39,8 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       registers = Map(
         5 -> expectedNumEpochs
       ),
-      constants = Map.empty
+      constants = Map.empty,
+      validatorBytes = ""
     )
 
     val bundleBox = new StakingBundleBox(

@@ -2,7 +2,7 @@ package io.ergodex.core.sim
 
 import io.ergodex.core.sim.BoxRuntime.NonRunnable
 import io.ergodex.core.syntax.Coll
-import org.ergoplatform.{ErgoBox, JsonCodecs}
+import org.ergoplatform.ErgoBox
 import scorex.util.encode.Base16
 import sigmastate.Values.ConstantNode
 
@@ -64,8 +64,6 @@ trait TryFromBox[Box[_[_]], F[_]] { self =>
 }
 
 object TryFromBox {
-  implicit def apply[Box[_[_]], F[_]](implicit ev: TryFromBox[Box, F]): TryFromBox[Box, F] = ev
-
   implicit class TryFromBoxOps[Box[+_[_]], F[_]](a: Box[F]) {
     def tryFromBox(bx: ErgoBox)(implicit ev: TryFromBox[Box, F]): Option[Box[F]] = ev.tryFromBox(bx)
   }
@@ -114,25 +112,4 @@ object AnyBox {
           }.toMap
         )
       )
-}
-
-final case class RuntimeSetup[Box[+_[_]], +F[_]](box: Box[F], ctx: RuntimeCtx)
-
-object RuntimeSetup extends JsonCodecs {
-  def fromIOs[Box[_[_]], F[_]](
-    inputs: List[ErgoBox],
-    outputs: List[ErgoBox],
-    selfInputIx: Int,
-    height: Int
-  )(implicit fromBox: TryFromBox[Box, F]): Option[RuntimeSetup[Box, F]] = {
-    val selfIn = inputs(selfInputIx)
-    for {
-      selfBox <- fromBox.tryFromBox(selfIn)
-      ctx = RuntimeCtx(
-        height,
-        inputs  = inputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x },
-        outputs = outputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x }
-      )
-    } yield RuntimeSetup(selfBox, ctx)
-  }
 }

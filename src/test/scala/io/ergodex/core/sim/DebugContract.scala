@@ -130,9 +130,7 @@ object DebugContract extends App with LedgerPlatform {
 
   val (inputs, outputs) = pullIOs(tx)
 
-  val Some(setup) = RuntimeSetup.fromIOs[DepositBox, Ledger](inputs, outputs, 1, 913700)(DepositBox.tryFromBox)
+  val Some(setup) = RuntimeSetup.fromIOs[DepositBox](inputs, outputs, 1, 913700)
 
-  val res = setup.box.validator.run(setup.ctx)
-
-  println(res.value)
+  println(setup.run.value)
 }
