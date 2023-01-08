@@ -4,6 +4,7 @@ import cats.kernel.Monoid
 import io.ergodex.core.sim.Helpers.{boxId, tokenId}
 import io.ergodex.core.sim.lqmining.simple.LMPool.MaxCapTMP
 import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger}
+import io.ergodex.core.syntax.Coll
 
 object Token {
   type X
@@ -197,9 +198,9 @@ object LMPool {
 
   type VerifiedST[+A] = Either[LMPoolErr, A]
 
-  val MinCollateralErg      = 5000000L
-  val DefaultCreationHeight = 1000
-  val BundleKeyTokenAmount  = 0x7fffffffffffffffL - 1L
+  val MinCollateralErg           = 5000000L
+  val DefaultCreationHeight      = 1000
+  val BundleKeyTokenAmount: Long = 0x7fffffffffffffffL - 1L
 
   implicit def toLedger[F[_]: RuntimeState]: ToLedger[LMPool[F], F] =
     (pool: LMPool[F]) =>
@@ -207,7 +208,7 @@ object LMPool {
         boxId("lm_pool_id"),
         pool.reserves.value,
         DefaultCreationHeight,
-        tokens = Vector(
+        tokens = Coll(
           tokenId("LM_Pool_NFT_ID") -> 1L,
           tokenId("X")              -> pool.reserves.X,
           tokenId("LQ")             -> pool.reserves.LQ,
@@ -215,7 +216,7 @@ object LMPool {
           tokenId("TMP")            -> pool.reserves.TMP
         ),
         registers = Map(
-          4 -> Vector(
+          4 -> Coll(
             pool.conf.epochLen,
             pool.conf.epochNum,
             pool.conf.programStart,

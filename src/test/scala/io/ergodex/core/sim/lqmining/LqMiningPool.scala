@@ -4,6 +4,7 @@ import cats.kernel.Monoid
 import io.ergodex.core.sim.Helpers.{boxId, tokenId}
 import io.ergodex.core.sim.lqmining.LMPool.MaxCapTMP
 import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger}
+import io.ergodex.core.syntax.Coll
 
 final case class LMConfig(
   frameLen: Int,
@@ -144,7 +145,6 @@ final case class LMPool[Ledger[_]: RuntimeState](
     RuntimeState.withRuntimeState { ctx =>
       val (curFrameIx, _)   = frameAndEpochIx(ctx)
       val releasedLQ        = bundle.vLQ
-      val framesDeallocated = conf.epochNum * conf.epochLen - math.max(0, curFrameIx)
       val lqAllocSum_ =
         if (lastUpdatedAtFrameIx == curFrameIx) lqAllocSum - releasedLQ
         else lqAllocSum
@@ -185,7 +185,7 @@ object LMPool {
         boxId("lqm_box_1"),
         MinCollateralErg,
         DefaultCreationHeight,
-        tokens = Vector(
+        tokens = Coll(
           tokenId("nft") -> 1L,
           tokenId("x")   -> pool.reserves.X,
           tokenId("lq")  -> pool.reserves.LQ,
@@ -193,7 +193,7 @@ object LMPool {
           tokenId("TMP") -> pool.reserves.TMP
         ),
         registers = Map(
-          4 -> Vector(
+          4 -> Coll(
             pool.conf.frameLen,
             pool.conf.epochLen,
             pool.conf.epochNum,

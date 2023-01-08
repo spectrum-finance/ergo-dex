@@ -113,7 +113,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       boxId("LM_Pool_NFT_ID"),
       MinCollateralErg,
       DefaultCreationHeight,
-      tokens = Vector(
+      tokens = Coll(
         tokenId("LM_Pool_NFT_ID") -> 1L,
         tokenId("X")              -> X1,
         tokenId("LQ")             -> pool01.reserves.LQ,
@@ -121,7 +121,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         tokenId("TMP")            -> TMP1
       ),
       registers = Map(
-        4 -> Vector(pool01.conf),
+        4 -> Coll(),
         5 -> pool01.conf.programBudget,
         6 -> pool01.conf.MaxRoundingError,
         7 -> pool01.execution.execBudget
@@ -232,7 +232,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         tokenId("TMP")            -> pool01.reserves.TMP
       ),
       registers = Map(
-        4 -> Vector(pool01.conf),
+        4 -> Coll(),
         5 -> pool01.conf.programBudget,
         6 -> pool01.conf.MaxRoundingError,
         7 -> pool01.execution.execBudget
