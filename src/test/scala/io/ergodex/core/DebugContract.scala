@@ -1,6 +1,6 @@
-package io.ergodex.core.sim
+package io.ergodex.core
 
-import io.ergodex.core.sim.lqmining.simple.DepositBox
+import io.ergodex.core.lqmining.simple.DepositBox
 import org.ergoplatform.ErgoLikeTransaction
 
 object DebugContract extends App with LedgerPlatform {

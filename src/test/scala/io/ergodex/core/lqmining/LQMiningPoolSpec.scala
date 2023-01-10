@@ -1,14 +1,14 @@
-package io.ergodex.core.sim.lqmining
+package io.ergodex.core.lqmining
 
-import io.ergodex.core.sim.lqmining.LMPool.PrevEpochNotWithdrawn
-import io.ergodex.core.sim.lqmining.Token.LQ
-import io.ergodex.core.sim.{LedgerPlatform, RuntimeCtx}
+import cats.syntax.semigroup._
+import io.ergodex.core.lqmining.LMPool.PrevEpochNotWithdrawn
+import io.ergodex.core.lqmining.Token.LQ
+import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import tofu.syntax.monadic._
-import cats.syntax.semigroup._
 
 class LQMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
 

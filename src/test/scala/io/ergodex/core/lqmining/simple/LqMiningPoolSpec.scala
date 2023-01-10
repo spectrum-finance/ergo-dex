@@ -1,9 +1,9 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
 import cats.syntax.semigroup._
-import io.ergodex.core.sim.lqmining.simple.LMPool.PrevEpochNotWithdrawn
-import io.ergodex.core.sim.lqmining.simple.Token.LQ
-import io.ergodex.core.sim.{LedgerPlatform, RuntimeCtx}
+import io.ergodex.core.lqmining.simple.LMPool.PrevEpochNotWithdrawn
+import io.ergodex.core.lqmining.simple.Token.LQ
+import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
