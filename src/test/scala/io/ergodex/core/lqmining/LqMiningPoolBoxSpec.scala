@@ -1,8 +1,8 @@
-package io.ergodex.core.sim.lqmining
+package io.ergodex.core.lqmining
 
-import io.ergodex.core.sim.ToLedger._
-import io.ergodex.core.sim.lqmining.Token._
-import io.ergodex.core.sim.{LedgerPlatform, RuntimeCtx}
+import io.ergodex.core.ToLedger._
+import io.ergodex.core.lqmining.Token._
+import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks

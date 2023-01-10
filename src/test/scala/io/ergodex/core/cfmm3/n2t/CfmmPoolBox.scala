@@ -1,45 +1,46 @@
 package io.ergodex.core.cfmm3.n2t
 
+import io.ergodex.core.BoxRuntime.NonRunnable
 import io.ergodex.core.RuntimeState.withRuntimeState
-import io.ergodex.core.{Box, RuntimeState}
 import io.ergodex.core.syntax._
+import io.ergodex.core.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 
-final class CfmmPoolBox[F[_] : RuntimeState](
-                                              override val id: Coll[Byte],
-                                              override val value: Long,
-                                              override val creationHeight: Int,
-                                              override val tokens: Vector[(Coll[Byte], Long)],
-                                              override val registers: Map[Int, Any]
-                                            ) extends Box[F] {
-  override val validatorTag = "cfmm_pool_box"
-
+final class CfmmPoolBox[F[_]: RuntimeState](
+  override val id: Coll[Byte],
+  override val value: Long,
+  override val creationHeight: Int,
+  override val tokens: Coll[(Coll[Byte], Long)],
+  override val registers: Map[Int, Any],
+  override val constants: Map[Int, Any],
+  override val validatorBytes: String
+) extends BoxSim[F] {
   override val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
       val InitiallyLockedLP = 0x7fffffffffffffffL
-      val FeeDenom = 1000
-      val MinStorageRent = 1L // this many number of nanoErgs are going to be permanently locked
+      val FeeDenom          = 1000
+      val MinStorageRent    = 10L // this many number of nanoErgs are going to be permanently locked
 
-      val poolNFT0 = SELF.tokens(0)
+      val poolNFT0    = SELF.tokens(0)
       val reservedLP0 = SELF.tokens(1)
-      val tokenY0 = SELF.tokens(2)
+      val tokenY0     = SELF.tokens(2)
 
       val successor = OUTPUTS(0)
 
       val feeNum0 = SELF.R4[Int].get
       val feeNum1 = successor.R4[Int].get
 
-      val poolNFT1 = successor.tokens(0)
+      val poolNFT1    = successor.tokens(0)
       val reservedLP1 = successor.tokens(1)
-      val tokenY1 = successor.tokens(2)
+      val tokenY1     = successor.tokens(2)
 
       val validSuccessorScript = successor.propositionBytes == SELF.propositionBytes
-      val preservedFeeConfig = feeNum1 == feeNum0
+      val preservedFeeConfig   = feeNum1 == feeNum0
 
       val preservedPoolNFT = poolNFT1 == poolNFT0
-      val validLP = reservedLP1._1 == reservedLP0._1
-      val validY = tokenY1._1 == tokenY0._1
+      val validLP          = reservedLP1._1 == reservedLP0._1
+      val validY           = tokenY1._1 == tokenY0._1
       // since tokens can be repeated, we ensure for sanity that there are no more tokens
-      val noMoreTokens = successor.tokens.size == 3
+      val noMoreTokens     = successor.tokens.size == 3
 
       val validStorageRent = successor.value > MinStorageRent
 
@@ -51,7 +52,7 @@ final class CfmmPoolBox[F[_] : RuntimeState](
       val reservesX1 = successor.value
       val reservesY1 = tokenY1._2
 
-      val deltaSupplyLP = supplyLP1 - supplyLP0
+      val deltaSupplyLP  = supplyLP1 - supplyLP0
       val deltaReservesX = reservesX1 - reservesX0
       val deltaReservesY = reservesY1 - reservesY0
 
@@ -81,7 +82,8 @@ final class CfmmPoolBox[F[_] : RuntimeState](
         else if (deltaReservesX > 0 && deltaReservesY > 0) validDepositing
         else validRedemption
 
-      validSuccessorScript &&
+      sigmaProp(
+        validSuccessorScript &&
         preservedFeeConfig &&
         preservedPoolNFT &&
         validLP &&
@@ -89,5 +91,13 @@ final class CfmmPoolBox[F[_] : RuntimeState](
         noMoreTokens &&
         validAction &&
         validStorageRent
+      )
     }
+}
+
+object CfmmPoolBox {
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): CfmmPoolBox[F]      =
+    new CfmmPoolBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
+  implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[CfmmPoolBox, F] =
+    AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }

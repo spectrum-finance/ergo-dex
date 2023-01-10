@@ -1,9 +1,9 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
 import cats.kernel.Monoid
-import io.ergodex.core.sim.Helpers.{boxId, tokenId}
-import io.ergodex.core.sim.lqmining.simple.LMPool.MaxCapTMP
-import io.ergodex.core.sim.{RuntimeCtx, RuntimeState, ToLedger}
+import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.lqmining.simple.LMPool.MaxCapTMP
+import io.ergodex.core.{RuntimeCtx, RuntimeState, ToLedger}
 import io.ergodex.core.syntax.Coll
 
 object Token {

@@ -1,8 +1,8 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.sim.BoxRuntime.NonRunnable
-import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{AnyBox, BoxSim, RuntimeState, TryFromBox}
+import io.ergodex.core.BoxRuntime.NonRunnable
+import io.ergodex.core.RuntimeState.withRuntimeState
+import io.ergodex.core.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
 
 final class DepositBox[F[_]: RuntimeState](
@@ -86,6 +86,7 @@ final class DepositBox[F[_]: RuntimeState](
         (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1) &&
         (bundleKeyId, 1L) == bundleOut.tokens(2)
       }
+
       // 4.
       val validMinerFee = OUTPUTS
         .map { (o: Box) =>

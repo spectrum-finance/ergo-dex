@@ -1,4 +1,4 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
 import io.ergodex.core.SigmaPlatform
 import org.scalatest.matchers.should

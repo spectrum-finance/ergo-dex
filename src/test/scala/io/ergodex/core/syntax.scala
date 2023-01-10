@@ -1,6 +1,5 @@
 package io.ergodex.core
 
-import io.ergodex.core.sim.{BoxRuntime, BoxSim, RuntimeCtx, SigmaProp}
 import scorex.crypto.hash.Blake2b256
 
 import scala.util.Try

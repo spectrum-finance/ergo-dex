@@ -1,7 +1,7 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.sim.RuntimeState.withRuntimeState
-import io.ergodex.core.sim.{BoxSim, RuntimeState}
+import io.ergodex.core.RuntimeState.withRuntimeState
+import io.ergodex.core.{BoxSim, RuntimeState}
 import io.ergodex.core.syntax._
 
 final class UserBox[F[_]: RuntimeState](

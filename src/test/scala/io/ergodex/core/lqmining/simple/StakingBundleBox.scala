@@ -1,7 +1,7 @@
-package io.ergodex.core.sim.lqmining.simple
+package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.sim.RuntimeState._
-import io.ergodex.core.sim._
+import io.ergodex.core.RuntimeState._
+import io.ergodex.core._
 import io.ergodex.core.syntax._
 
 final class StakingBundleBox[F[_]: RuntimeState](
