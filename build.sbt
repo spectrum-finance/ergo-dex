@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
   "tf.tofu"                       %% "tofu"            % "0.10.8"  % Test,
   "com.softwaremill.sttp.client3" %% "circe"           % "3.3.18"  % Test,
   "com.softwaremill.sttp.client3" %% "okhttp-backend"  % "3.3.18"  % Test,
+  
   compilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 )
