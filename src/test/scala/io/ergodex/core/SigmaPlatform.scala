@@ -1,11 +1,12 @@
 package io.ergodex.core
 
 import org.ergoplatform.ErgoAddressEncoder
+import scorex.crypto.hash.Blake2b256
 import scorex.util.encode.Base16
 import sigmastate.Values.ErgoTree
 import sigmastate.eval.{CompiletimeIRContext, IRContext}
-import sigmastate.lang.{CompilerSettings, SigmaCompiler, TransformingSigmaBuilder}
 import sigmastate.lang.Terms.ValueOps
+import sigmastate.lang.{CompilerSettings, SigmaCompiler, TransformingSigmaBuilder}
 import sigmastate.serialization.ErgoTreeSerializer
 
 trait SigmaPlatform {
@@ -29,7 +30,7 @@ trait SigmaPlatform {
 
   def updateVersionHeader(tree: ErgoTree): ErgoTree = {
     val versionHeader = ErgoTree.headerWithVersion(version = 1)
-    val header        =
+    val header =
       if (ErgoTree.isConstantSegregation(tree.header)) (versionHeader | ErgoTree.ConstantSegregationFlag).toByte
       else versionHeader
     tree.copy(header = header)
@@ -46,7 +47,14 @@ trait SigmaPlatform {
     println(s"[$signature] Constants:")
     tree.constants.zipWithIndex.foreach { case (c, i) => println(s"{$i} -> $c") }
     println("* " * 40)
-    println(s"[$signature] ErgoTree:         " + Base16.encode(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree)))
+    println(
+      s"[$signature] ErgoTree:         " + Base16.encode(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
+    )
+    println(
+      s"[$signature] ErgoTreeHash:         " + Base16.encode(
+        Blake2b256.hash(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
+      )
+    )
     println(s"[$signature] ErgoTreeTemplate: " + Base16.encode(tree.template))
     println("-" * 80)
     println()

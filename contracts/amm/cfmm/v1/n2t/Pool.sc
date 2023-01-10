@@ -1,7 +1,7 @@
 {
     val InitiallyLockedLP = 0x7fffffffffffffffL
     val FeeDenom = 1000
-    val MinStorageRent = 10000000L  // this many number of nanoErgs are going to be permanently locked
+    val MinStorageRent = 10000000L  // this number of nanoErgs are going to be permanently locked
 
     val poolNFT0    = SELF.tokens(0)
     val reservedLP0 = SELF.tokens(1)
