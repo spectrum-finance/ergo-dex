@@ -1,8 +1,8 @@
 package io.ergodex.core.lqmining.simple
 
 import io.ergodex.core.RuntimeState.withRuntimeState
-import io.ergodex.core.{BoxSim, RuntimeState}
 import io.ergodex.core.syntax._
+import io.ergodex.core.{BoxSim, RuntimeState}
 
 final class LqMiningPoolBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
@@ -201,7 +201,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             legalEpoch &&
             // 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
             prevEpochCompounded &&
-            (-deltaX == reward) &&
+            (-deltaX <= reward) &&
             (deltaLQ == 0L) &&
             (deltaVLQ == 0L) &&
             (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
