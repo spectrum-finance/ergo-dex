@@ -204,7 +204,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             (-deltaX <= reward) &&
             (deltaLQ == 0L) &&
             (deltaVLQ == 0L) &&
-            (execBudgetRem0 - execBudgetRem1).toBigInt <= execFee // valid exec fee
+            (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
           } else { // increase execution budget
             // 6.4.
             // 6.4.1. && 6.4.2. && 6.4.3. && 6.4.4. && 6.4.5.
