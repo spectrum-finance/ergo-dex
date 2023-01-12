@@ -195,8 +195,8 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             val legalEpoch          = epoch <= curEpochIx - 1
             val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
 
-            val reward  = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
-            val execFee = (reward.toBigInt * execBudget0 / programBudget0).toLong
+            val reward  = epochAlloc.toBigInt * deltaTMP / reservesLQ
+            val execFee = reward.toBigInt * execBudget0 / programBudget0
 
             legalEpoch &&
             // 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
