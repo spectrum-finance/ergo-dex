@@ -182,7 +182,7 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
           val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
 
           val legalEpoch = epoch <= curEpochIx - 1
-          val reward     = (epochAlloc.toBigInt * deltaTMP / reservesLQ).toLong
+          val reward     = epochAlloc.toBigInt * deltaTMP / reservesLQ
 
           // 6.3.1. && 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
           legalEpoch &&
