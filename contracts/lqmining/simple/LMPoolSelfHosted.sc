@@ -11,7 +11,8 @@
   //      3: Redeem blocks delta  // the number of blocks after the end of LM program, at which redeems can be performed without any restrictions.
   //   R5[Long]: Program budget  // total budget of LM program.
   //   R6[Long]: MaxRoundingError // Tokens rounding delta max value.
-  //   R7[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
+  //   R7[(Int, Long)]: PrevEpochMemo // Final liquidity of the previous epoch: (EpochIx, LQ).
+  //   R8[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
   //
   // Tokens:
   //   0:
@@ -71,8 +72,9 @@
 
   val creationHeight0 = SELF.creationInfo._1
 
-  val programBudget0    = SELF.R5[Long].get
-  val maxRoundingError0 = SELF.R6[Long].get
+  val programBudget0 = SELF.R5[Long].get
+  val maxError0      = SELF.R6[Long].get
+  val prevEpochMemo0 = SELF.R7[(Int, Long)].get
 
   // ===== Getting OUTPUTS data ===== //
   val successor = OUTPUTS(0)
@@ -84,10 +86,11 @@
   val poolTMP1 = successor.tokens(4)
 
   val creationHeight1 = successor.creationInfo._1
-  val conf1           = successor.R4[Coll[Int]].get
 
+  val conf1             = successor.R4[Coll[Int]].get
   val programBudget1    = successor.R5[Long].get
   val maxRoundingError1 = successor.R6[Long].get
+  val prevEpochMemo1    = successor.R7[(Int, Long)].get
 
   // ===== Getting deltas ===== //
   val reservesX  = poolX0._2
@@ -112,7 +115,7 @@
   val configPreserved =
     (conf1 == conf0) &&
     (programBudget1 == programBudget0) &&
-    (maxRoundingError1 == maxRoundingError0) &&
+    (maxRoundingError1 == maxError0) &&
     (creationHeight1 >= creationHeight0)
 
   // 3.
@@ -125,6 +128,15 @@
     poolTMP1._1 == poolTMP0._1
   // 5.
   val noMoreTokens = successor.tokens.size == 5
+
+  val prevEpoch = curEpochIx - 1
+  val epochMemoUpdated =
+    if (prevEpochMemo0._1 < prevEpoch) {
+      // Update prev epoch liquidity:
+      prevEpochMemo1 == (prevEpoch, poolLQ0._2)
+    } else {
+      prevEpochMemo1 == prevEpochMemo0
+    }
   // 6.
   val validAction = {
     if (deltaLQ > 0) { // deposit
@@ -135,7 +147,7 @@
       // 6.1.1.
       val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
       val prevEpochsCompoundedForDeposit =
-        ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+        ((programBudget0 - reservesX) + maxError0) >= (curEpochToCalc - 1) * epochAlloc
 
       val bundleOut = OUTPUTS(2)
       val validBundle =
@@ -163,7 +175,8 @@
       // 6.2.1.
       val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
       val prevEpochsCompoundedForRedeem =
-        ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+        ((programBudget0 - reservesX) + maxError0) >= (curEpochToCalc - 1) * epochAlloc
+      // Allow redeem in case of emergency (once program ended)
       val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
 
       (prevEpochsCompoundedForRedeem || redeemNoLimit) &&
@@ -175,10 +188,10 @@
       // 6.3.
       val epoch               = successor.R7[Int].get
       val epochsToCompound    = epochNum - epoch
-      val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
+      val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxError0)
 
       val legalEpoch = epoch <= curEpochIx - 1
-      val reward     = epochAlloc.toBigInt * deltaTMP / reservesLQ
+      val reward     = epochAlloc.toBigInt * deltaTMP / prevEpochMemo1._2
 
       // 6.3.1. && 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
       legalEpoch &&

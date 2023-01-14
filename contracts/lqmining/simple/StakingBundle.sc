@@ -76,8 +76,8 @@
       val bundleVLQ1          = successor.tokens(0)
       val bundleTMP1          = successor.tokens(1)
       val redeemerRewardToken = redeemer.tokens(0)
-      val epoch_              = pool1.R8[Int]
-      val epoch               = if (epoch_.isDefined) epoch_.get else pool1.R7[Int].get
+      val epoch_              = pool1.R9[Int]
+      val epoch               = if (epoch_.isDefined) epoch_.get else pool1.R8[Int].get
 
       // ===== Getting deltas and calculate reward ===== //
       val epochsToCompound = epochNum - epoch
@@ -86,7 +86,10 @@
       val releasedTMP      = bundleTMP0._2 - epochsToCompound * bundleVLQ
       val epochRewardTotal = programBudget / epochNum
       val epochsBurned     = (bundleTMP / bundleVLQ) - epochsToCompound
-      val reward           = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / lqLockedInPoolTotal
+
+      // Assumption: Next pool is guaranteed to store correct amount of LQ at the end of prev epoch.
+      val prevEpochMemo    = pool1.R7[(Int, Long)].get._2
+      val reward           = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / prevEpochMemo
       // ===== Validating conditions ===== //
       // 2.1.1.
       val validRedeemer = redeemer.propositionBytes == redeemerProp0.propBytes
@@ -107,7 +110,6 @@
       validRedeemer &&
       validSuccessor &&
       validReward
-
     } else if (deltaLQ < 0L) { // redeem (validated by redeem order)
       // 2.2.
       // ===== Getting INPUTS data ===== //
