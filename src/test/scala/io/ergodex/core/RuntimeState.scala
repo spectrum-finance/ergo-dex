@@ -3,18 +3,17 @@ package io.ergodex.core
 import cats.Functor
 import cats.mtl.Ask
 import cats.mtl.syntax.ask._
+import io.ergodex.core.syntax.SigmaProp
 import tofu.WithContext
 import tofu.syntax.monadic._
 
-final case class SigmaProp(value: String)
-
 final case class RuntimeCtx(
-                             height: Int,
-                             vars: Map[Int, Any]                        = Map.empty,
-                             inputs: List[BoxSim[BoxRuntime.NonRunnable]]  = List.empty,
-                             outputs: List[BoxSim[BoxRuntime.NonRunnable]] = List.empty,
-                             signatories: List[SigmaProp]               = List.empty
-                           )
+  height: Int,
+  vars: Map[Int, Any]                           = Map.empty,
+  inputs: List[BoxSim[BoxRuntime.NonRunnable]]  = List.empty,
+  outputs: List[BoxSim[BoxRuntime.NonRunnable]] = List.empty,
+  signatories: List[SigmaProp]                  = List.empty
+)
 
 object RuntimeCtx extends WithContext.Companion[RuntimeCtx] {
   def init: RuntimeCtx            = at(1)

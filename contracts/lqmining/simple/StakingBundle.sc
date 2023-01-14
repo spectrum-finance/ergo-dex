@@ -42,7 +42,7 @@
   val bundleVLQ0 = SELF.tokens(0)
   val bundleTMP0 = SELF.tokens(1)
 
-  val redeemerProp0 = SELF.R4[Coll[Byte]].get
+  val redeemerProp0 = SELF.R4[SigmaProp].get
   val poolId0       = SELF.R5[Coll[Byte]].get
   val bundleKey0    = SELF.tokens(2)._1
 
@@ -89,15 +89,15 @@
       val reward           = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / lqLockedInPoolTotal
       // ===== Validating conditions ===== //
       // 2.1.1.
-      val validRedeemer = redeemer.propositionBytes == redeemerProp0
+      val validRedeemer = redeemer.propositionBytes == redeemerProp0.propBytes
       // 2.1.2.
       val validSuccessor =
-        (successor.R4[Coll[Byte]].get == redeemerProp0) &&
+        (successor.R4[SigmaProp].get == redeemerProp0) &&
         (successor.R5[Coll[Byte]].get == poolId0) &&
         (successor.propositionBytes == SELF.propositionBytes) &&
         (bundleKey0, 1L) == successor.tokens(2) &&
         (bundleTMP1._1 == bundleTMP0._1) &&
-        ((bundleTMP - bundleTMP1._2) == releasedTMP) &&
+        (bundleTMP - bundleTMP1._2 == releasedTMP) &&
         (bundleVLQ1 == bundleVLQ0)
       // 2.1.3.
       val validReward =
@@ -116,7 +116,6 @@
       // ===== Validating conditions ===== //
       // 2.2.1.
       permitIn.tokens(0) == requiredPermit
-
     } else {
       false
     }

@@ -1,9 +1,10 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
+import io.ergodex.core.syntax.SigmaProp
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -43,7 +44,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("X") -> reward.value
+        bytes("X") -> reward.value
       ),
       registers = Map(
       )
@@ -54,13 +55,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("VLQ")           -> bundle1.vLQ,
-        tokenId("TMP")           -> bundle1.TMP,
-        tokenId("bundle_key_id") -> 1L
+        bytes("VLQ")           -> bundle1.vLQ,
+        bytes("TMP")           -> bundle1.TMP,
+        bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("LM_Pool_NFT_ID")
+        4 -> SigmaProp(bytes("user")),
+        5 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -69,13 +70,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("VLQ")           -> bundle2.vLQ,
-        tokenId("TMP")           -> bundle2.TMP,
-        tokenId("bundle_key_id") -> 1L
+        bytes("VLQ")           -> bundle2.vLQ,
+        bytes("TMP")           -> bundle2.TMP,
+        bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("LM_Pool_NFT_ID")
+        4 -> SigmaProp(bytes("user")),
+        5 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -114,7 +115,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("X") -> reward.value
+        bytes("X") -> reward.value
       ),
       registers = Map(
       )
@@ -125,13 +126,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("VLQ")           -> bundle1.vLQ,
-        tokenId("TMP")           -> bundle1.TMP,
-        tokenId("bundle_key_id") -> 1L
+        bytes("VLQ")           -> bundle1.vLQ,
+        bytes("TMP")           -> bundle1.TMP,
+        bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("LM_Pool_NFT_ID")
+        4 -> SigmaProp(bytes("user")),
+        5 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -140,13 +141,13 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("VLQ")           -> bundle2.vLQ,
-        tokenId("TMP")           -> bundle2.TMP,
-        tokenId("bundle_key_id") -> 1L
+        bytes("VLQ")           -> bundle2.vLQ,
+        bytes("TMP")           -> bundle2.TMP,
+        bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("LM_Pool_NFT_ID")
+        4 -> SigmaProp(bytes("user")),
+        5 -> bytes("LM_Pool_NFT_ID")
       ),
       validatorBytes = "bad_box"
     )

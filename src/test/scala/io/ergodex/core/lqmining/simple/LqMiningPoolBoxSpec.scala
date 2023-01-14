@@ -1,6 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
@@ -114,11 +114,11 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       MinCollateralErg,
       DefaultCreationHeight,
       tokens = Coll(
-        tokenId("LM_Pool_NFT_ID") -> 1L,
-        tokenId("X")              -> X1,
-        tokenId("LQ")             -> pool01.reserves.LQ,
-        tokenId("vLQ")            -> pool01.reserves.vLQ,
-        tokenId("TMP")            -> TMP1
+        bytes("LM_Pool_NFT_ID") -> 1L,
+        bytes("X")              -> X1,
+        bytes("LQ")             -> pool01.reserves.LQ,
+        bytes("vLQ")            -> pool01.reserves.vLQ,
+        bytes("TMP")            -> TMP1
       ),
       registers = Map(
         4 -> Coll(),
@@ -225,11 +225,11 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       pool01.reserves.value,
       0,
       tokens = Coll(
-        tokenId("LM_Pool_NFT_ID") -> 1L,
-        tokenId("X")              -> pool01.reserves.X,
-        tokenId("LQ")             -> 10,
-        tokenId("vLQ")            -> pool01.reserves.vLQ,
-        tokenId("TMP")            -> pool01.reserves.TMP
+        bytes("LM_Pool_NFT_ID") -> 1L,
+        bytes("X")              -> pool01.reserves.X,
+        bytes("LQ")             -> 10,
+        bytes("vLQ")            -> pool01.reserves.vLQ,
+        bytes("TMP")            -> pool01.reserves.TMP
       ),
       registers = Map(
         4 -> Coll(),

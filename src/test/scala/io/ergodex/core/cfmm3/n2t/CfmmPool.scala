@@ -1,7 +1,7 @@
 package io.ergodex.core.cfmm3.n2t
 
 import cats.kernel.Monoid
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.{RuntimeState, ToLedger}
 
 object Token {
@@ -129,9 +129,9 @@ object CfmmPool {
         pool.reserves.x,
         DefaultCreationHeight,
         tokens         = Vector(
-          tokenId("pool_NFT") -> 1L,
-          tokenId("lp")       -> pool.reserves.lp,
-          tokenId("y")        -> pool.reserves.y
+          bytes("pool_NFT") -> 1L,
+          bytes("lp")       -> pool.reserves.lp,
+          bytes("y")        -> pool.reserves.y
         ),
         registers      = Map(
           4 -> pool.config.feeNum

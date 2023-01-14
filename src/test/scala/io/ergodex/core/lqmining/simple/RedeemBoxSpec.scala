@@ -1,6 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
@@ -22,7 +22,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("LQ") -> expectedLQAmount
+        bytes("LQ") -> expectedLQAmount
       ),
       registers = Map(
       )
@@ -33,16 +33,16 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("bundle_key_id") -> BundleKeyTokenAmount,
-        tokenId("LQ")            -> expectedLQAmount
+        bytes("bundle_key_id") -> BundleKeyTokenAmount,
+        bytes("LQ")            -> expectedLQAmount
       ),
       registers = Map.empty,
       constants = Map(
         1 -> false,
-        2 -> tokenId("user"),
-        3 -> tokenId("LQ"),
+        2 -> bytes("user"),
+        3 -> bytes("LQ"),
         4 -> expectedLQAmount,
-        6 -> tokenId("miner"),
+        6 -> bytes("miner"),
         9 -> 100L
       ),
       validatorBytes = "redeem"
@@ -53,13 +53,13 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("vLQ")           -> redeemedVLQAmount,
-        tokenId("TMP")           -> bundleTMPAmount,
-        tokenId("bundle_key_id") -> 1L
+        bytes("vLQ")           -> redeemedVLQAmount,
+        bytes("TMP")           -> bundleTMPAmount,
+        bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("lm_pool_id")
+        4 -> bytes("user"),
+        5 -> bytes("lm_pool_id")
       )
     )
 

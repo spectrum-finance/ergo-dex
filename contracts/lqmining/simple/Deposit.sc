@@ -10,7 +10,7 @@
   //
   // Constants:
   // {1}  -> PoolId[Coll[Byte]]
-  // {3}  -> RedeemerProp[Coll[Byte]]
+  // {3}  -> RedeemerProp[ProveDlog]
   // {6}  -> RefundPk[ProveDlog]
   // {10} -> BundlePropHash[Coll[Byte]]
   // {14} -> ExpectedNumEpochs[Int]
@@ -53,7 +53,7 @@
   // 3.
   val validBundle = {
     blake2b256(bundleOut.propositionBytes) == BundlePropHash &&
-    bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
+    bundleOut.R4[SigmaProp].get.propBytes == RedeemerProp &&
     bundleOut.R5[Coll[Byte]].get == PoolId &&
     (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
     (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1) &&
@@ -64,7 +64,7 @@
     .map { (o: Box) =>
       if (o.propositionBytes == MinerPropBytes) o.value else 0L
     }
-    .fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+    .fold(0L, {(a: Long, b: Long) => a + b}) <= MaxMinerFee
 
   sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle && validMinerFee))
 }

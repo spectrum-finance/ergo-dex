@@ -1,7 +1,7 @@
 package io.ergodex.core.lqmining.simple
 
 import cats.kernel.Monoid
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.lqmining.simple.LMPool.MaxCapTMP
 import io.ergodex.core.{RuntimeCtx, RuntimeState, ToLedger}
 import io.ergodex.core.syntax.Coll
@@ -209,11 +209,11 @@ object LMPool {
         pool.reserves.value,
         DefaultCreationHeight,
         tokens = Coll(
-          tokenId("LM_Pool_NFT_ID") -> 1L,
-          tokenId("X")              -> pool.reserves.X,
-          tokenId("LQ")             -> pool.reserves.LQ,
-          tokenId("vLQ")            -> pool.reserves.vLQ,
-          tokenId("TMP")            -> pool.reserves.TMP
+          bytes("LM_Pool_NFT_ID") -> 1L,
+          bytes("X")              -> pool.reserves.X,
+          bytes("LQ")             -> pool.reserves.LQ,
+          bytes("vLQ")            -> pool.reserves.vLQ,
+          bytes("TMP")            -> pool.reserves.TMP
         ),
         registers = Map(
           4 -> Coll(

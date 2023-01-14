@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -22,7 +22,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         boxId("redeemer_box"),
         expectedAmount,
         DefaultCreationHeight,
-        tokens         = Vector(tokenId("y") -> expectedAmount),
+        tokens         = Vector(bytes("y") -> expectedAmount),
         registers      = Map.empty,
         constants      = Map.empty,
         validatorBytes = "redeemer"
@@ -32,7 +32,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         boxId("swapBuy_box"),
         0L,
         DefaultCreationHeight,
-        tokens         = Vector(tokenId(swappedToken) -> swappedAmount),
+        tokens         = Vector(bytes(swappedToken) -> swappedAmount),
         registers      = Map.empty,
         constants      = Map(
           1  -> false,
@@ -41,12 +41,12 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
           7  -> 100L,
           8  -> 1200L,
           9  -> 996,
-          11 -> tokenId("pool_NFT"),
-          12 -> tokenId("redeemer"),
+          11 -> bytes("pool_NFT"),
+          12 -> bytes("redeemer"),
           13 -> 800L,
-          16 -> tokenId("spf"),
+          16 -> bytes("spf"),
           20 -> 1000,
-          21 -> tokenId("miner"),
+          21 -> bytes("miner"),
           24 -> minerFee
         ),
         validatorBytes = "swapBuy"

@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.t2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger.ToLedgerOps
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.t2t.CfmmPool._
@@ -25,8 +25,8 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       0L,
       DefaultCreationHeight,
       tokens         = Vector(
-        tokenId("lp")        -> expectedLPAmount,
-        tokenId(changeToken) -> changeAmount
+        bytes("lp")        -> expectedLPAmount,
+        bytes(changeToken) -> changeAmount
       ),
       registers      = Map.empty,
       constants      = Map.empty,
@@ -43,9 +43,9 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         1  -> false,
         8  -> depositedXAmount,
         10 -> depositedYAmount,
-        13 -> tokenId("pool_NFT"),
-        14 -> tokenId("redeemer"),
-        21 -> tokenId("miner"),
+        13 -> bytes("pool_NFT"),
+        14 -> bytes("redeemer"),
+        21 -> bytes("miner"),
         24 -> minerFee
       ),
       validatorBytes = "deposit"

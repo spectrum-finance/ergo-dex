@@ -1,11 +1,11 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
-import io.ergodex.core.syntax.blake2b256
+import io.ergodex.core.syntax.{SigmaProp, blake2b256}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -25,7 +25,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("lm_pool_id") -> BundleKeyTokenAmount
+        bytes("lm_pool_id") -> BundleKeyTokenAmount
       ),
       registers = Map.empty
     )
@@ -35,16 +35,16 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("LQ") -> depositedLQAmount
+        bytes("LQ") -> depositedLQAmount
       ),
       registers = Map.empty,
       constants = Map(
-        1  -> tokenId("LM_Pool_NFT_ID"),
-        3  -> tokenId("user"),
+        1  -> bytes("LM_Pool_NFT_ID"),
+        3  -> bytes("user"),
         6  -> false,
         10 -> blake2b256(bundleValidatorBytesTag.getBytes().toVector),
         14 -> expectedNumEpochs,
-        18 -> tokenId("miner"),
+        18 -> bytes("miner"),
         21 -> 100L
       ),
       validatorBytes = "deposit_order"
@@ -55,13 +55,13 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        tokenId("vLQ")        -> expectedVLQAmount,
-        tokenId("TMP")        -> expectedTMPAmount,
-        tokenId("lm_pool_id") -> 1L
+        bytes("vLQ")        -> expectedVLQAmount,
+        bytes("TMP")        -> expectedTMPAmount,
+        bytes("lm_pool_id") -> 1L
       ),
       registers = Map(
-        4 -> tokenId("user"),
-        5 -> tokenId("LM_Pool_NFT_ID")
+        4 -> SigmaProp(bytes("user")),
+        5 -> bytes("LM_Pool_NFT_ID")
       )
     )
 

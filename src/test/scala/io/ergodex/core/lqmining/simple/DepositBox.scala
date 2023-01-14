@@ -2,8 +2,8 @@ package io.ergodex.core.lqmining.simple
 
 import io.ergodex.core.BoxRuntime.NonRunnable
 import io.ergodex.core.RuntimeState.withRuntimeState
-import io.ergodex.core.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 import io.ergodex.core.syntax._
+import io.ergodex.core.{AnyBox, BoxSim, RuntimeState, TryFromBox}
 
 final class DepositBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
@@ -26,7 +26,6 @@ final class DepositBox[F[_]: RuntimeState](
       val MinerPropBytes: Coll[Byte] = getConstant(18).get
       val MaxMinerFee: Long          = getConstant(21).get
 
-      // ===== Contract Information ===== //
       // Name: Deposit
       // Description: Contract that validates user's deposit into the LM Pool.
       //
@@ -38,21 +37,22 @@ final class DepositBox[F[_]: RuntimeState](
       //
       // Constants:
       // {1}  -> PoolId[Coll[Byte]]
-      // {3}  -> RedeemerProp[Coll[Byte]]
+      // {3}  -> RedeemerProp[ProveDlog]
       // {6}  -> RefundPk[ProveDlog]
       // {10} -> BundlePropHash[Coll[Byte]]
       // {14} -> ExpectedNumEpochs[Int]
       // {18} -> MinerPropBytes[Coll[Byte]]
       // {21} -> MaxMinerFee[Long]
       //
-      // ErgoTree: 198e031104000e20000000000000000000000000000000000000000000000000000000000000000004020e69aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0404040008cd03d36d7e86b0fe7d8aec204f0ae6c2be6563fc7a443d69501d73dfe9c2adddb15a040005fcffffffffffffffff01040004060400040804f00d040205020404d808d601b2a4730000d602db63087201d6037301d604b2a5730200d6057303d606c57201d607b2a5730400d6088cb2db6308a773050002eb027306d1eded938cb27202730700017203ed93c27204720593860272067308b2db63087204730900edededed93e4c67207040e720593e4c67207050e72039386028cb27202730a00017208b2db63087207730b009386028cb27202730c00019c72087e730d05b2db63087207730e009386027206730fb2db63087207731000
+      // ErgoTree: 1987041604000e20020202020202020202020202020202020202020202020202020202020202020204020e2000000000000000000000000000000000000000000000000000000000000000000404040008cd02217daf90deb73bdf8b6709bb42093fdfaff6573fd47b630e2d3fdd4a8193a74d040005fcffffffffffffffff0104000e20010101010101010101010101010101010101010101010101010101010101010104060400040804140402050204040e691005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a573040500050005a09c01d808d601b2a4730000d602db63087201d6037301d604b2a5730200d6057303d606c57201d607b2a5730400d6088cb2db6308a773050002eb027306d1ededed938cb27202730700017203ed93c27204720593860272067308b2db63087204730900ededededed93cbc27207730a93e4c67207040e720593e4c67207050e72039386028cb27202730b00017208b2db63087207730c009386028cb27202730d00019c72087e730e05b2db63087207730f0093860272067310b2db6308720773110090b0ada5d90109639593c272097312c1720973137314d90109599a8c7209018c7209027315
       //
-      // ErgoTreeTemplate: d808d601b2a4730000d602db63087201d6037301d604b2a5730200d6057303d606c57201d607b2a5730400d6088cb2db6308a773050002eb027306d1eded938cb27202730700017203ed93c27204720593860272067308b2db63087204730900edededed93e4c67207040e720593e4c67207050e72039386028cb27202730a00017208b2db63087207730b009386028cb27202730c00019c72087e730d05b2db63087207730e009386027206730fb2db63087207731000
+      // ErgoTreeTemplate: d808d601b2a4730000d602db63087201d6037301d604b2a5730200d6057303d606c57201d607b2a5730400d6088cb2db6308a773050002eb027306d1ededed938cb27202730700017203ed93c27204720593860272067308b2db63087204730900ededededed93cbc27207730a93e4c67207040e720593e4c67207050e72039386028cb27202730b00017208b2db63087207730c009386028cb27202730d00019c72087e730e05b2db63087207730f0093860272067310b2db6308720773110090b0ada5d90109639593c272097312c1720973137314d90109599a8c7209018c7209027315
       //
       // Validations:
       // 1. Assets are deposited into the correct LM Pool;
       // 2. Redeemer PubKey matches and correct Bundle Key token amount token is received;
-      // 3. Bundle stores correct: Redeemer PubKey; vLQ token amount; TMP token amount; Bundle Key token amount.
+      // 3. Bundle stores correct: Script; RedeemerProp; PoolId; vLQ token amount; TMP token amount; Bundle Key token amount.
+      // 4. Miner Fee
       //
       // ===== Getting SELF data ===== //
       val deposit = SELF.tokens(0)
@@ -80,19 +80,18 @@ final class DepositBox[F[_]: RuntimeState](
       // 3.
       val validBundle = {
         blake2b256(bundleOut.propositionBytes) == BundlePropHash &&
-        bundleOut.R4[Coll[Byte]].get == RedeemerProp &&
+        bundleOut.R4[SigmaProp].get.propBytes == RedeemerProp &&
         bundleOut.R5[Coll[Byte]].get == PoolId &&
         (poolIn.tokens(3)._1, expectedVLQ) == bundleOut.tokens(0) &&
         (poolIn.tokens(4)._1, expectedTMP) == bundleOut.tokens(1) &&
         (bundleKeyId, 1L) == bundleOut.tokens(2)
       }
-
       // 4.
       val validMinerFee = OUTPUTS
         .map { (o: Box) =>
           if (o.propositionBytes == MinerPropBytes) o.value else 0L
         }
-        .fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+        .fold(0L, {(a: Long, b: Long) => a + b}) <= MaxMinerFee
 
       sigmaProp(RefundPk || (validPoolIn && validRedeemerOut && validBundle && validMinerFee))
     }

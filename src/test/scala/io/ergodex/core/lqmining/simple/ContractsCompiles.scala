@@ -15,7 +15,9 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
     printTree("Pool", sourcePool, envPool)
 
     val sourcePoolSelf = readSource("contracts/lqmining/simple/LMPoolSelfHosted.sc")
-    val envPoolSelf    = Map.empty[String, Any]
+    val envPoolSelf = Map(
+      "BundleScriptHash" -> Base16.decode("599e30a83bc971f75582f2581f0633eebfe936b95d956ed103cbec520d804386").get
+    )
     printTree("PoolSelf", sourcePoolSelf, envPoolSelf)
 
     val sourceBundle = readSource("contracts/lqmining/simple/StakingBundle.sc")
@@ -29,8 +31,12 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
       "BundlePropHash"    -> Array.fill(32)(1: Byte),
       "RefundPk"          -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
       "PoolId"            -> Array.fill(32)(2: Byte),
-      "MinerPropBytes"    -> Base16.decode("1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304").get,
-      "MaxMinerFee"       -> 10000L
+      "MinerPropBytes" -> Base16
+        .decode(
+          "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304"
+        )
+        .get,
+      "MaxMinerFee" -> 10000L
     )
     printTree("Deposit", sourceDeposit, envDeposit)
 
@@ -40,8 +46,12 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
       "ExpectedLQAmount" -> 1000L,
       "RedeemerProp"     -> Array.fill(32)(1: Byte),
       "RefundPk"         -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "MinerPropBytes"   -> Base16.decode("1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304").get,
-      "MaxMinerFee"      -> 10000L
+      "MinerPropBytes" -> Base16
+        .decode(
+          "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304"
+        )
+        .get,
+      "MaxMinerFee" -> 10000L
     )
     printTree("Redeem", sourceRedeem, envRedeem)
   }

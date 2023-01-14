@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -23,7 +23,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       expectedXAmount,
       DefaultCreationHeight,
       tokens         = Vector(
-        tokenId("y") -> expectedYAmount
+        bytes("y") -> expectedYAmount
       ),
       registers      = Map.empty,
       constants      = Map.empty,
@@ -35,14 +35,14 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       0L,
       DefaultCreationHeight,
       tokens         = Vector(
-        tokenId("lp") -> redeemedLPAmount
+        bytes("lp") -> redeemedLPAmount
       ),
       registers      = Map.empty,
       constants      = Map(
         1  -> false,
-        11 -> tokenId("pool_NFT"),
-        12 -> tokenId("redeemer"),
-        13 -> tokenId("miner"),
+        11 -> bytes("pool_NFT"),
+        12 -> bytes("redeemer"),
+        13 -> bytes("miner"),
         16 -> minerFee
       ),
       validatorBytes = "redeem"
