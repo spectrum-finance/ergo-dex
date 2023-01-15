@@ -4,8 +4,9 @@ import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
-import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
+import io.ergodex.core.lqmining.simple.TxBoxes._
 import io.ergodex.core.syntax.Coll
+import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -40,14 +41,29 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
   }
 
   it should "validate deposit behaviour during LM program mirrored from simulation" in {
-    val startAtHeight          = programStart + 1
-    val action                 = pool01.deposit(input0)
-    val currEpoch              = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
-    val (_, Right((pool1, _))) = action.run(RuntimeCtx.at(startAtHeight)).value
-    val poolBox0               = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
-    val poolBox1               = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
-    val (_, isValid)           = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
-    isValid shouldBe true
+    val startAtHeight                = programStart + 1
+    val action                       = pool01.deposit(input0)
+    val currEpoch                    = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
+    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+    val poolBox0                     = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
+    val poolBox1                     = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
+
+    val (userBox1, depositBox1, bundleBox1) =
+      getDepositTxBoxes(input0.value, pool01.conf.epochNum - currEpoch, bundle1.vLQ, bundle1.TMP)
+
+    val txInputs  = List(poolBox0)
+    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+
+    val (_, isValidDeposit) = depositBox1.validator
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+      .value
+    val (_, isValidPool) = poolBox0.validator
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+      .value
+
+    isValidPool shouldBe true
+    isValidDeposit shouldBe true
+
   }
 
   it should "validate deposit behaviour during LM program mirrored from simulation during compounding" in {
@@ -55,9 +71,9 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val action                    = pool01.deposit(input0)
     val (_, Right((pool1, sb1)))  = action.run(RuntimeCtx.at(startAtHeight)).value
     val action1                   = pool1.deposit(input0)
-    val (_, Right((pool2, sb2)))  = action1.run(RuntimeCtx.at(startAtHeight)).value
+    val (_, Right((pool2, _)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
     val action2                   = pool2.compound(sb1, epoch = 1)
-    val (_, Right((pool3, _, w))) = action2.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val (_, Right((pool3, _, _))) = action2.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
     val action3                   = pool3.deposit(input0)
     val (_, Left(pool4))          = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
     pool4 shouldBe PrevEpochNotWithdrawn
@@ -163,33 +179,33 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
   }
 
   it should "validate redeem behaviour during compounding mirrored from simulation" in {
-    val startAtHeight                        = programStart - 1
-    val action                               = pool01.deposit(input0)
-    val (_, Right((pool1, bundle11)))        = action.run(RuntimeCtx.at(startAtHeight)).value
-    val action1                              = pool1.deposit(input1)
-    val (_, Right((pool2, bundle21)))        = action1.run(RuntimeCtx.at(startAtHeight)).value
-    val action3                              = pool2.compound(bundle11, epoch = 1)
-    val (_, Right((pool3, bundle12, rew11))) = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-    val action4                              = pool3.compound(bundle21, epoch = 1)
-    val (_, Right((pool4, bundle22, rew12))) = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-    val action5                              = pool4.redeem(bundle22)
-    val (_, Right((pool5, out)))             = action5.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-    val action6                              = pool4.redeem(bundle22)
-    val (_, Left(err))                       = action6.run(RuntimeCtx.at(startAtHeight + 3 * epochLen + 1)).value
+    val startAtHeight                    = programStart - 1
+    val action                           = pool01.deposit(input0)
+    val (_, Right((pool1, bundle11)))    = action.run(RuntimeCtx.at(startAtHeight)).value
+    val action1                          = pool1.deposit(input1)
+    val (_, Right((pool2, bundle21)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
+    val action3                          = pool2.compound(bundle11, epoch = 1)
+    val (_, Right((pool3, _, _)))        = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val action4                          = pool3.compound(bundle21, epoch = 1)
+    val (_, Right((pool4, bundle22, _))) = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val action5                          = pool4.redeem(bundle22)
+    val (_, Right((_, out)))             = action5.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val action6                          = pool4.redeem(bundle22)
+    val (_, Left(err))                   = action6.run(RuntimeCtx.at(startAtHeight + 3 * epochLen + 1)).value
     out.value shouldBe input1.value
     err shouldBe PrevEpochNotWithdrawn
   }
 
   it should "validate redeem behaviour (2) during compounding mirrored from simulation" in {
-    val startAtHeight                        = programStart - 1
-    val action                               = pool01.deposit(input0)
-    val (_, Right((pool1, bundle11)))        = action.run(RuntimeCtx.at(startAtHeight)).value
-    val action1                              = pool1.deposit(input1)
-    val (_, Right((pool2, bundle21)))        = action1.run(RuntimeCtx.at(startAtHeight)).value
-    val action3                              = pool2.compound(bundle11, epoch = 1)
-    val (_, Right((pool3, bundle12, rew11))) = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-    val action4                              = pool3.redeem(bundle21)
-    val (_, Left(err))                       = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val startAtHeight                 = programStart - 1
+    val action                        = pool01.deposit(input0)
+    val (_, Right((pool1, bundle11))) = action.run(RuntimeCtx.at(startAtHeight)).value
+    val action1                       = pool1.deposit(input1)
+    val (_, Right((pool2, bundle21))) = action1.run(RuntimeCtx.at(startAtHeight)).value
+    val action3                       = pool2.compound(bundle11, epoch = 1)
+    val (_, Right((pool3, _, _)))     = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+    val action4                       = pool3.redeem(bundle21)
+    val (_, Left(err))                = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
     err shouldBe PrevEpochNotWithdrawn
   }
 
@@ -222,12 +238,12 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
     val poolBox1      = pool01.toLedger[Ledger]
     val poolBox2 = new LqMiningPoolBox(
       boxId("LM_Pool_NFT_ID"),
-      pool01.reserves.value,
+      pool01.reserves.value + 1,
       0,
       tokens = Coll(
         bytes("LM_Pool_NFT_ID") -> 1L,
         bytes("X")              -> pool01.reserves.X,
-        bytes("LQ")             -> 10,
+        bytes("LQ")             -> pool01.reserves.LQ,
         bytes("vLQ")            -> pool01.reserves.vLQ,
         bytes("TMP")            -> pool01.reserves.TMP
       ),

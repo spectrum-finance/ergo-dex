@@ -1,72 +1,15 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
+import io.ergodex.core.lqmining.simple.TxBoxes._
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
-import io.ergodex.core.syntax.{SigmaProp, blake2b256}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
-
-  def getBoxes(
-    depositedLQAmount: Long,
-    expectedNumEpochs: Int,
-    expectedVLQAmount: Long,
-    expectedTMPAmount: Long,
-    bundleValidatorBytesTag: String = "staking_bundle"
-  ): (UserBox[Ledger], DepositBox[Ledger], StakingBundleBox[Ledger]) = {
-
-    val userBox = new UserBox(
-      boxId("user"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("lm_pool_id") -> BundleKeyTokenAmount
-      ),
-      registers = Map.empty
-    )
-
-    val depositBox = new DepositBox(
-      boxId("deposit_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("LQ") -> depositedLQAmount
-      ),
-      registers = Map.empty,
-      constants = Map(
-        1  -> bytes("LM_Pool_NFT_ID"),
-        3  -> bytes("user"),
-        6  -> false,
-        10 -> blake2b256(bundleValidatorBytesTag.getBytes().toVector),
-        14 -> expectedNumEpochs,
-        18 -> bytes("miner"),
-        21 -> 100L
-      ),
-      validatorBytes = "deposit_order"
-    )
-
-    val bundleBox = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("vLQ")        -> expectedVLQAmount,
-        bytes("TMP")        -> expectedTMPAmount,
-        bytes("lm_pool_id") -> 1L
-      ),
-      registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
-      )
-    )
-
-    (userBox, depositBox, bundleBox)
-  }
 
   val epochNum         = 4
   val epochLen         = 3
@@ -100,12 +43,17 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val poolBox1 = pool1.toLedger[Ledger]
 
     val (userBox1, depositBox1, bundleBox1) =
-      getBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+      getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+
+    val txInputs  = List(poolBox0)
+    val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
     val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0), outputs = List(poolBox1, userBox1, bundleBox1)))
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
       .value
-    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+      .value
 
     bundle1.vLQ shouldBe expectedVLQAmount
     bundle1.TMP shouldBe expectedTMPAmount
@@ -126,12 +74,17 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val poolBox1 = pool1.toLedger[Ledger]
 
     val (userBox1, depositBox1, bundleBox1) =
-      getBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+      getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+
+    val txInputs  = List(poolBox0)
+    val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
     val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0), outputs = List(poolBox1, userBox1, bundleBox1)))
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
       .value
-    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+      .value
 
     bundle1.vLQ shouldBe expectedVLQAmount
     bundle1.TMP shouldBe expectedTMPAmount
@@ -151,7 +104,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val poolBox0 = pool01.toLedger[Ledger]
     val poolBox1 = pool1.toLedger[Ledger]
 
-    val (userBox1, depositBox1, bundleBox1) = getBoxes(
+    val (userBox1, depositBox1, bundleBox1) = getDepositTxBoxes(
       depositedLQAmount,
       expectedNumEpochs,
       expectedVLQAmount,
@@ -159,10 +112,15 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       bundleValidatorBytesTag = "bad_box"
     )
 
+    val txInputs  = List(poolBox0)
+    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+
     val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0), outputs = List(poolBox1, userBox1, bundleBox1)))
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
       .value
-    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator
+      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+      .value
 
     bundle1.vLQ shouldBe expectedVLQAmount
     bundle1.TMP shouldBe expectedTMPAmount

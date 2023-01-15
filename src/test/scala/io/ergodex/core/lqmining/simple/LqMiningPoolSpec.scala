@@ -13,7 +13,7 @@ import tofu.syntax.monadic._
 class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
 
   val maxRoundingError = 1000L
-  val KK               = 10000L * maxRoundingError
+  val baseAssetAmount  = 10000L * maxRoundingError
   val epochLen         = 11
   val epochNum         = 3
   val redeemDelta      = 10
@@ -38,11 +38,11 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
       maxRoundingError
     )
 
-  val input0: AssetInput[LQ] = AssetInput(1 * KK)
-  val input1: AssetInput[LQ] = AssetInput(2 * KK)
-  val input2: AssetInput[LQ] = AssetInput(4 * KK)
-  val input3: AssetInput[LQ] = AssetInput(3 * KK)
-  val input4: AssetInput[LQ] = AssetInput(2 * KK)
+  val input0: AssetInput[LQ] = AssetInput(1 * baseAssetAmount)
+  val input1: AssetInput[LQ] = AssetInput(2 * baseAssetAmount)
+  val input2: AssetInput[LQ] = AssetInput(4 * baseAssetAmount)
+  val input3: AssetInput[LQ] = AssetInput(3 * baseAssetAmount)
+  val input4: AssetInput[LQ] = AssetInput(2 * baseAssetAmount)
 
   it should "return correct amount of bundled tokens on deposit" in {
     forAll(Gen.choose(0, 1)) { span =>

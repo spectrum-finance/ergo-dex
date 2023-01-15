@@ -1,10 +1,9 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
-import io.ergodex.core.syntax.SigmaProp
+import io.ergodex.core.lqmining.simple.TxBoxes._
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -33,52 +32,14 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
     val action1                              = pool1.compound(bundle1, epoch = 1)
     val (_, Right((pool2, bundle2, reward))) = action1.run(RuntimeCtx.at(startAtHeight)).value
     val action2                              = pool2.redeem(bundle2)
-    val (_, Right((pool3, rew)))             = action2.run(RuntimeCtx.at(startAtHeight)).value
+    val (_, Right((pool3, _)))               = action2.run(RuntimeCtx.at(startAtHeight)).value
 
     val poolBox1 = pool1.toLedger[Ledger]
     val poolBox2 = pool2.toLedger[Ledger]
     val poolBox3 = pool3.toLedger[Ledger]
 
-    val userBox0 = new UserBox(
-      boxId("user"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("X") -> reward.value
-      ),
-      registers = Map(
-      )
-    )
-
-    val bundleBox1 = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundle1.vLQ,
-        bytes("TMP")           -> bundle1.TMP,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
-      )
-    )
-
-    val bundleBox2 = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundle2.vLQ,
-        bytes("TMP")           -> bundle2.TMP,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
-      )
-    )
+    val (userBoxReward, _, bundleBox1, bundleBox2) =
+      getCompoundTxBoxes(reward.value, bundle1.vLQ, bundle1.TMP, bundle2.TMP)
 
     val (_, isValidCompound) = bundleBox1.validator
       .run(
@@ -86,7 +47,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           startAtHeight,
           vars    = Map(0 -> 1, 1 -> 2),
           inputs  = List(poolBox1.setRegister(epochReg, 1), bundleBox1),
-          outputs = List(poolBox2.setRegister(epochReg, 1), userBox0, bundleBox2)
+          outputs = List(poolBox2.setRegister(epochReg, 1), userBoxReward, bundleBox2)
         )
       )
       .value
@@ -104,53 +65,14 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
     val action1                              = pool1.compound(bundle1, epoch = 1)
     val (_, Right((pool2, bundle2, reward))) = action1.run(RuntimeCtx.at(startAtHeight)).value
     val action2                              = pool2.redeem(bundle2)
-    val (_, Right((pool3, rew)))             = action2.run(RuntimeCtx.at(startAtHeight)).value
+    val (_, Right((pool3, _)))               = action2.run(RuntimeCtx.at(startAtHeight)).value
 
     val poolBox1 = pool1.toLedger[Ledger]
     val poolBox2 = pool2.toLedger[Ledger]
     val poolBox3 = pool3.toLedger[Ledger]
 
-    val userBox0 = new UserBox(
-      boxId("user"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("X") -> reward.value
-      ),
-      registers = Map(
-      )
-    )
-
-    val bundleBox1 = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundle1.vLQ,
-        bytes("TMP")           -> bundle1.TMP,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
-      )
-    )
-
-    val bundleBox2 = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundle2.vLQ,
-        bytes("TMP")           -> bundle2.TMP,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
-      ),
-      validatorBytes = "bad_box"
-    )
+    val (userBoxReward, _, bundleBox1, bundleBox2) =
+      getCompoundTxBoxes(reward.value, bundle1.vLQ, bundle1.TMP, bundle2.TMP, validatorOutBytes = "bad_box")
 
     val (_, isValidCompound) = bundleBox1.validator
       .run(
@@ -158,7 +80,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           startAtHeight,
           vars    = Map(0 -> 1, 1 -> 2),
           inputs  = List(poolBox1.setRegister(epochReg, 1), bundleBox1),
-          outputs = List(poolBox2.setRegister(epochReg, 1), userBox0, bundleBox2)
+          outputs = List(poolBox2.setRegister(epochReg, 1), userBoxReward, bundleBox2)
         )
       )
       .value

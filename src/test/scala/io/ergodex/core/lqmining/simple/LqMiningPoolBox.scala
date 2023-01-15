@@ -9,12 +9,16 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
   override val value: Long,
   override val creationHeight: Int,
   override val tokens: Coll[(Coll[Byte], Long)],
-  override val registers: Map[Int, Any]
+  override val registers: Map[Int, Any],
+  override val constants: Map[Int, Any] = Map(23 -> blake2b256("staking_bundle".getBytes().toVector))
 ) extends BoxSim[F] {
   override val validatorBytes = "lm_pool"
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
+      // Context (declarations here are only for simulations):
+      val BundleScriptHash: Coll[Byte] = getConstant(23).get
+
       // ===== Contract Information ===== //
       // Name: LMPool
       // Description: Contract that validates a change in the LM pool's state.
@@ -159,10 +163,19 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
           val prevEpochsCompoundedForDeposit =
             ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
 
+          val bundleOut = OUTPUTS(2)
+          val validBundle =
+            blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
+            (poolVLQ0._1, releasedVLQ) == bundleOut.tokens(0) &&
+            (poolTMP0._1, releasedTMP) == bundleOut.tokens(1) &&
+            bundleOut.R4[SigmaProp].isDefined &&
+            bundleOut.R5[Coll[Byte]].get == poolNFT0._1
+
           prevEpochsCompoundedForDeposit &&
           // 6.1.2. && 6.1.3.
-          (deltaLQ == -deltaVLQ) &&
-          (releasedTMP == -deltaTMP)
+          deltaLQ == -deltaVLQ &&
+          releasedTMP == -deltaTMP &&
+          validBundle
 
         } else if (deltaLQ < 0) { // redeem
           // 6.2.

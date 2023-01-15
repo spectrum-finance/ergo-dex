@@ -1,70 +1,15 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
+import io.ergodex.core.lqmining.simple.TxBoxes._
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
-
-  def getBoxes(
-    redeemedVLQAmount: Long,
-    expectedLQAmount: Long,
-    bundleTMPAmount: Long
-  ): (UserBox[Ledger], RedeemBox[Ledger], StakingBundleBox[Ledger]) = {
-
-    val userBox = new UserBox(
-      boxId("user"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("LQ") -> expectedLQAmount
-      ),
-      registers = Map(
-      )
-    )
-
-    val redeemBox = new RedeemBox(
-      boxId("redeem_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("bundle_key_id") -> BundleKeyTokenAmount,
-        bytes("LQ")            -> expectedLQAmount
-      ),
-      registers = Map.empty,
-      constants = Map(
-        1 -> false,
-        2 -> bytes("user"),
-        3 -> bytes("LQ"),
-        4 -> expectedLQAmount,
-        6 -> bytes("miner"),
-        9 -> 100L
-      ),
-      validatorBytes = "redeem"
-    )
-
-    val bundleBox = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("vLQ")           -> redeemedVLQAmount,
-        bytes("TMP")           -> bundleTMPAmount,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> bytes("user"),
-        5 -> bytes("lm_pool_id")
-      )
-    )
-
-    (userBox, redeemBox, bundleBox)
-  }
 
   val epochNum         = 4
   val epochLen         = 3
@@ -92,9 +37,9 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val action1                      = pool1.redeem(bundle1)
     val (_, Right((pool2, out2)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox1                           = pool1.toLedger[Ledger]
-    val poolBox2                           = pool2.toLedger[Ledger]
-    val (userBox1, redeemBox1, bundleBox1) = getBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
+    val poolBox1                  = pool1.toLedger[Ledger]
+    val poolBox2                  = pool2.toLedger[Ledger]
+    val (userBox1, redeemBox1, _) = getRedeemTxBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
 
     val (_, isValid)     = redeemBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2, userBox1))).value
     val (_, isValidPool) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
@@ -112,7 +57,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val action1                   = pool1.redeem(bundle1)
     val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight)).value
 
-    val (userBox1, redeemBox1, bundleBox1) = getBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
+    val (userBox1, redeemBox1, _) = getRedeemTxBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
 
     val (_, isValid) =
       redeemBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(pool2.toLedger[Ledger], userBox1))).value
@@ -121,14 +66,14 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
   }
 
   it should "validate redeem behaviour after LM program end mirrored from simulation" in {
-    val startAtHeight                      = programStart + 1
-    val action                             = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1)))       = action.run(RuntimeCtx.at(startAtHeight)).value
-    val startAtHeight1                     = programStart + epochNum * epochLen + pool1.conf.redeemLimitDelta
-    val action1                            = pool1.redeem(bundle1)
-    val (_, Right((pool2, out2)))          = action1.run(RuntimeCtx.at(startAtHeight1)).value
-    val pool11                             = pool1.updateReserves(r => PoolReserves(r.value, r.X, r.LQ, r.vLQ, pool2.reserves.TMP))
-    val (userBox1, redeemBox1, bundleBox1) = getBoxes(bundle1.vLQ, out2.value, 0)
+    val startAtHeight                = programStart + 1
+    val action                       = pool01.deposit(input0)
+    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+    val startAtHeight1               = programStart + epochNum * epochLen + pool1.conf.redeemLimitDelta
+    val action1                      = pool1.redeem(bundle1)
+    val (_, Right((pool2, out2)))    = action1.run(RuntimeCtx.at(startAtHeight1)).value
+    val pool11                       = pool1.updateReserves(r => PoolReserves(r.value, r.X, r.LQ, r.vLQ, pool2.reserves.TMP))
+    val (userBox1, redeemBox1, _)    = getRedeemTxBoxes(bundle1.vLQ, out2.value, 0)
     val (_, isValid) =
       redeemBox1.validator.run(RuntimeCtx(startAtHeight1, outputs = List(pool11.toLedger[Ledger], userBox1))).value
     out2.value shouldBe depositedLQAmount
