@@ -12,13 +12,13 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
   property("Contracts compile") {
     val sourcePool = readSource("contracts/lqmining/simple/LMPool.sc")
     val envPool = Map(
-      "BundleScriptHash" -> Base16.decode("599e30a83bc971f75582f2581f0633eebfe936b95d956ed103cbec520d804386").get
+      "BundleScriptHash" -> Base16.decode("9c9f92c4ecfb7ecce54d6cedbe5b4977532b658ce847143ec35473a6b79553ab").get
     )
     printTree("Pool", sourcePool, envPool)
 
     val sourcePoolSelf = readSource("contracts/lqmining/simple/LMPoolSelfHosted.sc")
     val envPoolSelf = Map(
-      "BundleScriptHash" -> Base16.decode("599e30a83bc971f75582f2581f0633eebfe936b95d956ed103cbec520d804386").get
+      "BundleScriptHash" -> Base16.decode("9c9f92c4ecfb7ecce54d6cedbe5b4977532b658ce847143ec35473a6b79553ab").get
     )
     printTree("PoolSelf", sourcePoolSelf, envPoolSelf)
 
