@@ -13,7 +13,8 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
     expectedNumEpochs: Int,
     expectedVLQAmount: Long,
     expectedTMPAmount: Long,
-    bundleValidatorBytesTag: String = "staking_bundle"
+    bundleValidatorBytesTag: String = "staking_bundle",
+    redeemerProp: SigmaProp         = SigmaProp(bytes("user"))
   ): (UserBox[Ledger], DepositBox[Ledger], StakingBundleBox[Ledger]) = {
 
     val userBox = new UserBox(
@@ -56,7 +57,7 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         bytes("lm_pool_id") -> 1L
       ),
       registers = Map(
-        4 -> SigmaProp(bytes("user")),
+        4 -> redeemerProp,
         5 -> bytes("LM_Pool_NFT_ID")
       )
     )
@@ -66,9 +67,8 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
 
   def getRedeemTxBoxes(
     redeemedVLQAmount: Long,
-    expectedLQAmount: Long,
-    bundleTMPAmount: Long
-  ): (UserBox[Ledger], RedeemBox[Ledger], StakingBundleBox[Ledger]) = {
+    expectedLQAmount: Long
+  ): (UserBox[Ledger], RedeemBox[Ledger]) = {
 
     val userBox = new UserBox(
       boxId("user"),
@@ -77,8 +77,7 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       tokens = Vector(
         bytes("LQ") -> expectedLQAmount
       ),
-      registers = Map(
-      )
+      registers = Map.empty
     )
 
     val redeemBox = new RedeemBox(
@@ -86,37 +85,21 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       0,
       DefaultCreationHeight,
       tokens = Vector(
-        bytes("bundle_key_id") -> BundleKeyTokenAmount,
-        bytes("LQ")            -> expectedLQAmount
+        bytes("bundle_key_id") -> BundleKeyTokenAmount
       ),
       registers = Map.empty,
       constants = Map(
         1 -> false,
         2 -> bytes("user"),
         3 -> bytes("LQ"),
-        4 -> expectedLQAmount,
+        4 -> redeemedVLQAmount,
         6 -> bytes("miner"),
         9 -> 100L
       ),
       validatorBytes = "redeem"
     )
 
-    val bundleBox = new StakingBundleBox(
-      boxId("bundle_box"),
-      0,
-      DefaultCreationHeight,
-      tokens = Vector(
-        bytes("vLQ")           -> redeemedVLQAmount,
-        bytes("TMP")           -> bundleTMPAmount,
-        bytes("bundle_key_id") -> 1L
-      ),
-      registers = Map(
-        4 -> bytes("user"),
-        5 -> bytes("lm_pool_id")
-      )
-    )
-
-    (userBox, redeemBox, bundleBox)
+    (userBox, redeemBox)
   }
 
   def getCompoundTxBoxes(

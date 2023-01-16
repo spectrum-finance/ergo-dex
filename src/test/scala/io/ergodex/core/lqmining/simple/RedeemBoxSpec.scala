@@ -39,7 +39,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
 
     val poolBox1                  = pool1.toLedger[Ledger]
     val poolBox2                  = pool2.toLedger[Ledger]
-    val (userBox1, redeemBox1, _) = getRedeemTxBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
+    val (userBox1, redeemBox1) = getRedeemTxBoxes(bundle1.vLQ, out2.value)
 
     val (_, isValid)     = redeemBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2, userBox1))).value
     val (_, isValidPool) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
@@ -57,7 +57,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val action1                   = pool1.redeem(bundle1)
     val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight)).value
 
-    val (userBox1, redeemBox1, _) = getRedeemTxBoxes(bundle1.vLQ, out2.value, bundle1.TMP)
+    val (userBox1, redeemBox1) = getRedeemTxBoxes(bundle1.vLQ, out2.value)
 
     val (_, isValid) =
       redeemBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(pool2.toLedger[Ledger], userBox1))).value
@@ -73,7 +73,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
     val action1                      = pool1.redeem(bundle1)
     val (_, Right((pool2, out2)))    = action1.run(RuntimeCtx.at(startAtHeight1)).value
     val pool11                       = pool1.updateReserves(r => PoolReserves(r.value, r.X, r.LQ, r.vLQ, pool2.reserves.TMP))
-    val (userBox1, redeemBox1, _)    = getRedeemTxBoxes(bundle1.vLQ, out2.value, 0)
+    val (userBox1, redeemBox1)    = getRedeemTxBoxes(bundle1.vLQ, out2.value)
     val (_, isValid) =
       redeemBox1.validator.run(RuntimeCtx(startAtHeight1, outputs = List(pool11.toLedger[Ledger], userBox1))).value
     out2.value shouldBe depositedLQAmount
