@@ -28,8 +28,6 @@ final class RedeemBox[F[_]: RuntimeState](
       // ===== Contract Information ===== //
       // Name: Redeem
       // Description: Contract that validates user's redeem from the LM Pool.
-      // Registers:
-      //   R4[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
       //
       // Tokens:
       //   0:

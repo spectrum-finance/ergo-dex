@@ -1,8 +1,6 @@
 { // ===== Contract Information ===== //
   // Name: Redeem
   // Description: Contract that validates user's redeem from the LM Pool.
-  // Registers:
-  //   R4[Coll[Byte]]: LM Pool ID (tokenId) // used to authenticate pool.
   //
   // Tokens:
   //   0:
@@ -22,8 +20,8 @@
   // ErgoTreeTemplate: d801d601b2a5730000eb027301d1eded93c27201730293860273037304b2db6308720173050090b0ada5d90102639593c272027306c1720273077308d90102599a8c7202018c7202027309
   //
   // Validations:
-  // 1. Redeemer out is valid: Redeemer PubKey matches PubKey in Bundle Box; vLQ token amount; Bundle Key token amount.
-  // 4. Miner Fee
+  // 1. Redeemer out is valid: Redeemer PubKey matches PubKey stored in Bundle Box; correct vLQ token amount received;
+  // 2. Miner Fee is valid.
   //
   // ===== Getting OUTPUTS data ===== //
   val redeemerOut = OUTPUTS(1)
@@ -39,7 +37,7 @@
     .map { (o: Box) =>
       if (o.propositionBytes == MinerPropBytes) o.value else 0L
     }
-    .fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+    .fold(0L, {(a: Long, b: Long) => a + b}) <= MaxMinerFee
 
   sigmaProp(RefundPk || validRedeemerOut && validMinerFee)
 }
