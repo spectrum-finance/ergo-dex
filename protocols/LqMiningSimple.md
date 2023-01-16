@@ -82,7 +82,7 @@ She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bund
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
 * New "Staking bundle" **can't be released until all previous epochs are compounded**
-* Amount of received Bundle Key Tokens is 0x7fffffffffffffffL - 1L
+* Amount of received Bundle Key Tokens C is 0x7fffffffffffffffL - 1L
 
 #### Reward
 After each epoch rewards, allocated for each epoch, are fully distributed among stakers. 
@@ -99,4 +99,4 @@ to the amount of vLQ returned. Redemption is only allowed when all epochs Alice 
 ![LMRedeem](./../img/LMRedeem1.png)
 
 _Notes_:
-* LQ tokens cannot be redeemed **until all previous epochs are compounded** or until `redeemLimitDelta` is reached after the end of the program
+* LQ tokens can't be redeemed **until all previous epochs are compounded** or until `redeemLimitDelta` is reached after the end of the program
