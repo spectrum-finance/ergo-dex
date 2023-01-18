@@ -31,7 +31,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       //      2: Program start
       //      3: Redeem blocks delta  // the number of blocks after the end of LM program, at which redeems can be performed without any restrictions.
       //   R5[Long]: Program budget  // total budget of LM program.
-      //   R6[Long]: Max Rounding Error // tokens rounding delta max value.
+      //   R6[Long]: Max Rounding Error // Tokens rounding delta max value.
       //   R7[Long]: Execution budget  // total execution budget.
       //   R8[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
       //
@@ -52,6 +52,13 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       //     _1: TMP Token ID  // left program epochs times liquidity.
       //     _2: Amount of TMP tokens.
       //
+      // Constants:
+      // {24}  -> BundleScriptHash[Coll[Byte]]
+      //
+      // ErgoTree: 19d50629040004000402040204040404040604060408040804040402040004000402040205020400040a050005000404040204020e2086bb66704e3787570a9752ce075d656bcde55360ad502ff2cb28d6da4ef412b10400040205000402040204060500050005020402050005000500050005000500d820d601b2a5730000d602db63087201d603db6308a7d604b27203730100d605e4c6a70410d606e4c6a70505d607e4c6a70705d608e4c6a70605d609b27202730200d60ab27203730300d60bb27202730400d60cb27203730500d60db27202730600d60eb27203730700d60f8c720e01d610b27202730800d611b27203730900d6128c721101d6138c720c02d614998c720b027213d6158c720a02d616b27205730a00d6179a99a37216730bd618b27205730c00d6199d72177218d61a95919e72177218730d9a7219730e7219d61bb27205730f00d61c7e721b05d61d9d9972067310721cd61e998c720d028c720e02d61f998c7210028c721102d620998c7209027215d1ededededed93b272027311007204edededed93e4c672010410720593e4c672010505720693e4c672010705720793e4c6720106057208928cc77201018cc7a70193c27201c2a7ededed938c7209018c720a01938c720b018c720c01938c720d01720f938c721001721293b172027312959172147313d802d6219c721499721ca273147e721a05d622b2a5731500ededed929a997206721572089c7e999590721a721b721a9a721b7316731705721d937214f0721e937221f0721fedededed93cbc272227318938602720f7214b2db6308722273190093860272127221b2db63087222731a00e6c67222040893e4c67222050e8c720401958f7214731bededec929a997206721572089c7e999590721a721b721a9a721b731c731d05721d92a39a9a72169c721b7218b27205731e0093721ef0721492721f9591721a721b731f9c721e99721ca273207e721a05d802d621c17201d622c1a7959072217222d802d623e4c672010804d6249d9c7e721d067e721f067e997213732106ededededed90722399721a7322909972159c7e99721b722305721d9a721d7208907ef07220067224937214732393721e7324907e9972227221069d9c72247e7207067e720606edededed9172217222937214732593721e7326937220732793721f7328
+      //
+      // ErgoTreeTemplate: d820d601b2a5730000d602db63087201d603db6308a7d604b27203730100d605e4c6a70410d606e4c6a70505d607e4c6a70705d608e4c6a70605d609b27202730200d60ab27203730300d60bb27202730400d60cb27203730500d60db27202730600d60eb27203730700d60f8c720e01d610b27202730800d611b27203730900d6128c721101d6138c720c02d614998c720b027213d6158c720a02d616b27205730a00d6179a99a37216730bd618b27205730c00d6199d72177218d61a95919e72177218730d9a7219730e7219d61bb27205730f00d61c7e721b05d61d9d9972067310721cd61e998c720d028c720e02d61f998c7210028c721102d620998c7209027215d1ededededed93b272027311007204edededed93e4c672010410720593e4c672010505720693e4c672010705720793e4c6720106057208928cc77201018cc7a70193c27201c2a7ededed938c7209018c720a01938c720b018c720c01938c720d01720f938c721001721293b172027312959172147313d802d6219c721499721ca273147e721a05d622b2a5731500ededed929a997206721572089c7e999590721a721b721a9a721b7316731705721d937214f0721e937221f0721fedededed93cbc272227318938602720f7214b2db6308722273190093860272127221b2db63087222731a00e6c67222040893e4c67222050e8c720401958f7214731bededec929a997206721572089c7e999590721a721b721a9a721b731c731d05721d92a39a9a72169c721b7218b27205731e0093721ef0721492721f9591721a721b731f9c721e99721ca273207e721a05d802d621c17201d622c1a7959072217222d802d623e4c672010804d6249d9c7e721d067e721f067e997213732106ededededed90722399721a7322909972159c7e99721b722305721d9a721d7208907ef07220067224937214732393721e7324907e9972227221069d9c72247e7207067e720606edededed9172217222937214732593721e7326937220732793721f7328
+      //
       // Validations:
       // 1. LM Pool NFT is preserved;
       // 2. LM Pool Config, LM program budget, maxRoundingError and creationHeight are preserved;
@@ -61,25 +68,30 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       // 6. Action is valid:
       //    6.1. Deposit: if (deltaLQ > 0)
       //         6.1.1. Previous epochs are compounded;
-      //         6.1.2. Delta LQ tokens amount is correct;
-      //         6.1.3. Delta TMP tokens amount is correct.
+      //         6.1.2. Bundle is valid;
       //    6.2. Redeem: elif if (deltaLQ < 0)
       //         6.2.1. Previous epochs are compounded;
-      //         6.2.2. Delta LQ tokens amount is correct;
-      //         6.2.3. Delta TMP tokens amount is correct.
+      //         6.2.2. Redeem without limits is available.
       //    6.3. Compound: if (execBudgetRem1 < execBudgetRem0)
-      //         6.3.1. Epoch is legal to perform compounding;
-      //         6.3.2. Previous epoch is compounded;
-      //         6.3.3. Delta reward tokens amount equals to calculated reward amount;
-      //         6.3.4. Delta LQ tokens amount is 0;
-      //         6.3.5. Delta vLQ tokens amount is 0;
-      //         6.3.6. Execution fee amount is valid.
+      //         6.3.1. Previous epoch is compounded;
+      //         6.3.2. Epoch is legal to perform compounding;
       //    6.4. Increase execution budget: else
-      //         6.4.1. execBudgetRem1 >= execBudgetRem0;
-      //         6.4.2. Delta LQ tokens amount is 0;
-      //         6.4.3. Delta vLQ tokens amount is 0;
-      //         6.4.4. Delta X tokens amount is 0;
-      //         6.4.5. Delta TMP tokens amount is 0.
+      //
+      // Limitations:
+      // 1. Deposit
+      //    1.1. Deposit can be performed before program start;
+      //    1.2. During the program Deposit can't be performed until all rewards for passed epochs are distributed;
+      //    1.3. Bundle box, created after every Deposit is unique;
+      // 1. Redeem
+      //    1.1. During the program Redeem can't be performed until all rewards for passed epochs are distributed;
+      //    1.2. Redeem can be performed with no any program's logic limits after the program end;
+      //    1.3. Redeem can be only performed by User, who owns unique 0x7fffffffffffffffL - 1L bundleKeyId tokens;
+      // 1. Compound
+      //    1.1. Reward distribution can be performed in batches;
+      //    1.2. Rewards will be send on the address stored in Bundle's R4;
+      //    1.3. Reward distribution should be done sequentially;
+      //    1.4. All epoch allocated rewards should be fully distributed;
+      //    1.5. Program budget can't be redeemed.
       //
       // ===== Getting SELF data ===== //
       val poolNFT0 = SELF.tokens(0)
@@ -126,7 +138,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       val deltaTMP = poolTMP1._2 - poolTMP0._2
 
       // ===== Calculating epoch parameters ===== //
-      val epochAlloc    = programBudget0 / epochNum
+      val epochAlloc    = (programBudget0 - 1L) / epochNum
       val curBlockIx    = HEIGHT - programStart + 1
       val curEpochIxRem = curBlockIx % epochLen
       val curEpochIxR   = curBlockIx / epochLen
@@ -158,12 +170,13 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
           val releasedVLQ     = deltaLQ
           val epochsAllocated = epochNum - max(0L, curEpochIx)
           val releasedTMP     = releasedVLQ * epochsAllocated
+          val curEpochToCalc  = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
           // 6.1.1.
-          val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
           val prevEpochsCompoundedForDeposit =
-            ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+            (programBudget0 - reservesX) + maxRoundingError0 >= (curEpochToCalc - 1) * epochAlloc
 
           val bundleOut = OUTPUTS(2)
+          // 6.1.2.
           val validBundle =
             blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
             (poolVLQ0._1, releasedVLQ) == bundleOut.tokens(0) &&
@@ -172,7 +185,6 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             bundleOut.R5[Coll[Byte]].get == poolNFT0._1
 
           prevEpochsCompoundedForDeposit &&
-          // 6.1.2. && 6.1.3.
           deltaLQ == -deltaVLQ &&
           releasedTMP == -deltaTMP &&
           validBundle
@@ -187,13 +199,14 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
               releasedLQ * epochsDeallocated
             }
           }
-          // 6.2.1.
           val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+          // 6.2.1.
           val prevEpochsCompoundedForRedeem =
-            ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+            (programBudget0 - reservesX) + maxRoundingError0 >= (curEpochToCalc - 1) * epochAlloc
+          // 6.2.2.
           val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
+
           (prevEpochsCompoundedForRedeem || redeemNoLimit) &&
-          // 6.2.2. & 6.2.3.
           (deltaVLQ == -deltaLQ) &&
           (deltaTMP >= minReturnedTMP)
 
@@ -205,22 +218,22 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             val epoch            = successor.R8[Int].get
             val epochsToCompound = epochNum - epoch
             // 6.3.1.
-            val legalEpoch          = epoch <= curEpochIx - 1
-            val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
+            val legalEpoch = epoch <= curEpochIx - 1
+            // 6.3.2.
+            val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc + maxRoundingError0
 
-            val reward  = epochAlloc.toBigInt * deltaTMP / reservesLQ
+            val reward  = epochAlloc.toBigInt * deltaTMP / (reservesLQ - 1L)
             val execFee = reward.toBigInt * execBudget0 / programBudget0
 
             legalEpoch &&
-            // 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
             prevEpochCompounded &&
             (-deltaX <= reward) &&
             (deltaLQ == 0L) &&
             (deltaVLQ == 0L) &&
             (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
+
           } else { // increase execution budget
             // 6.4.
-            // 6.4.1. && 6.4.2. && 6.4.3. && 6.4.4. && 6.4.5.
             (execBudgetRem1 > execBudgetRem0) &&
             (deltaLQ == 0L) &&
             (deltaVLQ == 0L) &&

@@ -5,164 +5,174 @@ import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
 import io.ergodex.core.lqmining.simple.TxBoxes._
+import io.ergodex.core.lqmining.simple.generators.{DepositGen, lmConfGen}
 import io.ergodex.core.syntax.SigmaProp
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
+import scala.util.Random
+
 class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
 
-  val epochNum         = 4
-  val epochLen         = 3
-  val programStart     = 2
-  val redeemDelta      = 10
-  val maxRoundingError = 1000L
+  forAll(lmConfGen) { conf =>
+    forAll(DepositGen(1)) { case lq =>
+      val epochLen         = conf.epochLen
+      val epochNum         = conf.epochNum
+      val programStart     = conf.programStart
+      val redeemLimitDelta = conf.redeemLimitDelta
+      val programBudget    = conf.programBudget
+      val maxRoundingError = conf.maxRoundingError
 
-  val pool01: LMPool[Ledger] =
-    LMPool.init(
-      epochLen,
-      epochNum,
-      programStart,
-      redeemDelta,
-      programBudget = 900000000L * maxRoundingError,
-      maxRoundingError
-    )
+      val testId = Random.nextLong()
 
-  val depositedLQAmount      = 100000L * maxRoundingError // 1L, 1000000L
-  val input0: AssetInput[LQ] = AssetInput(depositedLQAmount)
+      val pool01: LMPool[Ledger] =
+        LMPool.init(
+          epochLen,
+          epochNum,
+          programStart,
+          redeemLimitDelta,
+          programBudget,
+          maxRoundingError
+        )
 
-  it should "validate deposit behaviour before LM program start mirrored from simulation" in {
-    val expectedNumEpochs            = epochNum
-    val startAtHeight                = programStart - epochLen * 3
-    val action                       = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+      val depositedLQAmount      = lq
+      val input0: AssetInput[LQ] = AssetInput(lq)
 
-    val expectedVLQAmount = depositedLQAmount
-    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
+      it should s"validate deposit behaviour before LM program start mirrored from simulation$testId" in {
+        val expectedNumEpochs            = epochNum
+        val startAtHeight                = programStart - epochLen * 3
+        val action                       = pool01.deposit(input0)
+        val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox0 = pool01.toLedger[Ledger]
-    val poolBox1 = pool1.toLedger[Ledger]
+        val expectedVLQAmount = depositedLQAmount
+        val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
 
-    val (userBox1, depositBox1, bundleBox1) =
-      getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+        val poolBox0 = pool01.toLedger[Ledger]
+        val poolBox1 = pool1.toLedger[Ledger]
 
-    val txInputs  = List(poolBox0)
-    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+        val (userBox1, depositBox1, bundleBox1) =
+          getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
 
-    val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
-    val (_, isValidPool) = poolBox0.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
+        val txInputs  = List(poolBox0)
+        val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
-    bundle1.vLQ shouldBe expectedVLQAmount
-    bundle1.TMP shouldBe expectedTMPAmount
-    isValidDeposit shouldBe true
-    isValidPool shouldBe true
-  }
+        val (_, isValidDeposit) = depositBox1.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+        val (_, isValidPool) = poolBox0.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
 
-  it should "validate deposit behaviour at first epoch of LM program mirrored from simulation" in {
-    val expectedNumEpochs            = epochNum - 1
-    val startAtHeight                = programStart + epochLen - 1
-    val action                       = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+        bundle1.vLQ shouldBe expectedVLQAmount
+        bundle1.TMP shouldBe expectedTMPAmount
+        isValidDeposit shouldBe true
+        isValidPool shouldBe true
+      }
 
-    val expectedVLQAmount = depositedLQAmount
-    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
+      it should s"validate deposit behaviour at first epoch of LM program mirrored from simulation$testId" in {
+        val expectedNumEpochs            = epochNum - 1
+        val startAtHeight                = programStart + epochLen - 1
+        val action                       = pool01.deposit(input0)
+        val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox0 = pool01.toLedger[Ledger]
-    val poolBox1 = pool1.toLedger[Ledger]
+        val expectedVLQAmount = depositedLQAmount
+        val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
 
-    val (userBox1, depositBox1, bundleBox1) =
-      getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
+        val poolBox0 = pool01.toLedger[Ledger]
+        val poolBox1 = pool1.toLedger[Ledger]
 
-    val txInputs  = List(poolBox0)
-    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+        val (userBox1, depositBox1, bundleBox1) =
+          getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
 
-    val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
-    val (_, isValidPool) = poolBox0.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
+        val txInputs  = List(poolBox0)
+        val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
-    bundle1.vLQ shouldBe expectedVLQAmount
-    bundle1.TMP shouldBe expectedTMPAmount
-    isValidDeposit shouldBe true
-    isValidPool shouldBe true
-  }
+        val (_, isValidDeposit) = depositBox1.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+        val (_, isValidPool) = poolBox0.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
 
-  it should "validate invalid deposit behaviour than bundle script is not preserved mirrored from simulation" in {
-    val expectedNumEpochs            = epochNum - 1
-    val startAtHeight                = programStart + epochLen - 1
-    val action                       = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+        bundle1.vLQ shouldBe expectedVLQAmount
+        bundle1.TMP shouldBe expectedTMPAmount
+        isValidDeposit shouldBe true
+        isValidPool shouldBe true
+      }
 
-    val expectedVLQAmount = depositedLQAmount
-    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
+      it should s"validate invalid deposit behaviour than bundle script is not preserved mirrored from simulation$testId" in {
+        val expectedNumEpochs            = epochNum - 1
+        val startAtHeight                = programStart + epochLen - 1
+        val action                       = pool01.deposit(input0)
+        val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox0 = pool01.toLedger[Ledger]
-    val poolBox1 = pool1.toLedger[Ledger]
+        val expectedVLQAmount = depositedLQAmount
+        val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
 
-    val (userBox1, depositBox1, bundleBox1) = getDepositTxBoxes(
-      depositedLQAmount,
-      expectedNumEpochs,
-      expectedVLQAmount,
-      expectedTMPAmount,
-      bundleValidatorBytesTag = "bad_box"
-    )
+        val poolBox0 = pool01.toLedger[Ledger]
+        val poolBox1 = pool1.toLedger[Ledger]
 
-    val txInputs  = List(poolBox0)
-    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+        val (userBox1, depositBox1, bundleBox1) = getDepositTxBoxes(
+          depositedLQAmount,
+          expectedNumEpochs,
+          expectedVLQAmount,
+          expectedTMPAmount,
+          bundleValidatorBytesTag = "bad_box"
+        )
 
-    val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
-    val (_, isValidPool) = poolBox0.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
+        val txInputs  = List(poolBox0)
+        val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
-    bundle1.vLQ shouldBe expectedVLQAmount
-    bundle1.TMP shouldBe expectedTMPAmount
-    isValidDeposit shouldBe false
-    isValidPool shouldBe true
-  }
+        val (_, isValidDeposit) = depositBox1.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+        val (_, isValidPool) = poolBox0.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
 
-  it should "validate invalid deposit behaviour than illegal PK stored in bundle mirrored from simulation" in {
-    val expectedNumEpochs            = epochNum - 1
-    val startAtHeight                = programStart + epochLen - 1
-    val action                       = pool01.deposit(input0)
-    val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
+        bundle1.vLQ shouldBe expectedVLQAmount
+        bundle1.TMP shouldBe expectedTMPAmount
+        isValidDeposit shouldBe false
+        isValidPool shouldBe true
+      }
 
-    val expectedVLQAmount = depositedLQAmount
-    val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
+      it should s"validate invalid deposit behaviour than illegal PK stored in bundle mirrored from simulation$testId" in {
+        val expectedNumEpochs            = epochNum - 1
+        val startAtHeight                = programStart + epochLen - 1
+        val action                       = pool01.deposit(input0)
+        val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
-    val poolBox0 = pool01.toLedger[Ledger]
-    val poolBox1 = pool1.toLedger[Ledger]
+        val expectedVLQAmount = depositedLQAmount
+        val expectedTMPAmount = depositedLQAmount * expectedNumEpochs
 
-    val (userBox1, depositBox1, bundleBox1) = getDepositTxBoxes(
-      depositedLQAmount,
-      expectedNumEpochs,
-      expectedVLQAmount,
-      expectedTMPAmount,
-      redeemerProp = SigmaProp(bytes("bad_user"))
-    )
+        val poolBox0 = pool01.toLedger[Ledger]
+        val poolBox1 = pool1.toLedger[Ledger]
 
-    val txInputs  = List(poolBox0)
-    val txOutputs = List(poolBox1, userBox1, bundleBox1)
+        val (userBox1, depositBox1, bundleBox1) = getDepositTxBoxes(
+          depositedLQAmount,
+          expectedNumEpochs,
+          expectedVLQAmount,
+          expectedTMPAmount,
+          redeemerProp = SigmaProp(bytes("bad_user"))
+        )
 
-    val (_, isValidDeposit) = depositBox1.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
-    val (_, isValidPool) = poolBox0.validator
-      .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
-      .value
+        val txInputs  = List(poolBox0)
+        val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
-    bundle1.vLQ shouldBe expectedVLQAmount
-    bundle1.TMP shouldBe expectedTMPAmount
-    isValidDeposit shouldBe false
-    isValidPool shouldBe true
+        val (_, isValidDeposit) = depositBox1.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+        val (_, isValidPool) = poolBox0.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+
+        bundle1.vLQ shouldBe expectedVLQAmount
+        bundle1.TMP shouldBe expectedTMPAmount
+        isValidDeposit shouldBe false
+        isValidPool shouldBe true
+      }
+    }
   }
 }
