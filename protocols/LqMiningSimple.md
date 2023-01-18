@@ -19,7 +19,7 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |
 
 _Notes_:
-* `maxRoundingError` value is recommended to choose as the **smallest unit of the Reward token**
+* `maxRoundingError` can be estimated as 'meanNumberOfParticipants' * 'epochNum'. Since the exact number of participants is difficult to predict in advance, it is better to choose a larger value, but it should be << 'programBudget' / 'epochNum'. If the `maxRoundingError` value is too small, the **LM program may break**, and if the value is too large, the **distribution of rewards may be incorrect**!
 * `execBudget` is **not necessary** for Self-Hosted LM Pool
 * `epoch` **indexing starts from 1**
 
@@ -32,6 +32,9 @@ _Notes_:
 | vLQ token        | Tokens representing locked share of LQ                                |
 | Temporal Token   | Left program epochs times liquidity                                   |
 | Bundle Key Token | Token that is used to identify the ownership of the Staking bundle    |
+
+_Notes_:
+* **Exactly 1 LQ token must be locked in the LM Pool during initialization!!!** Otherwise, LM program **will not work!**
 
 ## Staking bundle
 Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking bundle script guarantees bundling of
