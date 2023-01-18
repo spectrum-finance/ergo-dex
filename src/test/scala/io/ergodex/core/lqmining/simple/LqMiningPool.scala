@@ -3,8 +3,8 @@ package io.ergodex.core.lqmining.simple
 import cats.kernel.Monoid
 import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.lqmining.simple.LMPool.MaxCapTMP
-import io.ergodex.core.{RuntimeCtx, RuntimeState, ToLedger}
 import io.ergodex.core.syntax.Coll
+import io.ergodex.core.{RuntimeCtx, RuntimeState, ToLedger}
 
 object Token {
   type X
@@ -33,10 +33,10 @@ final case class LMConfig(
   programStart: Int,
   redeemLimitDelta: Int,
   programBudget: Long,
-  MaxRoundingError: Long
+  maxRoundingError: Long
 ) {
   val programEnd: Int  = programStart + epochNum * epochLen
-  val epochAlloc: Long = programBudget / epochNum
+  val epochAlloc: Long = (programBudget - 1L) / epochNum
 }
 
 final case class PoolReserves(value: Long, X: Long, LQ: Long, vLQ: Long, TMP: Long) {
@@ -83,15 +83,19 @@ final case class LMPool[Ledger[_]: RuntimeState](
         val releasedVLQ       = lq.value
         val expectedNumEpochs = conf.epochNum - math.max(0, curEpochIx)
         val releasedTMP       = releasedVLQ * expectedNumEpochs
+
         val epochIx_ =
           if (curEpochIx != lastUpdatedAtEpochIx) {
             curEpochIx
           } else {
             lastUpdatedAtEpochIx
           }
+
         val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
+
         val prevEpochsCompounded =
-          ((conf.programBudget - reserves.X) + conf.MaxRoundingError) >= (curEpochToCalc - 1) * conf.epochAlloc
+          (conf.programBudget - reserves.X) + conf.maxRoundingError >= (curEpochToCalc - 1) * conf.epochAlloc
+
         if (prevEpochsCompounded) {
           Right(
             copy(
@@ -117,14 +121,14 @@ final case class LMPool[Ledger[_]: RuntimeState](
       val epochsToCompound = conf.epochNum - epoch
 
       if (epoch <= curEpochIx - 1) {
-        if (
-          reserves.X - epochsToCompound * conf.programBudget / conf.epochNum <= conf.epochAlloc + conf.MaxRoundingError
-        ) {
+        if (reserves.X - epochsToCompound * conf.epochAlloc <= conf.epochAlloc + conf.maxRoundingError) {
+
           val revokedTMP   = bundle.TMP - epochsToCompound * bundle.vLQ
           val epochsBurned = (bundle.TMP / bundle.vLQ) - epochsToCompound
           val reward = if (revokedTMP > 0) {
-            (BigInt(conf.programBudget) * bundle.vLQ * epochsBurned / (reserves.LQ * conf.epochNum)).toLong
+            (BigInt(conf.epochAlloc) * bundle.vLQ * epochsBurned / (reserves.LQ - 1L)).toLong
           } else 0L
+
           val execFee = (BigInt(execution.execBudget) * reward / conf.programBudget).toLong
           Right(
             (
@@ -149,10 +153,13 @@ final case class LMPool[Ledger[_]: RuntimeState](
       val curEpochIx     = if (ctx.height < conf.programEnd) epochIx(ctx) else conf.epochNum + 1
       val releasedLQ     = bundle.vLQ
       val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
+
       val prevEpochsCompoundedForRedeem =
-        ((conf.programBudget - reserves.X) + conf.MaxRoundingError) >= (curEpochToCalc - 1) * conf.epochAlloc
+        (conf.programBudget - reserves.X) + conf.maxRoundingError >= (curEpochToCalc - 1) * conf.epochAlloc
+
       val redeemNoLimit = ctx.height >= conf.programStart + conf.epochNum * conf.epochLen + conf.redeemLimitDelta
-      if ((prevEpochsCompoundedForRedeem || redeemNoLimit)) {
+
+      if (prevEpochsCompoundedForRedeem || redeemNoLimit) {
         Right(
           (
             copy(
@@ -202,31 +209,56 @@ object LMPool {
   val DefaultCreationHeight      = 1000
   val BundleKeyTokenAmount: Long = 0x7fffffffffffffffL - 1L
 
-  implicit def toLedger[F[_]: RuntimeState]: ToLedger[LMPool[F], F] =
-    (pool: LMPool[F]) =>
-      new LqMiningPoolBox[F](
-        boxId("lm_pool_id"),
-        pool.reserves.value,
-        DefaultCreationHeight,
-        tokens = Coll(
+  implicit def toLedger[F[_]: RuntimeState]: ToLedger[LMPool[F], F] = { (pool: LMPool[F]) =>
+    val tokensNew = {
+      if (pool.reserves.X == 0 && pool.reserves.LQ == 0)
+        Coll(
+          bytes("LM_Pool_NFT_ID") -> 1L,
+          bytes("LQ")             -> pool.reserves.LQ,
+          bytes("TMP")            -> pool.reserves.TMP
+        )
+      else if (pool.reserves.X == 0 && pool.reserves.LQ > 0)
+        Coll(
+          bytes("LM_Pool_NFT_ID") -> 1L,
+          bytes("LQ")             -> pool.reserves.LQ,
+          bytes("vLQ")            -> pool.reserves.vLQ,
+          bytes("TMP")            -> pool.reserves.TMP
+        )
+      else if (pool.reserves.X > 0 && pool.reserves.LQ == 0)
+        Coll(
+          bytes("LM_Pool_NFT_ID") -> 1L,
+          bytes("X")              -> pool.reserves.X,
+          bytes("vLQ")            -> pool.reserves.vLQ,
+          bytes("TMP")            -> pool.reserves.TMP
+        )
+      else
+        Coll(
           bytes("LM_Pool_NFT_ID") -> 1L,
           bytes("X")              -> pool.reserves.X,
           bytes("LQ")             -> pool.reserves.LQ,
           bytes("vLQ")            -> pool.reserves.vLQ,
           bytes("TMP")            -> pool.reserves.TMP
-        ),
-        registers = Map(
-          4 -> Coll(
-            pool.conf.epochLen,
-            pool.conf.epochNum,
-            pool.conf.programStart,
-            pool.conf.redeemLimitDelta
-          ),
-          5 -> pool.conf.programBudget,
-          6 -> pool.conf.MaxRoundingError,
-          7 -> pool.execution.execBudget
         )
+    }
+
+    new LqMiningPoolBox[F](
+      boxId("lm_pool_id"),
+      pool.reserves.value,
+      DefaultCreationHeight,
+      tokens = tokensNew,
+      registers = Map(
+        4 -> Coll(
+          pool.conf.epochLen,
+          pool.conf.epochNum,
+          pool.conf.programStart,
+          pool.conf.redeemLimitDelta
+        ),
+        5 -> pool.conf.programBudget,
+        6 -> pool.conf.maxRoundingError,
+        7 -> pool.execution.execBudget
       )
+    )
+  }
 
   def init[Ledger[_]: RuntimeState](
     epochLen: Int,
@@ -234,11 +266,11 @@ object LMPool {
     programStart: Int,
     redeemLimitDelta: Int,
     programBudget: Long,
-    MaxRoundingError: Long
+    maxRoundingError: Long
   ): LMPool[Ledger] =
     LMPool(
-      LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget, MaxRoundingError),
-      PoolReserves(MinCollateralErg, programBudget, 0L, MaxCapVLQ, MaxCapTMP),
+      LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget, maxRoundingError),
+      PoolReserves(MinCollateralErg, programBudget, 1L, MaxCapVLQ, MaxCapTMP),
       PoolExecution(MinCollateralErg),
       lastUpdatedAtEpochIx = 0
     )
