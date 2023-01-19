@@ -13,7 +13,7 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epochNum`         | `Integer`   | Number of epochs in LM program                                |
 | `programStart`     | `Integer`   | Block the program starts at                                   |
 | `redeemLimitDelta` | `Integer`   | Number of blocks after program to redeem without restrictions |
-| `programBudget`    | `Long`      | Total LM program budget                                       |
+| `programBudget`    | `Long`      | Total LM program budget - 1L                                  |
 | `maxRoundingError` | `Long`      | Total allowable residual from rounding                        |
 | `execBudget`       | `Long`      | Total execution budget                                        |
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |

@@ -210,6 +210,8 @@ object LMPool {
   val BundleKeyTokenAmount: Long = 0x7fffffffffffffffL - 1L
 
   implicit def toLedger[F[_]: RuntimeState]: ToLedger[LMPool[F], F] = { (pool: LMPool[F]) =>
+    val programBudgetCorrected = pool.conf.programBudget - 1L
+
     val tokensNew = {
       if (pool.reserves.X == 0 && pool.reserves.LQ == 0)
         Coll(
@@ -253,7 +255,7 @@ object LMPool {
           pool.conf.programStart,
           pool.conf.redeemLimitDelta
         ),
-        5 -> pool.conf.programBudget,
+        5 -> programBudgetCorrected,
         6 -> pool.conf.maxRoundingError,
         7 -> pool.execution.execBudget
       )
