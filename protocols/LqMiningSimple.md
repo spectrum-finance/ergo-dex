@@ -19,7 +19,9 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |
 
 _Notes_:
-* `maxRoundingError` can be estimated as 'meanNumberOfParticipants' * 'epochNum'. Since the exact number of participants is difficult to predict in advance, it is better to choose a larger value, but it should be << 'programBudget' / 'epochNum'. If the `maxRoundingError` value is too small, the **LM program may break**, and if the value is too large, the **distribution of rewards may be incorrect**!
+* `maxRoundingError` can be estimated as `meanNumberOfParticipants * epochNum` . Since the exact number of participants is difficult to predict in advance,
+* it is better to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
+* and if the value is too large, the **distribution of rewards may be incorrect**!
 * `execBudget` is **not necessary** for Self-Hosted LM Pool
 * `epoch` **indexing starts from 1**
 
@@ -70,6 +72,25 @@ _Notes_:
 When created, the budget will be spent linearly.
 However, the exact number of ERGs needed depends on the number of program participants. 
 Creator will have to monitor ERGs balance and perform additional deposits.
+
+#### General LM Pool initialization rules
+When initializing an LM Pool (Self-Hosted or Delegated), the following actions **must be performed:**
+1. Initial transaction: LM Pool Box with config (`meanNumberOfParticipants * epochNum <= maxRoundingError << programBudget / epochNum`) and all tokens stored in it:
+
+| Name            | Amount        |
+|-----------------|---------------|
+| X               | programBudget |
+| LQ              | 1L            |
+| vLQ             | vLQEmission   |
+| TMP             | TMPEmission   |
+
+2. Initial deposit: before the start of the first LM program epoch, the creator of the LM Pool must Deposit
+some LQ tokens and not Redeem received Staking Bundle until the LM program end.
+
+_Notes_:
+* Without Initial deposit the LM program will break, no one will be able to take part in it,
+and the creator will lose his `programBudget`!
+
 
 ### Participant
 
