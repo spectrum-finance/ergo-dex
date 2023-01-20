@@ -20,8 +20,8 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 
 _Notes_:
 * `maxRoundingError` can be estimated as `meanNumberOfParticipants * epochNum` . Since the exact number of participants is difficult to predict in advance,
-* it is better to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
-* and if the value is too large, the **distribution of rewards may be incorrect**!
+It is better to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
+and if the value is too large, the **distribution of rewards may be incorrect**!
 * `execBudget` is **not necessary** for Self-Hosted LM Pool
 * `epoch` **indexing starts from 1**
 
@@ -75,7 +75,7 @@ Creator will have to monitor ERGs balance and perform additional deposits.
 
 #### General LM Pool initialization rules
 When initializing an LM Pool (Self-Hosted or Delegated), the following actions **must be performed:**
-1. Initial transaction: LM Pool Box with config (`meanNumberOfParticipants * epochNum <= maxRoundingError << programBudget / epochNum`) and all tokens stored in it:
+1. Initial transaction: LM Pool Box with correct config (`meanNumberOfParticipants * epochNum <= maxRoundingError << programBudget / epochNum`) and all tokens stored in it:
 
 | Name            | Amount        |
 |-----------------|---------------|
