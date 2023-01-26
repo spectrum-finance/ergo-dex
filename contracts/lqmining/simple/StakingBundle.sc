@@ -23,9 +23,9 @@
   // 1: Int - successor output index;
   // * indexes are dynamic to allow batch compounding.
   //
-  // ErgoTree: 19b803160400040004040404040404020400040005000402040204000502040404000402050205000404040005fcffffffffffffffff010100d80ed601b2a5730000d602db63087201d603e4c6a7050ed604b2a4730100d605db63087204d6068cb2720573020002d607998cb27202730300027206d608e4c6a70408d609db6308a7d60a8cb2720973040001d60bb27209730500d60cb27209730600d60d8c720c02d60e8c720b02d1ed938cb27202730700017203959372077308d808d60fb2a5e4e3000400d610b2a5e4e3010400d611db63087210d612b27211730900d613b2e4c672040410730a00d614c672010804d6157e99721395e67214e47214e4c67201070405d616b2db6308720f730b00eded93c2720fd07208edededededed93e4c672100408720893e4c67210050e720393c27210c2a7938602720a730cb27211730d00938c7212018c720b019399720e8c72120299720e9c7215720d93b27211730e00720ced938c7216018cb27205730f0001927e8c721602069d9c9c7e9de4c6720405057e721305067e720d067e999d720e720d7215067e997206731006958f7207731193b2db6308b2a47312007313008602720a73147315
+  // ErgoTree: 198f041d04000400040404040400040206010104080400050004020402040204000404050204040400040805feffffffffffffffff01050205000404040004060404040205fcffffffffffffffff010100d80dd601b2a5730000d602db63087201d603e4c6a7050ed604b2a4730100d605db63087204d6068cb2720573020002d607998cb27202730300027206d608e4c6a70408d609db6308a7d60ab27209730400d60bb27205730500d60c7306d60d8cb2720573070002d1ed938cb27202730800017203959372077309d80bd60eb2a5e4e3000400d60fb2a5e4e3010400d610db6308720fd611b27210730a00d612b27209730b00d6138c721202d614b2e4c672040410730c00d615c672010804d61699721495e67215e47215e4c672010704d6177e721605d618b2db6308720e730d00eded93c2720ed07208edededededed93e4c6720f0408720893e4c6720f050e720393c2720fc2a79386028cb27209730e0001730fb27210731000938c7211018c721201939972138c7211029972139c72178c720a0293b27210731100720aed938c7218018c720b01927e8c7218020699999d9c99997e8c720b02069d9c7ee4c672040505067e7216067e721406720c7e998cb2720273120002720d067e99997313720d9c9972067314721706720c720c958f7207731593b2db6308b2a473160073170086029593b1720973188cb27209731900018cb27209731a0001731b731c
   //
-  // ErgoTreeTemplate: d80ed601b2a5730000d602db63087201d603e4c6a7050ed604b2a4730100d605db63087204d6068cb2720573020002d607998cb27202730300027206d608e4c6a70408d609db6308a7d60a8cb2720973040001d60bb27209730500d60cb27209730600d60d8c720c02d60e8c720b02d1ed938cb27202730700017203959372077308d808d60fb2a5e4e3000400d610b2a5e4e3010400d611db63087210d612b27211730900d613b2e4c672040410730a00d614c672010804d6157e99721395e67214e47214e4c67201070405d616b2db6308720f730b00eded93c2720fd07208edededededed93e4c672100408720893e4c67210050e720393c27210c2a7938602720a730cb27211730d00938c7212018c720b019399720e8c72120299720e9c7215720d93b27211730e00720ced938c7216018cb27205730f0001927e8c721602069d9c9c7e9de4c6720405057e721305067e720d067e999d720e720d7215067e997206731006958f7207731193b2db6308b2a47312007313008602720a73147315
+  // ErgoTreeTemplate: d80dd601b2a5730000d602db63087201d603e4c6a7050ed604b2a4730100d605db63087204d6068cb2720573020002d607998cb27202730300027206d608e4c6a70408d609db6308a7d60ab27209730400d60bb27205730500d60c7306d60d8cb2720573070002d1ed938cb27202730800017203959372077309d80bd60eb2a5e4e3000400d60fb2a5e4e3010400d610db6308720fd611b27210730a00d612b27209730b00d6138c721202d614b2e4c672040410730c00d615c672010804d61699721495e67215e47215e4c672010704d6177e721605d618b2db6308720e730d00eded93c2720ed07208edededededed93e4c6720f0408720893e4c6720f050e720393c2720fc2a79386028cb27209730e0001730fb27210731000938c7211018c721201939972138c7211029972139c72178c720a0293b27210731100720aed938c7218018c720b01927e8c7218020699999d9c99997e8c720b02069d9c7ee4c672040505067e7216067e721406720c7e998cb2720273120002720d067e99997313720d9c9972067314721706720c720c958f7207731593b2db6308b2a473160073170086029593b1720973188cb27209731900018cb27209731a0001731b731c
   //
   // Validations:
   // 1. LM Pool NFT (Token ID) is valid;
@@ -44,19 +44,19 @@
   //
   // ===== Getting SELF data ===== //
   val bundleVLQ0 = SELF.tokens(0)
-  val bundleTMP0 = SELF.tokens(1)
 
   val redeemerProp0 = SELF.R4[SigmaProp].get
   val poolId0       = SELF.R5[Coll[Byte]].get
-  val bundleKey0    = SELF.tokens(2)._1
 
   // ===== Getting INPUTS data ===== //
-  val pool0               = INPUTS(0)
-  val lqLockedInPoolTotal = pool0.tokens(2)._2
+  val pool0            = INPUTS(0)
+  val poolReservesX0   = pool0.tokens(1)._2
+  val poolReservesLQ0  = pool0.tokens(2)._2
+  val poolReservesTMP0 = pool0.tokens(4)._2
 
   // ===== Getting OUTPUTS data ===== //
   val pool1   = OUTPUTS(0)
-  val deltaLQ = pool1.tokens(2)._2 - lqLockedInPoolTotal
+  val deltaLQ = pool1.tokens(2)._2 - poolReservesLQ0
 
   // ===== Validating conditions ===== //
   // 1.
@@ -65,6 +65,10 @@
   val validAction =
     if (deltaLQ == 0L) { // compound
       // 2.1.
+      // ===== Getting SELF data ===== //
+      val bundleKey0 = SELF.tokens(2)._1
+      val bundleTMP0 = SELF.tokens(1)
+
       // ===== Getting INPUTS data ===== //
       val conf          = pool0.R4[Coll[Int]].get
       val programBudget = pool0.R5[Long].get
@@ -74,8 +78,9 @@
       val successorIndex = getVar[Int](1).get
 
       // ===== Getting OUTPUTS data ===== //
-      val redeemer  = OUTPUTS(redeemerOutIx)
-      val successor = OUTPUTS(successorIndex)
+      val redeemer         = OUTPUTS(redeemerOutIx)
+      val successor        = OUTPUTS(successorIndex)
+      val poolReservesTMP1 = pool1.tokens(4)._2
 
       val bundleVLQ1          = successor.tokens(0)
       val bundleTMP1          = successor.tokens(1)
@@ -88,9 +93,11 @@
       val bundleVLQ        = bundleVLQ0._2
       val bundleTMP        = bundleTMP0._2
       val releasedTMP      = bundleTMP0._2 - epochsToCompound * bundleVLQ
-      val epochRewardTotal = programBudget / epochNum
-      val epochsBurned     = (bundleTMP / bundleVLQ) - epochsToCompound
-      val reward           = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / (lqLockedInPoolTotal - 1L)
+      val deltaTMP         = poolReservesTMP1 - poolReservesTMP0
+
+      val actualLQ = 0x7fffffffffffffffL - poolReservesTMP0 - (poolReservesLQ0 - 1L) * epochsToCompound
+      val allocRem = poolReservesX0 - programBudget.toBigInt * epochsToCompound / epochNum - 1L
+      val reward   = allocRem * deltaTMP / actualLQ - 1L
 
       // ===== Validating conditions ===== //
       // 2.1.1.
@@ -107,7 +114,7 @@
       // 2.1.3.
       val validReward =
         (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
-        (redeemerRewardToken._2 >= reward)
+        (redeemerRewardToken._2 >= reward - 1L)
 
       validRedeemer &&
       validSuccessor &&
@@ -115,12 +122,21 @@
 
     } else if (deltaLQ < 0L) { // redeem (validated by redeem order)
       // 2.2.
+      // ===== Getting SELF data ===== //
+      val bundleKey0 = {
+        if (SELF.tokens.size == 3) {
+          SELF.tokens(2)._1
+        } else SELF.tokens(1)._1
+      }
+
       // ===== Getting INPUTS data ===== //
       val permitIn       = INPUTS(2)
       val requiredPermit = (bundleKey0, 0x7fffffffffffffffL - 1L)
+
       // ===== Validating conditions ===== //
       // 2.2.1.
       permitIn.tokens(0) == requiredPermit
+
     } else {
       false
     }
