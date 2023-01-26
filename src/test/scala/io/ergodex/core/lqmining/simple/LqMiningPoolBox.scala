@@ -67,8 +67,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       // 5. There are no illegal tokens in LM Pool;
       // 6. Action is valid:
       //    6.1. Deposit: if (deltaLQ > 0)
-      //         6.1.1. Previous epochs are compounded;
-      //         6.1.2. Bundle is valid;
+      //         6.1.1. Bundle is valid;
       //    6.2. Redeem: elif if (deltaLQ < 0)
       //         6.2.1. Previous epochs are compounded;
       //         6.2.2. Redeem without limits is available.
@@ -121,9 +120,8 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       val poolVLQ1 = successor.tokens(3)
       val poolTMP1 = successor.tokens(4)
 
-      val creationHeight1 = successor.creationInfo._1
-      val conf1           = successor.R4[Coll[Int]].get
-
+      val creationHeight1   = successor.creationInfo._1
+      val conf1             = successor.R4[Coll[Int]].get
       val programBudget1    = successor.R5[Long].get
       val maxRoundingError1 = successor.R6[Long].get
       val execBudget1       = successor.R7[Long].get
@@ -143,6 +141,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
       val curEpochIxRem = curBlockIx % epochLen
       val curEpochIxR   = curBlockIx / epochLen
       val curEpochIx    = if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
+
       // ===== Validating conditions ===== //
       // 1.
       val nftPreserved = poolNFT1 == poolNFT0
@@ -170,13 +169,10 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
           val releasedVLQ     = deltaLQ
           val epochsAllocated = epochNum - max(0L, curEpochIx)
           val releasedTMP     = releasedVLQ * epochsAllocated
-          val curEpochToCalc  = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-          // 6.1.1.
-          val prevEpochsCompoundedForDeposit =
-            (programBudget0 - reservesX) + maxRoundingError0 >= (curEpochToCalc - 1) * epochAlloc
 
           val bundleOut = OUTPUTS(2)
-          // 6.1.2.
+
+          // 6.1.1.
           val validBundle =
             blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
             (poolVLQ0._1, releasedVLQ) == bundleOut.tokens(0) &&
@@ -184,7 +180,6 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             bundleOut.R4[SigmaProp].isDefined &&
             bundleOut.R5[Coll[Byte]].get == poolNFT0._1
 
-          prevEpochsCompoundedForDeposit &&
           deltaLQ == -deltaVLQ &&
           releasedTMP == -deltaTMP &&
           validBundle
@@ -222,15 +217,21 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
             // 6.3.2.
             val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc + maxRoundingError0
 
-            val reward  = epochAlloc.toBigInt * deltaTMP / (reservesLQ - 1L)
-            val execFee = reward.toBigInt * execBudget0 / programBudget0
+            val actualLQ = 0x7fffffffffffffffL - poolTMP0._2 - (reservesLQ - 1L) * epochsToCompound
+            val allocRem = reservesX - programBudget0.toBigInt * epochsToCompound / epochNum - 1L
 
-            legalEpoch &&
-            prevEpochCompounded &&
-            (-deltaX <= reward) &&
-            (deltaLQ == 0L) &&
-            (deltaVLQ == 0L) &&
-            (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
+            if (actualLQ > 0 && deltaTMP > 0) {
+              val reward  = allocRem * deltaTMP / actualLQ
+              val execFee = reward.toBigInt * execBudget0 / programBudget0
+
+              legalEpoch &&
+              prevEpochCompounded &&
+              (-deltaX <= reward + 1L) &&
+              (deltaLQ == 0L) &&
+              (deltaVLQ == 0L) &&
+              (execBudgetRem0 - execBudgetRem1) <= execFee // valid exec fee
+
+            } else { false }
 
           } else { // increase execution budget
             // 6.4.
@@ -242,6 +243,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
           }
         }
       }
+
       sigmaProp(
         nftPreserved &&
         configPreserved &&

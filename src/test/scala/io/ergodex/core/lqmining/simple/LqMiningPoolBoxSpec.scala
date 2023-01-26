@@ -5,7 +5,7 @@ import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
 import io.ergodex.core.lqmining.simple.TxBoxes._
-import io.ergodex.core.lqmining.simple.generators.{DepositGen, lmConfGen}
+import io.ergodex.core.lqmining.simple.generators.{lmConfGen, DepositGen}
 import io.ergodex.core.syntax.Coll
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,7 +16,7 @@ import scala.util.Random
 
 class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPropertyChecks with LedgerPlatform {
   forAll(lmConfGen) { conf =>
-    forAll(DepositGen(1)) { case lq =>
+    forAll(DepositGen(1L)) { case lq =>
       val epochLen         = conf.epochLen
       val epochNum         = conf.epochNum
       val programStart     = conf.programStart
@@ -54,8 +54,8 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         val action                       = pool01.deposit(input0)
         val currEpoch                    = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
         val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
-        val poolBox0                     = pool01.toLedger[Ledger].setRegister(epochReg, currEpoch)
-        val poolBox1                     = pool1.toLedger[Ledger].setRegister(epochReg, currEpoch)
+        val poolBox0                     = pool01.toLedger[Ledger]
+        val poolBox1                     = pool1.toLedger[Ledger]
 
         val (userBox1, depositBox1, bundleBox1) =
           getDepositTxBoxes(input0.value, pool01.conf.epochNum - currEpoch, bundle1.vLQ, bundle1.TMP)
@@ -76,16 +76,36 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       }
 
       it should s"validate deposit behaviour during LM program mirrored from simulation during compounding$testId" in {
-        val startAtHeight             = programStart - 1
-        val action                    = pool01.deposit(input0)
-        val (_, Right((pool1, sb1)))  = action.run(RuntimeCtx.at(startAtHeight - 1)).value
-        val action1                   = pool1.deposit(input0)
-        val (_, Right((pool2, _)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
-        val action2                   = pool2.compound(sb1, epoch = 1)
-        val (_, Right((pool3, _, _))) = action2.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-        val action3                   = pool3.deposit(input0)
-        val (_, Left(pool4))          = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-        pool4 shouldBe PrevEpochNotWithdrawn
+        val startAtHeight                  = programStart - 1
+        val action                         = pool01.deposit(input0)
+        val currEpoch                      = epochIx(RuntimeCtx.at(startAtHeight), pool01.conf)
+        val (_, Right((pool1, bundle1)))   = action.run(RuntimeCtx.at(startAtHeight)).value
+        val action1                        = pool1.deposit(input0)
+        val (_, Right((pool2, bundle12)))  = action1.run(RuntimeCtx.at(startAtHeight)).value
+        val action2                        = pool2.compound(bundle1, epoch = 1)
+        val (_, Right((pool3, _, reward))) = action2.run(RuntimeCtx.at(startAtHeight + epochLen + 2)).value
+        val action3                        = pool3.deposit(input0)
+        val (_, Right((pool4, _)))         = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 2)).value
+
+        val poolBox3 = pool3.toLedger[Ledger]
+        val poolBox4 = pool4.toLedger[Ledger]
+
+        val (userBox3, depositBox3, bundleBox3) =
+          getDepositTxBoxes(input0.value, pool01.conf.epochNum - currEpoch, bundle1.vLQ, bundle1.TMP)
+
+        val txInputs  = List(poolBox3)
+        val txOutputs = List(poolBox4, userBox3, bundleBox3)
+
+        val (_, isValidDeposit) = depositBox3.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+        val (_, isValidPool) = poolBox3.validator
+          .run(RuntimeCtx(startAtHeight, inputs = txInputs, outputs = txOutputs))
+          .value
+
+        math.abs(reward.value - pool3.conf.epochAlloc / 2) <= 1 shouldBe true
+        isValidPool shouldBe false
+        isValidDeposit shouldBe true
       }
 
       it should s"validate deposit behaviour after LM program end mirrored from simulation$testId" in {
@@ -97,7 +117,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
 
       it should s"validate compound behaviour after first epoch mirrored from simulation$testId" in {
         val startAtHeight = programStart - 1
-        val epochStep     = epochLen + 1
+        val epochStep     = epochLen + 2
         val action = for {
           Right((pool1, sb1))  <- pool01.deposit(input0)
           Right((pool2, sb2))  <- pool1.deposit(input1)
@@ -175,37 +195,42 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
       }
 
       it should s"validate redeem behaviour during LM program mirrored from simulation$testId" in {
-        val startAtHeight             = programStart + 1
+        val startAtHeight             = programStart - 1
         val action                    = pool01.deposit(input0)
         val (_, Right((pool1, sb1)))  = action.run(RuntimeCtx.at(startAtHeight)).value
         val poolBox1                  = pool1.toLedger[Ledger]
         val action1                   = pool1.redeem(sb1)
-        val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight)).value
+        val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight + epochLen + 2)).value
         val poolBox2                  = pool2.toLedger[Ledger]
-        val (_, isValid)              = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
+        val (_, isValid) =
+          poolBox1.validator.run(RuntimeCtx(startAtHeight + epochLen + 2, outputs = List(poolBox2))).value
         out2.value shouldBe input0.value
-        isValid shouldBe true
+        isValid shouldBe false
       }
 
-      it should s"validate redeem behaviour during compounding mirrored from simulation$testId" in {
+      it should s"validate redeem behaviour after compounding mirrored from simulation$testId" in {
         val startAtHeight                    = programStart - 1
         val action                           = pool01.deposit(input0)
         val (_, Right((pool1, bundle11)))    = action.run(RuntimeCtx.at(startAtHeight)).value
         val action1                          = pool1.deposit(input1)
         val (_, Right((pool2, bundle21)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
         val action3                          = pool2.compound(bundle11, epoch = 1)
-        val (_, Right((pool3, _, _)))        = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+        val (_, Right((pool3, bundle12, _))) = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
         val action4                          = pool3.compound(bundle21, epoch = 1)
         val (_, Right((pool4, bundle22, _))) = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
         val action5                          = pool4.redeem(bundle22)
-        val (_, Right((_, out)))             = action5.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-        val action6                          = pool4.redeem(bundle22)
-        val (_, Left(err))                   = action6.run(RuntimeCtx.at(startAtHeight + 3 * epochLen + 1)).value
+        val (_, Right((pool5, out)))         = action5.run(RuntimeCtx.at(startAtHeight + epochLen + 2)).value
+        val action6                          = pool5.redeem(bundle12)
+        val (_, Right((pool6, _)))           = action6.run(RuntimeCtx.at(startAtHeight + epochLen + 2)).value
+        val poolBox5                         = pool5.toLedger[Ledger]
+        val poolBox6                         = pool6.toLedger[Ledger]
+        val (_, isValid) =
+          poolBox5.validator.run(RuntimeCtx(startAtHeight + epochLen + 2, outputs = List(poolBox6))).value
         out.value shouldBe input1.value
-        err shouldBe PrevEpochNotWithdrawn
+        isValid shouldBe true
       }
 
-      it should s"validate redeem behaviour (2) during compounding mirrored from simulation$testId" in {
+      it should s"validate illegal redeem behaviour (2) during compounding mirrored from simulation$testId" in {
         val startAtHeight                 = programStart - 1
         val action                        = pool01.deposit(input0)
         val (_, Right((pool1, bundle11))) = action.run(RuntimeCtx.at(startAtHeight)).value
@@ -214,8 +239,12 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         val action3                       = pool2.compound(bundle11, epoch = 1)
         val (_, Right((pool3, _, _)))     = action3.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
         val action4                       = pool3.redeem(bundle21)
-        val (_, Left(err))                = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
-        err shouldBe PrevEpochNotWithdrawn
+        val (_, Right((pool4, _)))        = action4.run(RuntimeCtx.at(startAtHeight + epochLen + 1)).value
+        val poolBox3                      = pool3.toLedger[Ledger]
+        val poolBox4                      = pool4.toLedger[Ledger]
+        val (_, isValid) =
+          poolBox3.validator.run(RuntimeCtx(startAtHeight + epochLen + 1, outputs = List(poolBox4))).value
+        isValid shouldBe false
       }
 
       it should s"validate redeem behaviour after LM program end mirrored from simulation$testId" in {
@@ -227,7 +256,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         val startAtHeight1            = programStart + epochNum * epochLen + pool01.conf.redeemLimitDelta
         val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight1)).value
         val poolBox2                  = pool2.toLedger[Ledger]
-        val (_, isValid)              = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
+        val (_, isValid)              = poolBox1.validator.run(RuntimeCtx(startAtHeight1, outputs = List(poolBox2))).value
         out2.value shouldBe input0.value
         isValid shouldBe true
       }
@@ -241,7 +270,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
         val startAtHeight1            = programStart + epochNum * epochLen + pool01.conf.redeemLimitDelta
         val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight1)).value
         val poolBox2                  = pool2.toLedger[Ledger]
-        val (_, isValid)              = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
+        val (_, isValid)              = poolBox1.validator.run(RuntimeCtx(startAtHeight1, outputs = List(poolBox2))).value
 
         out2.value shouldBe input0.value
         isValid shouldBe true

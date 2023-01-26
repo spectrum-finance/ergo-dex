@@ -61,19 +61,19 @@ final class StakingBundleBox[F[_]: RuntimeState](
       //
       // ===== Getting SELF data ===== //
       val bundleVLQ0 = SELF.tokens(0)
-      val bundleTMP0 = SELF.tokens(1)
 
       val redeemerProp0 = SELF.R4[SigmaProp].get
       val poolId0       = SELF.R5[Coll[Byte]].get
-      val bundleKey0    = SELF.tokens(2)._1
 
       // ===== Getting INPUTS data ===== //
-      val pool0               = INPUTS(0)
-      val lqLockedInPoolTotal = pool0.tokens(2)._2
+      val pool0            = INPUTS(0)
+      val poolReservesX0   = pool0.tokens(1)._2
+      val poolReservesLQ0  = pool0.tokens(2)._2
+      val poolReservesTMP0 = pool0.tokens(4)._2
 
       // ===== Getting OUTPUTS data ===== //
       val pool1   = OUTPUTS(0)
-      val deltaLQ = pool1.tokens(2)._2 - lqLockedInPoolTotal
+      val deltaLQ = pool1.tokens(2)._2 - poolReservesLQ0
 
       // ===== Validating conditions ===== //
       // 1.
@@ -82,6 +82,10 @@ final class StakingBundleBox[F[_]: RuntimeState](
       val validAction =
         if (deltaLQ == 0L) { // compound
           // 2.1.
+          // ===== Getting SELF data ===== //
+          val bundleKey0 = SELF.tokens(2)._1
+          val bundleTMP0 = SELF.tokens(1)
+
           // ===== Getting INPUTS data ===== //
           val conf          = pool0.R4[Coll[Int]].get
           val programBudget = pool0.R5[Long].get
@@ -91,8 +95,9 @@ final class StakingBundleBox[F[_]: RuntimeState](
           val successorIndex = getVar[Int](1).get
 
           // ===== Getting OUTPUTS data ===== //
-          val redeemer  = OUTPUTS(redeemerOutIx)
-          val successor = OUTPUTS(successorIndex)
+          val redeemer         = OUTPUTS(redeemerOutIx)
+          val successor        = OUTPUTS(successorIndex)
+          val poolReservesTMP1 = pool1.tokens(4)._2
 
           val bundleVLQ1          = successor.tokens(0)
           val bundleTMP1          = successor.tokens(1)
@@ -105,9 +110,11 @@ final class StakingBundleBox[F[_]: RuntimeState](
           val bundleVLQ        = bundleVLQ0._2
           val bundleTMP        = bundleTMP0._2
           val releasedTMP      = bundleTMP0._2 - epochsToCompound * bundleVLQ
-          val epochRewardTotal = programBudget / epochNum
-          val epochsBurned     = (bundleTMP / bundleVLQ) - epochsToCompound
-          val reward           = epochRewardTotal.toBigInt * bundleVLQ * epochsBurned / (lqLockedInPoolTotal - 1L)
+          val deltaTMP         = poolReservesTMP1 - poolReservesTMP0
+
+          val actualLQ = 0x7fffffffffffffffL - poolReservesTMP0 - (poolReservesLQ0 - 1L) * epochsToCompound
+          val allocRem = poolReservesX0 - programBudget.toBigInt * epochsToCompound / epochNum - 1L
+          val reward   = allocRem * deltaTMP / actualLQ - 1L
 
           // ===== Validating conditions ===== //
           // 2.1.1.
@@ -124,7 +131,7 @@ final class StakingBundleBox[F[_]: RuntimeState](
           // 2.1.3.
           val validReward =
             (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
-            (redeemerRewardToken._2 >= reward)
+            (redeemerRewardToken._2 >= reward - 1L)
 
           validRedeemer &&
           validSuccessor &&
@@ -132,12 +139,21 @@ final class StakingBundleBox[F[_]: RuntimeState](
 
         } else if (deltaLQ < 0L) { // redeem (validated by redeem order)
           // 2.2.
+          // ===== Getting SELF data ===== //
+          val bundleKey0 = {
+            if (SELF.tokens.size == 3) {
+              SELF.tokens(2)._1
+            } else SELF.tokens(1)._1
+          }
+
           // ===== Getting INPUTS data ===== //
           val permitIn       = INPUTS(2)
           val requiredPermit = (bundleKey0, 0x7fffffffffffffffL - 1L)
+
           // ===== Validating conditions ===== //
           // 2.2.1.
           permitIn.tokens(0) == requiredPermit
+
         } else {
           false
         }

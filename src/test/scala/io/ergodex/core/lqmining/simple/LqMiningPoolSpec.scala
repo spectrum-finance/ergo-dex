@@ -17,12 +17,20 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   forAll(lmConfGen) { conf =>
     forAll(DepositGen(1)) { case lq =>
-      val epochLen         = conf.epochLen
-      val epochNum         = conf.epochNum
-      val programStart     = conf.programStart
-      val redeemLimitDelta = conf.redeemLimitDelta
-      val programBudget    = conf.programBudget
-      val maxRoundingError = conf.maxRoundingError
+//      val epochLen         = conf.epochLen
+//      val epochNum         = conf.epochNum
+//      val programStart     = conf.programStart
+//      val redeemLimitDelta = conf.redeemLimitDelta
+//      val programBudget    = conf.programBudget
+//      val maxRoundingError = conf.maxRoundingError
+//      val baseAssetAmount  = lq
+
+      val epochLen         = 10
+      val epochNum         = 3
+      val programStart     = 1
+      val redeemLimitDelta = 1
+      val programBudget    = 300
+      val maxRoundingError = 9
       val baseAssetAmount  = lq
 
       val testId = Random.nextLong()

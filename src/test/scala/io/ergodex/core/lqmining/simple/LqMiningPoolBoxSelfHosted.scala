@@ -65,7 +65,6 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
       // 6. Action is valid:
       //    6.1. Deposit: if (deltaLQ > 0)
       //         6.1.1. Previous epochs are compounded;
-      //         6.1.2. Bundle is valid;
       //    6.2. Redeem: elif if (deltaLQ < 0)
       //         6.2.1. Previous epochs are compounded;
       //         6.2.2. Redeem without limits is available.
@@ -165,12 +164,9 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
           val epochsAllocated = epochNum - max(0L, curEpochIx)
           val releasedTMP     = releasedVLQ * epochsAllocated
           val curEpochToCalc  = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
-          // 6.1.1.
-          val prevEpochsCompoundedForDeposit =
-            ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
 
           val bundleOut = OUTPUTS(2)
-          // 6.1.2.
+          // 6.1.1.
           val validBundle =
             blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
             (poolVLQ0._1, releasedVLQ) == bundleOut.tokens(0) &&
@@ -178,7 +174,6 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
             bundleOut.R4[SigmaProp].isDefined &&
             bundleOut.R5[Coll[Byte]].get == poolNFT0._1
 
-          prevEpochsCompoundedForDeposit &&
           deltaLQ == -deltaVLQ &&
           releasedTMP == -deltaTMP &&
           validBundle
@@ -208,16 +203,24 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
           val epoch            = successor.R7[Int].get
           val epochsToCompound = epochNum - epoch
           // 6.3.1.
-          val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
-          // 6.3.2.
           val legalEpoch = epoch <= curEpochIx - 1
-          val reward     = epochAlloc.toBigInt * deltaTMP / (reservesLQ - 1L)
+          // 6.3.2.
+          val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc + maxRoundingError0
 
-          legalEpoch &&
-          prevEpochCompounded &&
-          (-deltaX <= reward) &&
-          (deltaLQ == 0L) &&
-          (deltaVLQ == 0L)
+          val actualLQ = 0x7fffffffffffffffL - poolTMP0._2 - (reservesLQ - 1L) * epochsToCompound
+          val allocRem = reservesX - programBudget0.toBigInt * epochsToCompound / epochNum - 1L
+
+          if (actualLQ > 0 && deltaTMP > 0) {
+            val reward = allocRem * deltaTMP / actualLQ
+
+            legalEpoch &&
+            prevEpochCompounded &&
+            (-deltaX <= reward + 1L) &&
+            (deltaLQ == 0L) &&
+            (deltaVLQ == 0L)
+
+          } else { false }
+
         }
       }
       sigmaProp(
