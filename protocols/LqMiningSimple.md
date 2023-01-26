@@ -75,16 +75,20 @@ Creator will have to monitor ERGs balance and perform additional deposits.
 
 #### General LM Pool initialization rules
 When initializing an LM Pool (Self-Hosted or Delegated), the following actions **must be performed:**
-1. Initial transaction: LM Pool Box with correct config (`meanNumberOfParticipants * epochNum <= maxRoundingError << programBudget / epochNum`) and all tokens stored in it:
+1. Correct config: 
+   1. `maxRoundingError` << `programBudget / epochNum`
+   2. `programBudget` stored in R5 of the LM Pool Box == (Total LM program budget - 1L)
 
-| Name            | Amount        |
-|-----------------|---------------|
-| X               | programBudget |
-| LQ              | 1L            |
-| vLQ             | vLQEmission   |
-| TMP             | TMPEmission   |
+2. Initial transaction with correct tokens' amounts:
 
-2. Initial deposit: before the start of the first LM program epoch, the creator of the LM Pool must Deposit
+| Name            | Amount                  |
+|-----------------|-------------------------|
+| X               | Total LM program budget |
+| LQ              | 1L                      |
+| vLQ             | 0x7fffffffffffffffL     |
+| TMP             | 0x7fffffffffffffffL     |
+
+3. Initial deposit: before the start of the first LM program epoch, the creator of the LM Pool must Deposit
 some LQ tokens and not Redeem received Staking Bundle until the LM program end.
 
 _Notes_:
@@ -105,7 +109,6 @@ She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bund
 
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
-* New "Staking bundle" **can't be released until all previous epochs are compounded**
 * Amount of received Bundle Key Tokens C is 0x7fffffffffffffffL - 1L
 
 #### Reward
