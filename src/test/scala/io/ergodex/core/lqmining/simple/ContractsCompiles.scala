@@ -12,13 +12,13 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
   property("Contracts compile") {
     val sourcePool = readSource("contracts/lqmining/simple/LMPool.sc")
     val envPool = Map(
-      "BundleScriptHash" -> Base16.decode("7f0f08eb24bf79cfe4551bde3e748e999dda6c91e1314ef378edaae7f189773c").get
+      "BundleScriptHash" -> Base16.decode("e23e8fd028861053de63070f49e9584e9605fb0cdc21daeb04fb1ba36fc3c47e").get
     )
     printTree("Pool", sourcePool, envPool)
 
     val sourcePoolSelf = readSource("contracts/lqmining/simple/LMPoolSelfHosted.sc")
     val envPoolSelf = Map(
-      "BundleScriptHash" -> Base16.decode("7f0f08eb24bf79cfe4551bde3e748e999dda6c91e1314ef378edaae7f189773c").get
+      "BundleScriptHash" -> Base16.decode("e23e8fd028861053de63070f49e9584e9605fb0cdc21daeb04fb1ba36fc3c47e").get
     )
     printTree("PoolSelf", sourcePoolSelf, envPoolSelf)
 
@@ -30,7 +30,7 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
     val envDeposit = Map(
       "ExpectedNumEpochs" -> 10,
       "RedeemerProp"      -> Array.fill(32)(0: Byte),
-      "BundlePropHash"    -> Base16.decode("7f0f08eb24bf79cfe4551bde3e748e999dda6c91e1314ef378edaae7f189773c").get,
+      "BundlePropHash"    -> Base16.decode("e23e8fd028861053de63070f49e9584e9605fb0cdc21daeb04fb1ba36fc3c47e").get,
       "RefundPk"          -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
       "PoolId"            -> Array.fill(32)(2: Byte),
       "MinerPropBytes" -> Base16

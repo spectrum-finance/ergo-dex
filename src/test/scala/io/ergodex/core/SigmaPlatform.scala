@@ -51,11 +51,14 @@ trait SigmaPlatform {
       s"[$signature] ErgoTree:         " + Base16.encode(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
     )
     println(
-      s"[$signature] ErgoTreeTemplateHash:         " + Base16.encode(
-        Blake2b256.hash(Sha256.hash(tree.template))
+      s"[$signature] ErgoTreeHash:         " + Base16.encode(
+        Blake2b256.hash(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
       )
     )
     println(s"[$signature] ErgoTreeTemplate: " + Base16.encode(tree.template))
+    println(
+      s"[$signature] ErgoTreeTemplateHash:         " + Base16.encode(Sha256.hash(tree.template))
+    )
     println("-" * 80)
     println()
   }
