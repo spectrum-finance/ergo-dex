@@ -89,7 +89,7 @@
   val maxRoundingError0 = SELF.R6[Long].get
   val execBudget0       = SELF.R7[Long].get
 
-// ===== Getting OUTPUTS data ===== //
+  // ===== Getting OUTPUTS data ===== //
   val successor = OUTPUTS(0)
 
   val poolNFT1 = successor.tokens(0)
@@ -104,7 +104,7 @@
   val maxRoundingError1 = successor.R6[Long].get
   val execBudget1       = successor.R7[Long].get
 
-// ===== Getting deltas ===== //
+  // ===== Getting deltas ===== //
   val reservesX  = poolX0._2
   val reservesLQ = poolLQ0._2
 
@@ -113,34 +113,34 @@
   val deltaVLQ = poolVLQ1._2 - poolVLQ0._2
   val deltaTMP = poolTMP1._2 - poolTMP0._2
 
-// ===== Calculating epoch parameters ===== //
+  // ===== Calculating epoch parameters ===== //
   val epochAlloc    = programBudget0 / epochNum
   val curBlockIx    = HEIGHT - programStart + 1
   val curEpochIxRem = curBlockIx % epochLen
   val curEpochIxR   = curBlockIx / epochLen
   val curEpochIx    = if (curEpochIxRem > 0) curEpochIxR + 1 else curEpochIxR
 
-// ===== Validating conditions ===== //
-// 1.
+  // ===== Validating conditions ===== //
+  // 1.
   val nftPreserved = poolNFT1 == poolNFT0
-// 2.
+  // 2.
   val configPreserved =
     (conf1 == conf0) &&
     (programBudget1 == programBudget0) &&
     (execBudget1 == execBudget0) &&
     (maxRoundingError1 == maxRoundingError0) &&
     (creationHeight1 >= creationHeight0)
-// 3.
+  // 3.
   val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
-// 4.
+  // 4.
   val assetsPreserved =
     poolX1._1 == poolX0._1 &&
     poolLQ1._1 == poolLQ0._1 &&
     poolVLQ1._1 == poolVLQ0._1 &&
     poolTMP1._1 == poolTMP0._1
-// 5.
+  // 5.
   val noMoreTokens = successor.tokens.size == 5
-// 6.
+  // 6.
   val validAction = {
     if (deltaLQ > 0) { // deposit
       // 6.1.
