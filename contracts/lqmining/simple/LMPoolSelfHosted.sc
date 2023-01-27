@@ -55,9 +55,8 @@
   //
   // Limitations:
   // 1. Deposit
-  //    1.1. Deposit can be performed before program start;
-  //    1.2. During the program Deposit can't be performed until all rewards for passed epochs are distributed;
-  //    1.3. Bundle box, created after every Deposit is unique;
+  //    1.1. Deposit can be performed before and during all program;
+  //    1.2. Bundle box created after every Deposit is unique;
   // 1. Redeem
   //    1.1. During the program Redeem can't be performed until all rewards for passed epochs are distributed;
   //    1.2. Redeem can be performed with no any program's logic limits after the program end;
@@ -144,9 +143,9 @@
       val releasedVLQ     = deltaLQ
       val epochsAllocated = epochNum - max(0L, curEpochIx)
       val releasedTMP     = releasedVLQ * epochsAllocated
-      val curEpochToCalc  = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
 
       val bundleOut = OUTPUTS(2)
+
       // 6.1.1.
       val validBundle =
         blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
