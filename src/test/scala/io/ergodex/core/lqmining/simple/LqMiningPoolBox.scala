@@ -3,6 +3,7 @@ package io.ergodex.core.lqmining.simple
 import io.ergodex.core.RuntimeState.withRuntimeState
 import io.ergodex.core.syntax._
 import io.ergodex.core.{BoxSim, RuntimeState}
+import scorex.crypto.hash.Blake2b256
 
 final class LqMiningPoolBox[F[_]: RuntimeState](
   override val id: Coll[Byte],
@@ -10,14 +11,14 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
   override val creationHeight: Int,
   override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
-  override val constants: Map[Int, Any] = Map(23 -> blake2b256("staking_bundle".getBytes().toVector))
+  override val constants: Map[Int, Any] = Map(22 -> blake2b256("staking_bundle".getBytes().toVector))
 ) extends BoxSim[F] {
   override val validatorBytes = "lm_pool"
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>
       // Context (declarations here are only for simulations):
-      val BundleScriptHash: Coll[Byte] = getConstant(23).get
+      val BundleScriptHash: Coll[Byte] = getConstant(22).get
 
       // ===== Contract Information ===== //
       // Name: LMPool

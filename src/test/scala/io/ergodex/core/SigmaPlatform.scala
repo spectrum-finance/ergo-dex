@@ -52,7 +52,7 @@ trait SigmaPlatform {
     )
     println(
       s"[$signature] ErgoTreeHash:         " + Base16.encode(
-        Blake2b256.hash(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
+        Blake2b256(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
       )
     )
     println(s"[$signature] ErgoTreeTemplate: " + Base16.encode(tree.template))
