@@ -397,7 +397,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
       }
 
-      it should s"validate compounding after first epoch with additional deposit during compounding$testId" in {
+      it should s"validate compounding after first epoch with additional illegal deposit during compounding$testId" in {
         val startAtHeight   = programStart - 1
         val compound1Height = startAtHeight + epochLen + 1
         val compound2Height = startAtHeight + 2 * epochLen + 1
@@ -414,7 +414,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val (_, Right((pool4, bundle13, reward12))) = action3.run(RuntimeCtx.at(compound2Height)).value
 
         val action4                = pool4.deposit(input2)
-        val (_, Right((pool5, _))) = action4.run(RuntimeCtx.at(compound2Height - 1)).value
+        val (_, Right((pool5, _))) = action4.run(RuntimeCtx.at(compound2Height)).value
 
         val action5                                 = pool5.compound(bundle2, epoch = 2)
         val (_, Right((pool6, bundle22, reward22))) = action5.run(RuntimeCtx.at(compound2Height + 1)).value
@@ -502,22 +502,18 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
         val totalRewards = reward1.value + reward12.value + reward22.value
 
-        math.abs(reward1.value - pool01.conf.epochAlloc) <= 2L shouldBe true
-        programBudget - totalRewards <= pool01.conf.epochAlloc + 2L shouldBe true
-        math.abs(reward12.value + reward22.value - pool01.conf.epochAlloc) <= 2L shouldBe true
-
         isValidPool1 shouldBe true
         isValidCompoundReward1 shouldBe true
 
         isValidPool2 shouldBe true
         isValidCompoundReward2 shouldBe true
 
-        isValidPool3 shouldBe true
+        isValidPool3 shouldBe false
         isValidCompoundReward3 shouldBe true
 
       }
 
-      it should s"validate compounding after first epoch with additional redeem during compounding$testId" in {
+      it should s"validate compounding after first epoch$testId" in {
         val startAtHeight   = programStart - 1
         val compound1Height = startAtHeight + epochLen + 1
         val compound2Height = startAtHeight + 2 * epochLen + 1

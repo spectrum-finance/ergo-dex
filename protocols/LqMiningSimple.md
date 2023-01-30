@@ -109,6 +109,7 @@ She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bund
 
 _Notes_:
 * If the user wants to add more LQ tokens, a new "Staking bundle" will be released
+* New "Staking bundle" **can't be released until all previous epochs are compounded**
 * Amount of received Bundle Key Tokens C is 0x7fffffffffffffffL - 1L
 
 #### Reward

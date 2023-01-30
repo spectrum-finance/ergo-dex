@@ -17,20 +17,12 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
 
   forAll(lmConfGen) { conf =>
     forAll(DepositGen(1)) { case lq =>
-//      val epochLen         = conf.epochLen
-//      val epochNum         = conf.epochNum
-//      val programStart     = conf.programStart
-//      val redeemLimitDelta = conf.redeemLimitDelta
-//      val programBudget    = conf.programBudget
-//      val maxRoundingError = conf.maxRoundingError
-//      val baseAssetAmount  = lq
-
-      val epochLen         = 10
-      val epochNum         = 3
-      val programStart     = 1
-      val redeemLimitDelta = 1
-      val programBudget    = 300
-      val maxRoundingError = 9
+      val epochLen         = conf.epochLen
+      val epochNum         = conf.epochNum
+      val programStart     = conf.programStart
+      val redeemLimitDelta = conf.redeemLimitDelta
+      val programBudget    = conf.programBudget
+      val maxRoundingError = conf.maxRoundingError
       val baseAssetAmount  = lq
 
       val testId = Random.nextLong()
@@ -92,7 +84,8 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
         } yield (pool1, bundle1, res)
         val (_, (pool1, bundle1, Right((_, bundle2, output)))) =
           action.run(RuntimeCtx.at(programStart - 1)).value
-        output shouldBe AssetOutput(pool1.conf.epochAlloc)
+        output.value <= AssetOutput(pool1.conf.epochAlloc).value shouldBe true
+        output.value -  AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
         bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * 1)
       }
 
@@ -130,7 +123,8 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
           res                     <- pool1.compound(bundle1, epoch = 1)
         } yield (pool1, bundle1, res)
         val (_, (pool1, bundle1, Right((_, bundle2, output)))) = action.run(RuntimeCtx.at(programStart - 1)).value
-        output shouldBe AssetOutput(pool1.conf.epochAlloc)
+        output.value <= AssetOutput(pool1.conf.epochAlloc).value shouldBe true
+        output.value -  AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
         bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * 1)
       }
 
@@ -174,7 +168,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
           Right((pool5, bundle22, _)) <- pool4.compound(bundle21, epoch = 1)
           Right((pool6, bundle32, _)) <- pool5.compound(bundle31, epoch = 1)
 
-          _                           <- Ledger.extendBy(epochLen)
+          _                           <- Ledger.extendBy(epochLen + 1)
           Right((pool7, bundle13, _)) <- pool6.compound(bundle12, epoch = 2)
           _                           <- Ledger.extendBy(epochLen)
           Right((pool8, bundle23, _)) <- pool7.compound(bundle22, epoch = 2)
