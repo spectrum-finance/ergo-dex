@@ -111,9 +111,9 @@ final class StakingBundleBox[F[_]: RuntimeState](
           val releasedTMP      = bundleTMP0._2 - epochsToCompound * bundleVLQ
           val deltaTMP         = poolReservesTMP1 - poolReservesTMP0
 
-          val actualLQ = 0x7fffffffffffffffL - poolReservesTMP0 - (poolReservesLQ0 - 1L) * epochsToCompound
+          val actualTMP = 0x7fffffffffffffffL - poolReservesTMP0 - (poolReservesLQ0 - 1L) * epochsToCompound
           val allocRem = poolReservesX0 - programBudget.toBigInt * epochsToCompound / epochNum - 1L
-          val reward   = allocRem * deltaTMP / actualLQ - 1L
+          val reward   = allocRem * deltaTMP / actualTMP - 1L
 
           // ===== Validating conditions ===== //
           // 2.1.1.
