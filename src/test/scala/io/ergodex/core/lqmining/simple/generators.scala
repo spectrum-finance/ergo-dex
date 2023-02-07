@@ -10,8 +10,8 @@ object generators {
       epochNum         <- Gen.const(3)
       programStart     <- Gen.chooseNum(920905, 1920905)
       redeemLimitDelta <- Gen.chooseNum(1, 10000)
-      programBudget    <- Gen.chooseNum(1000L, Long.MaxValue)
       maxRoundingError <- Gen.const(9L)
+      programBudget    <- Gen.chooseNum(1000L, Long.MaxValue - maxRoundingError)
     } yield LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget, maxRoundingError)
 
   def DepositGen(minDeposit: Long): Gen[Long] =

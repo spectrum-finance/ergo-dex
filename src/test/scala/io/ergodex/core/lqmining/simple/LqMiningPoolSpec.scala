@@ -59,7 +59,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
       }
 
       it should s"return correct pool state on deposit$testId" in {
-        val startAtHeight            = programStart - 1
+        val startAtHeight                = programStart - 1
         val action                       = pool01.deposit(input0)
         val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(startAtHeight)).value
         pool1.reserves.LQ shouldBe input0.value + 1L
@@ -85,7 +85,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
         val (_, (pool1, bundle1, Right((_, bundle2, output)))) =
           action.run(RuntimeCtx.at(programStart - 1)).value
         output.value <= AssetOutput(pool1.conf.epochAlloc).value shouldBe true
-        output.value -  AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
+        output.value - AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
         bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * 1)
       }
 
@@ -124,7 +124,7 @@ class LqMiningPoolSpec extends AnyFlatSpec with should.Matchers with ScalaCheckP
         } yield (pool1, bundle1, res)
         val (_, (pool1, bundle1, Right((_, bundle2, output)))) = action.run(RuntimeCtx.at(programStart - 1)).value
         output.value <= AssetOutput(pool1.conf.epochAlloc).value shouldBe true
-        output.value -  AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
+        output.value - AssetOutput(pool1.conf.epochAlloc).value <= 1L shouldBe true
         bundle2 shouldBe bundle1.copy(TMP = bundle1.TMP - bundle1.vLQ * 1)
       }
 

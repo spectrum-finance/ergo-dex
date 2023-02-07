@@ -500,8 +500,6 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           )
           .value
 
-        val totalRewards = reward1.value + reward12.value + reward22.value
-
         isValidPool1 shouldBe true
         isValidCompoundReward1 shouldBe true
 
@@ -513,7 +511,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
       }
 
-      it should s"validate compounding after first epoch$testId" in {
+      it should s"validate compounding and redeem after program$testId" in {
         val startAtHeight   = programStart - 1
         val compound1Height = startAtHeight + epochLen + 1
         val compound2Height = startAtHeight + 2 * epochLen + 1
@@ -543,6 +541,9 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val action8                                  = pool8.compound(bundle3, epoch = 3)
         val (_, Right((pool9, bundle33, reward333))) = action8.run(RuntimeCtx.at(compound3Height)).value
 
+        val action9                     = pool9.redeem(bundle33)
+        val (_, Right((pool10, out33))) = action9.run(RuntimeCtx.at(compound3Height)).value
+
         val poolBox2 = pool2.toLedger[Ledger]
         val poolBox3 = pool3.toLedger[Ledger]
         val poolBox4 = pool4.toLedger[Ledger]
@@ -550,7 +551,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val poolBox6 = pool6.toLedger[Ledger]
         val poolBox8 = pool8.toLedger[Ledger]
         val poolBox9 = pool9.toLedger[Ledger]
-        println(pool9)
+        val poolBox10 = pool10.toLedger[Ledger]
 
         val (userBoxReward1, _, bundleBox1, bundleBox12) =
           getCompoundTxBoxes(reward1.value, bundle1.vLQ, bundle1.TMP, bundle12.TMP)
@@ -563,6 +564,8 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
         val (userBoxReward333, _, bundleBox33, bundleBox333) =
           getCompoundTxBoxes(reward333.value, bundle3.vLQ, bundle3.TMP, bundle33.TMP)
+
+        val (userBoxRedeemed, redeemBox) = getRedeemTxBoxes(bundle33.vLQ, out33.value)
 
         val (_, isValidCompoundReward1) = bundleBox1.validator
           .run(
@@ -630,7 +633,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           )
           .value
 
-        val (_, isValidCompoundReward333) = bundleBox33.validator
+        val (_, isValidCompoundReward33) = bundleBox33.validator
           .run(
             RuntimeCtx(
               compound3Height,
@@ -652,6 +655,29 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           )
           .value
 
+        val (_, isValidPoolBatch) = poolBox6.validator
+          .run(
+            RuntimeCtx(
+              compound3Height,
+              inputs  = List(poolBox6.setRegister(epochReg, 3)),
+              outputs = List(poolBox9.setRegister(epochReg, 3))
+            )
+          )
+          .value
+
+        val (_, isValidCompoundRedeem) = bundleBox333.validator
+          .run(
+            RuntimeCtx(
+              compound3Height,
+              inputs  = List(poolBox9, bundleBox333, redeemBox),
+              outputs = List(poolBox10, userBoxRedeemed)
+            )
+          )
+          .value
+
+        val (_, isValidPoolRedeemed) =
+          poolBox9.validator.run(RuntimeCtx(compound3Height, outputs = List(poolBox10))).value
+
         val totalRewards =
           reward1.value + reward12.value + reward22.value + reward133.value + reward233.value + reward333.value
 
@@ -670,7 +696,12 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         isValidCompoundReward3 shouldBe true
 
         isValidPool33 shouldBe true
-        isValidCompoundReward333 shouldBe true
+        isValidCompoundReward33 shouldBe true
+
+        isValidPoolBatch shouldBe true
+
+        isValidPoolRedeemed shouldBe true
+        isValidCompoundRedeem shouldBe true
 
       }
     }
