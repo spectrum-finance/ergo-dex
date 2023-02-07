@@ -3,7 +3,7 @@ package io.ergodex.core.lqmining.simple
 import io.ergodex.core.Helpers.{boxId, bytes}
 import io.ergodex.core.LedgerPlatform
 import io.ergodex.core.lqmining.simple.LMPool.{DefaultCreationHeight, _}
-import io.ergodex.core.syntax.{blake2b256, SigmaProp}
+import io.ergodex.core.syntax.{Coll, SigmaProp, blake2b256}
 import org.scalatest.flatspec.AnyFlatSpec
 
 object TxBoxes extends AnyFlatSpec with LedgerPlatform {
@@ -147,15 +147,25 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       )
     )
 
+    val tokensNew = {
+      if (bundleTMPAmountOut == 0)
+        Coll(
+          bytes("VLQ")           -> bundleVLQAmount,
+          bytes("bundle_key_id") -> 1L
+        )
+      else
+        Coll(
+          bytes("VLQ")           -> bundleVLQAmount,
+          bytes("TMP")           -> bundleTMPAmountOut,
+          bytes("bundle_key_id") -> 1L
+        )
+    }
+
     val bundleBox2 = new StakingBundleBox(
       boxId("bundle_box"),
       0,
       DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundleVLQAmount,
-        bytes("TMP")           -> bundleTMPAmountOut,
-        bytes("bundle_key_id") -> 1L
-      ),
+      tokens = tokensNew,
       registers = Map(
         4 -> SigmaProp(bytes("user")),
         5 -> bytes("LM_Pool_NFT_ID")
