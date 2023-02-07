@@ -655,6 +655,16 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
           )
           .value
 
+        val (_, isValidPoolBatch) = poolBox6.validator
+          .run(
+            RuntimeCtx(
+              compound3Height,
+              inputs  = List(poolBox6.setRegister(epochReg, 3)),
+              outputs = List(poolBox9.setRegister(epochReg, 3))
+            )
+          )
+          .value
+
         val (_, isValidCompoundRedeem) = bundleBox333.validator
           .run(
             RuntimeCtx(
@@ -687,6 +697,8 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
 
         isValidPool33 shouldBe true
         isValidCompoundReward33 shouldBe true
+
+        isValidPoolBatch shouldBe true
 
         isValidPoolRedeemed shouldBe true
         isValidCompoundRedeem shouldBe true
