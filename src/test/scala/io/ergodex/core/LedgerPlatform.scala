@@ -3,9 +3,12 @@ package io.ergodex.core
 import cats.Eval
 import cats.data.State
 import io.ergodex.core.DebugContract.Ledger
+import io.ergodex.core.syntax.{CollOpaque, SigmaProp}
 import org.ergoplatform.ErgoBox.BoxId
 import org.ergoplatform.{ErgoBox, ErgoLikeTransaction, JsonCodecs}
 import scorex.util.encode.Base16
+import sigmastate.Values.ConstantNode
+import sigmastate.interpreter.ContextExtension
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.okhttp.OkHttpSyncBackend
@@ -28,8 +31,8 @@ trait LedgerPlatform extends JsonCodecs {
     def ctx: Ledger[RuntimeCtx]        = State.get
   }
 
-  def pullIOs(tx: ErgoLikeTransaction): (List[ErgoBox], List[ErgoBox]) = {
-    val inputs = tx.inputs.flatMap(i => pullBox(i.boxId))
+  def pullIOs(tx: ErgoLikeTransaction): (List[(ErgoBox, ContextExtension)], List[ErgoBox]) = {
+    val inputs = tx.inputs.flatMap(i => pullBox(i.boxId).map(_ -> i.spendingProof.extension))
     inputs.toList -> tx.outputs.toList
   }
 
@@ -48,17 +51,26 @@ final case class RuntimeSetup[B[_[_]]](box: B[Ledger], ctx: RuntimeCtx) {
 
 object RuntimeSetup extends JsonCodecs {
   def fromIOs[Box[_[_]]](
-                          inputs: List[ErgoBox],
-                          outputs: List[ErgoBox],
-                          selfInputIx: Int,
-                          height: Int
-                        )(implicit fromBox: TryFromBox[Box, Ledger]): Option[RuntimeSetup[Box]] = {
-    val selfIn = inputs(selfInputIx)
+    inputs: List[(ErgoBox, ContextExtension)],
+    outputs: List[ErgoBox],
+    selfInputIx: Int,
+    height: Int
+  )(implicit fromBox: TryFromBox[Box, Ledger]): Option[RuntimeSetup[Box]] = {
+    val (selfIn, ext) = inputs(selfInputIx)
     for {
       selfBox <- fromBox.tryFromBox(selfIn)
       ctx = RuntimeCtx(
         height,
-        inputs  = inputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x },
+        vars = ext.values.toVector.map { case (ix, c) =>
+          ix.toInt -> (c match {
+            case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) =>
+              CollOpaque(array.toArray.toVector)
+            case ConstantNode(p @ sigmastate.eval.CSigmaProp(_), _) => SigmaProp(p.propBytes.toArray.toVector)
+            case ConstantNode(v, _)                                 => v
+            case v                                                  => v
+          })
+        }.toMap,
+        inputs  = inputs.map(_._1).map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x },
         outputs = outputs.map(AnyBox.tryFromBox.tryFromBox).collect { case Some(x) => x }
       )
     } yield RuntimeSetup(selfBox, ctx)

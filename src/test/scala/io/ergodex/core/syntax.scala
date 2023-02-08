@@ -2,6 +2,7 @@ package io.ergodex.core
 
 import scorex.crypto.hash.Blake2b256
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object syntax {

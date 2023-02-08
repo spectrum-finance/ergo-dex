@@ -1,5 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
+import io.ergodex.core.BoxRuntime.NonRunnable
 import io.ergodex.core.RuntimeState._
 import io.ergodex.core._
 import io.ergodex.core.syntax._
@@ -166,4 +167,11 @@ final class StakingBundleBox[F[_]: RuntimeState](
         validAction
       )
     }
+}
+
+object StakingBundleBox {
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): StakingBundleBox[F] =
+    new StakingBundleBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.validatorBytes)
+  implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[StakingBundleBox, F] =
+    AnyBox.tryFromBox.translate(apply[F, NonRunnable])
 }
