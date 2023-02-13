@@ -59,12 +59,11 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       constants      = Map(
         1  -> depositedXAmount,
         2  -> false,
-        10 -> changeIsY,
-        11 -> exFee,
-        14 -> tokenId("pool_NFT"),
-        15 -> tokenId("redeemer"),
-        20 -> tokenId("miner"),
-        23 -> minerFee
+        9 -> depositedYAmount,
+        12 -> tokenId("pool_NFT"),
+        13 -> tokenId("redeemer"),
+        18 -> tokenId("miner"),
+        21 -> minerFee
       ),
       validatorBytes = "deposit"
     )

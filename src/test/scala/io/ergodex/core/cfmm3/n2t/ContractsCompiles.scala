@@ -12,9 +12,8 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
     val sourceDeposit = readSource("contracts/amm/cfmm/v3/n2t/Deposit.sc")
     val envDeposit    = Map(
       "SelfXAmount"       -> 20000L,
+      "SelfYAmount"       -> 30000L,
       "RefundProp"        -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "SpectrumIsY"       -> true,
-      "ExFee"             -> 1000L,
       "PoolNFT"           -> Array.fill(32)(2: Byte),
       "RedeemerPropBytes" -> Array.fill(32)(1: Byte),
       "MinerPropBytes"    -> Base16
