@@ -18,7 +18,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
     tokenY: String
   ): (UserBox[Ledger], SwapSellBox[Ledger], UserBox[Ledger]) = {
     val spfIsQuote = if (tokenY == "spf") true else false
-    val userBox    =
+    val userBox =
       new UserBox(
         boxId("redeemer_box"),
         expectedAmount,
@@ -34,28 +34,28 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         boxId("swapSell_box"),
         swappedAmount,
         DefaultCreationHeight,
-        tokens         = Vector(tokenId(tokenY) -> swappedAmount),
-        registers      = Map.empty,
-        constants      = Map(
-          1 -> 1200L,
-          2 -> 996,
-          3  -> false,
-          8  -> spfIsQuote,
-          9  -> 1400L,
-          10  -> 100L,
+        tokens    = Vector(tokenId(tokenY) -> swappedAmount),
+        registers = Map.empty,
+        constants = Map(
+          1  -> 1400L,
+          2  -> 100L,
+          3  -> 1200L,
+          4  -> 996,
+          5  -> false,
+          10 -> spfIsQuote,
           13 -> tokenId("pool_NFT"),
           14 -> tokenId("redeemer"),
           15 -> tokenId(tokenY),
           16 -> 800L,
-          20 -> 22L,
-          24 -> tokenId("spf"),
-          28 -> 1000,
-          29 -> tokenId("miner"),
-          32 -> minerFee
+          19 -> 22L,
+          22 -> tokenId("spf"),
+          26 -> 1000,
+          27 -> tokenId("miner"),
+          30 -> minerFee
         ),
         validatorBytes = "swapSell"
       )
-    val minerBox    = new UserBox(
+    val minerBox = new UserBox(
       boxId("miner_box"),
       minerFee,
       DefaultCreationHeight,
@@ -105,7 +105,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe true
     isValidPool shouldBe true
@@ -133,7 +133,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe false
     isValidPool shouldBe true
@@ -162,7 +162,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe true
     isValidPool shouldBe true

@@ -5,6 +5,7 @@ import org.scalatest.matchers.should
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scorex.util.encode.Base16
+import sigmastate.Values.BooleanConstant
 import sigmastate.basics.DLogProtocol.DLogProverInput
 
 class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheckPropertyChecks with SigmaPlatform {
@@ -70,7 +71,7 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
     val sourceSwapSell = readSource("contracts/amm/cfmm/v3/n2t/SwapSell.sc")
     val envSwapSell    = Map(
       "RefundProp"         -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "SpectrumIsQuote"    -> false,
+      "SpectrumIsQuote"    -> BooleanConstant(true),
       "MaxExFee"           -> 1400L,
       "ExFeePerTokenNum"   -> 22L,
       "ExFeePerTokenDenom" -> 100L,

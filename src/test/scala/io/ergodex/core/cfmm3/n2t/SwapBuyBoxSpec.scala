@@ -17,7 +17,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     expectedAmount: Long,
     swappedToken: String
   ): (UserBox[Ledger], SwapBuyBox[Ledger], UserBox[Ledger]) = {
-    val userBox    =
+    val userBox =
       new UserBox(
         boxId("redeemer_box"),
         expectedAmount,
@@ -32,15 +32,15 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         boxId("swapBuy_box"),
         0L,
         DefaultCreationHeight,
-        tokens         = Vector(tokenId(swappedToken) -> swappedAmount),
-        registers      = Map.empty,
-        constants      = Map(
-          1  -> false,
-          5  -> 1400L,
-          6  -> 22L,
-          7  -> 100L,
-          8  -> 1200L,
-          9  -> 996,
+        tokens    = Vector(tokenId(swappedToken) -> swappedAmount),
+        registers = Map.empty,
+        constants = Map(
+          1  -> 1200L,
+          2  -> 996,
+          3  -> false,
+          7  -> 1400L,
+          8  -> 22L,
+          9  -> 100L,
           11 -> tokenId("pool_NFT"),
           12 -> tokenId("redeemer"),
           13 -> 800L,
@@ -51,7 +51,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         ),
         validatorBytes = "swapBuy"
       )
-    val minerBox   = new UserBox(
+    val minerBox = new UserBox(
       boxId("miner_box"),
       minerFee,
       DefaultCreationHeight,
@@ -94,7 +94,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val (_, isValidSwapY) = swapBox1.validator
       .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0, swapBox1), outputs = List(poolBox1, userBox1, minerBox1)))
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapY shouldBe true
     isValidPool shouldBe true
@@ -115,7 +115,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val (_, isValidSwapY) = swapBox1.validator
       .run(RuntimeCtx(startAtHeight, inputs = List(poolBox0, swapBox1), outputs = List(poolBox1, userBox1, minerBox1)))
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapY shouldBe false
     isValidPool shouldBe true
