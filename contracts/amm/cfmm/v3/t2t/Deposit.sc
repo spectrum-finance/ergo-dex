@@ -5,8 +5,8 @@
   // Constants:
   //
   // {1}  -> RefundProp[ProveDlog]
-  // {8}  -> SelfXAmount[Long] // SELF.tokens(0)._2 - ExFee
-  // {10} -> SelfYAmount[Long] // SELF.tokens(1)._2 - ExFee
+  // {8}  -> SelfXAmount[Long] // SELF.tokens(0)._2 - ExFee if X is SPF else SELF.tokens(0)._2
+  // {10} -> SelfYAmount[Long] // SELF.tokens(1)._2 - ExFee if Y is SPF else SELF.tokens(1)._2
   // {13} -> PoolNFT[Coll[Byte]]
   // {14} -> RedeemerPropBytes[Coll[Byte]]
   // {21} -> MinerPropBytes[Coll[Byte]]
@@ -40,10 +40,10 @@
 
       val minimalReward = min(minByX, minByY)
 
-      val rewardOut        = OUTPUTS(1)
-      val rewardLP         = rewardOut.tokens(0)
+      val rewardOut = OUTPUTS(1)
+      val rewardLP  = rewardOut.tokens(0)
       // 1.1.
-      val validErgChange   = rewardOut.value >= SELF.value
+      val validErgChange = rewardOut.value >= SELF.value
       // 1.2.
       val validTokenChange =
         if (minByX < minByY && rewardOut.tokens.size == 2) {

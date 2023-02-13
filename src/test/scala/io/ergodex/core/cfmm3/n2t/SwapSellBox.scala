@@ -23,12 +23,12 @@ final class SwapSellBox[F[_]: RuntimeState](
       //
       // Constants:
       //
-      // {1} -> RefundProp[ProveDlog]
-      // {6} -> SpectrumIsQuote[Boolean]
-      // {7} -> MaxExFee[Long]
-      // {8} -> ExFeePerTokenDenom[Long]
-      // {10} -> BaseAmount[Long]
-      // {11} -> FeeNum[Int]
+      // {1} -> BaseAmount[Long]
+      // {2} -> FeeNum[Int]
+      // {3} -> RefundProp[ProveDlog]
+      // {8} -> SpectrumIsQuote[Boolean]
+      // {9} -> MaxExFee[Long]
+      // {10} -> ExFeePerTokenDenom[Long]
       // {13} -> PoolNFT[Coll[Byte]]
       // {14} -> RedeemerPropBytes[Coll[Byte]]
       // {15} -> QuoteId[Coll[Byte]]
@@ -45,12 +45,12 @@ final class SwapSellBox[F[_]: RuntimeState](
 
       // Context (declarations here are only for simulations):
 
-      val RefundProp: Boolean           = getConstant(1).get
-      val SpectrumIsQuote: Boolean      = getConstant(6).get
-      val MaxExFee: Long                = getConstant(7).get
-      val ExFeePerTokenDenom: Long      = getConstant(8).get
-      val BaseAmount: Long              = getConstant(10).get
-      val FeeNum: Int                   = getConstant(11).get
+      val BaseAmount: Long              = getConstant(1).get
+      val FeeNum: Int                   = getConstant(2).get
+      val RefundProp: Boolean           = getConstant(3).get
+      val SpectrumIsQuote: Boolean      = getConstant(8).get
+      val MaxExFee: Long                = getConstant(9).get
+      val ExFeePerTokenDenom: Long      = getConstant(10).get
       val PoolNFT: Coll[Byte]           = getConstant(13).get
       val RedeemerPropBytes: Coll[Byte] = getConstant(14).get
       val QuoteId: Coll[Byte]           = getConstant(15).get

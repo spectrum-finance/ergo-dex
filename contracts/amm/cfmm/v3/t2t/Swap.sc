@@ -37,9 +37,9 @@
 
       val validPoolIn = poolNFT == PoolNFT
 
-      val rewardBox      = OUTPUTS(1)
-      val quoteAsset     = rewardBox.tokens(0)
-      val quoteAmount    =
+      val rewardBox  = OUTPUTS(1)
+      val quoteAsset = rewardBox.tokens(0)
+      val quoteAmount =
         if (SpectrumIsQuote) {
           val deltaQuote = quoteAsset._2.toBigInt - MaxExFee
           deltaQuote.toBigInt * ExFeePerTokenDenom / (ExFeePerTokenDenom - ExFeePerTokenNum)
@@ -49,7 +49,7 @@
       // 1.1.
       val valuePreserved = rewardBox.value >= SELF.value
       // 1.2.
-      val fairExFee      =
+      val fairExFee =
         if (SpectrumIsQuote) true
         else {
           val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
@@ -67,7 +67,7 @@
       val poolY         = poolAssetY._2.toBigInt
       val base_x_feeNum = BaseAmount.toBigInt * FeeNum
       // 1.3.
-      val fairPrice     =
+      val fairPrice =
         if (poolAssetX._1 == QuoteId) {
           poolX * base_x_feeNum <= relaxedOutput * (poolY * FeeDenom + base_x_feeNum)
         } else {

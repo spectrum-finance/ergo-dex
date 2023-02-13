@@ -18,7 +18,7 @@
 
   val selfLP = SELF.tokens(0)
 
-  val poolIn      = INPUTS(0)
+  val poolIn = INPUTS(0)
 
   // Validations
   // 1.
