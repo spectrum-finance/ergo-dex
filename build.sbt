@@ -28,9 +28,9 @@ libraryDependencies ++= Seq(
   "org.scalacheck"                %% "scalacheck"      % "1.15.4"  % Test,
   "org.typelevel"                 %% "cats-effect"     % "3.2.8"   % Test,
   "tf.tofu"                       %% "tofu"            % "0.10.8"  % Test,
+  "tf.tofu"                       %% "derevo-circe"    % "0.13.0"  % Test,
   "com.softwaremill.sttp.client3" %% "circe"           % "3.3.18"  % Test,
   "com.softwaremill.sttp.client3" %% "okhttp-backend"  % "3.3.18"  % Test,
-  
   compilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 )

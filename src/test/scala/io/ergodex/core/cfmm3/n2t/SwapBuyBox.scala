@@ -73,10 +73,10 @@ final class SwapBuyBox[F[_]: RuntimeState](
 
           val rewardBox = OUTPUTS(1)
 
-          val quoteAmount   = rewardBox.value - SELF.value
+          val quoteAmount = rewardBox.value - SELF.value
           // 1.1.
           val fairExFee = {
-            val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
+            val exFee     = quoteAmount.toBigInt * ExFeePerTokenNum / ExFeePerTokenDenom
             val remainder = MaxExFee - exFee
             if (remainder > 0) {
               val spectrumRem = rewardBox.tokens(0)
@@ -109,7 +109,7 @@ final class SwapBuyBox[F[_]: RuntimeState](
 }
 
 object SwapBuyBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): SwapBuyBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): SwapBuyBox[F] =
     new SwapBuyBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[SwapBuyBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

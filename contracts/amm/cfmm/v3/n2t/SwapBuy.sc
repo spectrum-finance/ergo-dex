@@ -44,7 +44,7 @@
       val quoteAmount = rewardBox.value - SELF.value
       // 1.1.
       val fairExFee = {
-        val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
+        val exFee     = quoteAmount.toBigInt * ExFeePerTokenNum / ExFeePerTokenDenom
         val remainder = MaxExFee - exFee
         if (remainder > 0) {
           val spectrumRem = rewardBox.tokens(0)
