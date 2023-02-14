@@ -46,7 +46,7 @@ final class RedeemBox[F[_]: RuntimeState](
 
       val selfLP = SELF.tokens(0)
 
-      val poolIn      = INPUTS(0)
+      val poolIn = INPUTS(0)
 
       // Validations
       // 1.
@@ -88,7 +88,7 @@ final class RedeemBox[F[_]: RuntimeState](
 }
 
 object RedeemBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F] =
     new RedeemBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[RedeemBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

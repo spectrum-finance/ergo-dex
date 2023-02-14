@@ -69,10 +69,10 @@ final class DepositBox[F[_]: RuntimeState](
 
           val minimalReward = min(minByX, minByY)
 
-          val rewardOut        = OUTPUTS(1)
-          val rewardLP         = rewardOut.tokens(0)
+          val rewardOut = OUTPUTS(1)
+          val rewardLP  = rewardOut.tokens(0)
           // 1.1.
-          val validErgChange   = rewardOut.value >= SELF.value
+          val validErgChange = rewardOut.value >= SELF.value
           // 1.2.
           val validTokenChange =
             if (minByX < minByY && rewardOut.tokens.size == 2) {
@@ -117,7 +117,7 @@ final class DepositBox[F[_]: RuntimeState](
 }
 
 object DepositBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): DepositBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): DepositBox[F] =
     new DepositBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[DepositBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

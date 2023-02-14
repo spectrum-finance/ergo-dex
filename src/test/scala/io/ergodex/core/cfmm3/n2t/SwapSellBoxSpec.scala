@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes, hex, tokenId}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -26,7 +26,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         tokens         = Vector(tokenId(tokenY) -> expectedAmount, tokenId("spf") -> expectedAmount),
         registers      = Map.empty,
         constants      = Map.empty,
-        validatorBytes = "redeemer"
+        validatorBytes = hex("redeemer")
       )
 
     val swapSellBox =
@@ -44,7 +44,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
           5  -> false,
           10 -> spfIsQuote,
           13 -> tokenId("pool_NFT"),
-          14 -> tokenId("redeemer"),
+          14 -> bytes("redeemer"),
           15 -> tokenId(tokenY),
           16 -> 800L,
           19 -> 22L,
@@ -53,7 +53,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
           27 -> tokenId("miner"),
           30 -> minerFee
         ),
-        validatorBytes = "swapSell"
+        validatorBytes = hex("swapSell")
       )
     val minerBox = new UserBox(
       boxId("miner_box"),
@@ -62,7 +62,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
       tokens         = Vector(),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "miner"
+      validatorBytes = hex("miner")
     )
 
     (userBox, swapSellBox, minerBox)

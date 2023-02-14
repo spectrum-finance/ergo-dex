@@ -70,55 +70,55 @@ final class SwapSellBox[F[_]: RuntimeState](
       val exFeePerTokenNum   = ExFeePerTokenNum
       val minQuoteAmount     = MinQuoteAmount
 
-      val poolIn     = INPUTS(0)
+      val poolIn = INPUTS(0)
 
       // Validations
       // 1.
       val validTrade =
-      if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
-        val poolNFT = poolIn.tokens(0)._1
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
+          val poolNFT = poolIn.tokens(0)._1
 
-        val poolY = poolIn.tokens(2)
+          val poolY = poolIn.tokens(2)
 
-        val poolReservesX = poolIn.value.toBigInt
-        val poolReservesY = poolY._2.toBigInt
-        val validPoolIn   = poolNFT == PoolNFT
+          val poolReservesX = poolIn.value.toBigInt
+          val poolReservesY = poolY._2.toBigInt
+          val validPoolIn   = poolNFT == PoolNFT
 
-        val rewardBox = OUTPUTS(1)
+          val rewardBox = OUTPUTS(1)
 
-        val quoteAsset = rewardBox.tokens(0)
-        val quoteAmount =
-          if (SpectrumIsQuote) {
-            val deltaQuote = quoteAsset._2.toBigInt - maxExFee
-            deltaQuote * exFeePerTokenDenom / (exFeePerTokenDenom - exFeePerTokenNum)
-          } else {
-            quoteAsset._2.toBigInt
-          }
-        // 1.1.
-        val fairExFee =
-          if (SpectrumIsQuote) true
-          else {
-            val exFee     = quoteAmount * exFeePerTokenNum / exFeePerTokenDenom
-            val remainder = maxExFee - exFee
-            if (remainder > 0) {
-              val spectrumRem = rewardBox.tokens(1)
-              spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
+          val quoteAsset = rewardBox.tokens(0)
+          val quoteAmount =
+            if (SpectrumIsQuote) {
+              val deltaQuote = quoteAsset._2.toBigInt - maxExFee
+              deltaQuote * exFeePerTokenDenom / (exFeePerTokenDenom - exFeePerTokenNum)
             } else {
-              true
+              quoteAsset._2.toBigInt
             }
-          }
+          // 1.1.
+          val fairExFee =
+            if (SpectrumIsQuote) true
+            else {
+              val exFee     = quoteAmount * exFeePerTokenNum / exFeePerTokenDenom
+              val remainder = maxExFee - exFee
+              if (remainder > 0) {
+                val spectrumRem = rewardBox.tokens(1)
+                spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
+              } else {
+                true
+              }
+            }
 
-        val relaxedOutput = quoteAmount + 1L // handle rounding loss
+          val relaxedOutput = quoteAmount + 1L // handle rounding loss
 
-        val base_x_feeNum = baseAmount.toBigInt * feeNum
-        // 1.2.
-        val fairPrice = poolReservesY * base_x_feeNum <= relaxedOutput * (poolReservesX * feeDenom + base_x_feeNum)
-        // 1.3.
-        val validMinerFee = OUTPUTS.map { (o: Box) =>
-          if (o.propositionBytes == MinerPropBytes) o.value else 0L
-        }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+          val base_x_feeNum = baseAmount.toBigInt * feeNum
+          // 1.2.
+          val fairPrice = poolReservesY * base_x_feeNum <= relaxedOutput * (poolReservesX * feeDenom + base_x_feeNum)
+          // 1.3.
+          val validMinerFee = OUTPUTS.map { (o: Box) =>
+            if (o.propositionBytes == MinerPropBytes) o.value else 0L
+          }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
-        validPoolIn &&
+          validPoolIn &&
           rewardBox.propositionBytes == RedeemerPropBytes &&
           quoteAsset._1 == QuoteId &&
           quoteAmount >= minQuoteAmount &&
@@ -126,14 +126,14 @@ final class SwapSellBox[F[_]: RuntimeState](
           fairPrice &&
           validMinerFee
 
-      } else false
+        } else false
 
       sigmaProp(RefundProp || validTrade)
     }
 }
 
 object SwapSellBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): SwapSellBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): SwapSellBox[F] =
     new SwapSellBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[SwapSellBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes, hex, tokenId}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -25,7 +25,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         tokens         = Vector(tokenId("y") -> expectedAmount),
         registers      = Map.empty,
         constants      = Map.empty,
-        validatorBytes = "redeemer"
+        validatorBytes = hex("redeemer")
       )
     val swapBuyBox =
       new SwapBuyBox(
@@ -42,14 +42,14 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
           8  -> 22L,
           9  -> 100L,
           11 -> tokenId("pool_NFT"),
-          12 -> tokenId("redeemer"),
+          12 -> bytes("redeemer"),
           13 -> 800L,
           16 -> tokenId("spf"),
           20 -> 1000,
-          21 -> tokenId("miner"),
+          21 -> bytes("miner"),
           24 -> minerFee
         ),
-        validatorBytes = "swapBuy"
+        validatorBytes = hex("swapBuy")
       )
     val minerBox = new UserBox(
       boxId("miner_box"),
@@ -58,7 +58,7 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       tokens         = Vector(),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "miner"
+      validatorBytes = hex("miner")
     )
 
     (userBox, swapBuyBox, minerBox)
@@ -104,8 +104,8 @@ class SwapBuyBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
     val startAtHeight               = 101
     val inputY: AssetInput[Token.Y] = AssetInput(3023)
 
-    val action                         = pool01.swapY(inputY)
-    val (_, Right((pool1, receivedY))) = action.run(RuntimeCtx.at(startAtHeight)).value
+    val action                 = pool01.swapY(inputY)
+    val (_, Right((pool1, _))) = action.run(RuntimeCtx.at(startAtHeight)).value
 
     val poolBox0 = pool01.toLedger[Ledger]
     val poolBox1 = pool1.toLedger[Ledger]

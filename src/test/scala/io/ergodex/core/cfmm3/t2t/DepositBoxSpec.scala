@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.t2t
 
-import io.ergodex.core.Helpers.{boxId, tokenId}
+import io.ergodex.core.Helpers.{boxId, bytes, hex, tokenId}
 import io.ergodex.core.ToLedger.ToLedgerOps
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.t2t.CfmmPool._
@@ -24,28 +24,28 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       boxId("redeemer_box"),
       0L,
       DefaultCreationHeight,
-      tokens         = Vector(
+      tokens = Vector(
         tokenId("lp")        -> expectedLPAmount,
         tokenId(changeToken) -> changeAmount
       ),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "redeemer"
+      validatorBytes = hex("redeemer")
     )
 
     val depositBox = new DepositBox(
       boxId("deposit_box"),
       0L,
       DefaultCreationHeight,
-      tokens         = Vector(),
-      registers      = Map.empty,
-      constants      = Map(
+      tokens    = Vector(),
+      registers = Map.empty,
+      constants = Map(
         1  -> false,
         8  -> depositedXAmount,
         10 -> depositedYAmount,
         13 -> tokenId("pool_NFT"),
-        14 -> tokenId("redeemer"),
-        21 -> tokenId("miner"),
+        14 -> bytes("redeemer"),
+        21 -> bytes("miner"),
         24 -> minerFee
       ),
       validatorBytes = "deposit"
@@ -58,7 +58,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
       tokens         = Vector(),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "miner"
+      validatorBytes = hex("miner")
     )
 
     (userBox, depositBox, minerBox)
@@ -98,7 +98,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         RuntimeCtx(startAtHeight, inputs = List(poolBox0, depositBox1), outputs = List(poolBox1, userBox1, minerBox1))
       )
       .value
-    val (_, isValidPool)    = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidDeposit shouldBe true
     isValidPool shouldBe true
@@ -123,7 +123,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         RuntimeCtx(startAtHeight, inputs = List(poolBox0, depositBox1), outputs = List(poolBox1, userBox1, minerBox1))
       )
       .value
-    val (_, isValidPool)    = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     changeX.value shouldBe inputX.value - inputY.value
     isValidDeposit shouldBe true
@@ -150,7 +150,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
         RuntimeCtx(startAtHeight, inputs = List(poolBox0, depositBox1), outputs = List(poolBox1, userBox1, minerBox1))
       )
       .value
-    val (_, isValidPool)    = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     changeY.value shouldBe inputY.value - inputX.value
     isValidDeposit shouldBe true

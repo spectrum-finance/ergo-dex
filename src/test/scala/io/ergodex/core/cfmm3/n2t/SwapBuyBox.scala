@@ -70,45 +70,45 @@ final class SwapBuyBox[F[_]: RuntimeState](
       // Validations
       // 1.
       val validTrade =
-      if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
-        val poolNFT = poolIn.tokens(0)._1 // first token id is NFT
+        if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
+          val poolNFT = poolIn.tokens(0)._1 // first token id is NFT
 
-        val poolReservesX = poolIn.value.toBigInt // nanoErgs is X asset amount
-        val poolReservesY = poolIn.tokens(2)._2.toBigInt // third token amount is Y asset amount
+          val poolReservesX = poolIn.value.toBigInt // nanoErgs is X asset amount
+          val poolReservesY = poolIn.tokens(2)._2.toBigInt // third token amount is Y asset amount
 
-        val validPoolIn = poolNFT == PoolNFT
+          val validPoolIn = poolNFT == PoolNFT
 
-        val rewardBox = OUTPUTS(1)
+          val rewardBox = OUTPUTS(1)
 
-        val quoteAmount = rewardBox.value - SELF.value
-        // 1.1.
-        val fairExFee = {
-          val exFee     = quoteAmount.toBigInt * exFeePerTokenNum / exFeePerTokenDenom
-          val remainder = maxExFee - exFee
-          if (remainder > 0) {
-            val spectrumRem = rewardBox.tokens(0)
-            spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
-          } else {
-            true
+          val quoteAmount = rewardBox.value - SELF.value
+          // 1.1.
+          val fairExFee = {
+            val exFee     = quoteAmount.toBigInt * exFeePerTokenNum / exFeePerTokenDenom
+            val remainder = maxExFee - exFee
+            if (remainder > 0) {
+              val spectrumRem = rewardBox.tokens(0)
+              spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
+            } else {
+              true
+            }
           }
-        }
-        val relaxedOutput = quoteAmount + 1L // handle rounding loss
-        val base_x_feeNum = baseAmount.toBigInt * feeNum
-        // 1.2.
-        val fairPrice = poolReservesX * base_x_feeNum <= relaxedOutput * (poolReservesY * feeDenom + base_x_feeNum)
-        // 1.3.
-        val validMinerFee = OUTPUTS.map { (o: Box) =>
-          if (o.propositionBytes == MinerPropBytes) o.value else 0L
-        }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
+          val relaxedOutput = quoteAmount + 1L // handle rounding loss
+          val base_x_feeNum = baseAmount.toBigInt * feeNum
+          // 1.2.
+          val fairPrice = poolReservesX * base_x_feeNum <= relaxedOutput * (poolReservesY * feeDenom + base_x_feeNum)
+          // 1.3.
+          val validMinerFee = OUTPUTS.map { (o: Box) =>
+            if (o.propositionBytes == MinerPropBytes) o.value else 0L
+          }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
-        validPoolIn &&
+          validPoolIn &&
           rewardBox.propositionBytes == RedeemerPropBytes &&
           quoteAmount >= minQuoteAmount &&
           fairExFee &&
           fairPrice &&
           validMinerFee
 
-      } else false
+        } else false
 
       sigmaProp(RefundProp || validTrade)
     }
