@@ -1,6 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, bytes}
+import io.ergodex.core.Helpers.{boxId, bytes, hex}
 import io.ergodex.core.LedgerPlatform
 import io.ergodex.core.lqmining.simple.LMPool.{DefaultCreationHeight, _}
 import io.ergodex.core.syntax.{Coll, SigmaProp, blake2b256}
@@ -39,12 +39,12 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         1  -> bytes("LM_Pool_NFT_ID"),
         3  -> bytes("user"),
         6  -> false,
-        10 -> blake2b256(bundleValidatorBytesTag.getBytes().toVector),
+        10 -> blake2b256(bytes(bundleValidatorBytesTag)),
         14 -> expectedNumEpochs,
         18 -> bytes("miner"),
         21 -> 100L
       ),
-      validatorBytes = "deposit_order"
+      validatorBytes = hex("deposit_order")
     )
 
     val bundleBox = new StakingBundleBox(
@@ -107,7 +107,7 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
     bundleVLQAmount: Long,
     bundleTMPAmountIn: Long,
     bundleTMPAmountOut: Long,
-    validatorOutBytes: String = "staking_bundle"
+    validatorOutBytes: String = hex("staking_bundle")
   ): (UserBox[Ledger], UserBox[Ledger], StakingBundleBox[Ledger], StakingBundleBox[Ledger]) = {
 
     val C = Long.MaxValue - 1

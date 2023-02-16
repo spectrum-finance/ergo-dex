@@ -1,5 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
+import io.ergodex.core.Helpers.hex
 import io.ergodex.core.RuntimeState.withRuntimeState
 import io.ergodex.core.syntax._
 import io.ergodex.core.{BoxSim, RuntimeState}
@@ -13,7 +14,7 @@ final class LqMiningPoolBox[F[_]: RuntimeState](
   override val registers: Map[Int, Any],
   override val constants: Map[Int, Any] = Map(22 -> blake2b256("staking_bundle".getBytes().toVector))
 ) extends BoxSim[F] {
-  override val validatorBytes = "lm_pool"
+  override val validatorBytes = hex("lm_pool")
 
   val validator: F[Boolean] =
     withRuntimeState { implicit ctx =>

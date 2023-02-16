@@ -30,7 +30,7 @@ trait BoxSim[+F[_]] { self =>
 
   final def creationInfo: (Int, Int) = (creationHeight, creationHeight)
 
-  final def propositionBytes: Coll[Byte] = validatorBytes.getBytes().toVector
+  final def propositionBytes: Coll[Byte] = Base16.decode(validatorBytes).get.toVector
 
   final def getConstant[T](i: Int): Option[T] = constants.get(i).flatMap(c => Try(c.asInstanceOf[T]).toOption)
 

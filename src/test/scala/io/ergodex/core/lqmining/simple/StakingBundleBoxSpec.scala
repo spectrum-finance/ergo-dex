@@ -1,10 +1,11 @@
 package io.ergodex.core.lqmining.simple
 
+import io.ergodex.core.Helpers.hex
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
 import io.ergodex.core.lqmining.simple.TxBoxes._
-import io.ergodex.core.lqmining.simple.generators.{lmConfGen, DepositGen}
+import io.ergodex.core.lqmining.simple.generators.{DepositGen, lmConfGen}
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -114,7 +115,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val poolBox2 = pool2.toLedger[Ledger].setRegister(epochReg, 1)
 
         val (userBoxReward, _, bundleBox1, bundleBox2) =
-          getCompoundTxBoxes(reward.value, bundle1.vLQ, bundle1.TMP, bundle2.TMP, validatorOutBytes = "bad_box")
+          getCompoundTxBoxes(reward.value, bundle1.vLQ, bundle1.TMP, bundle2.TMP, validatorOutBytes = hex("bad_box"))
 
         val (_, isValidCompound) = bundleBox1.validator
           .run(

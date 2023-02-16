@@ -1,6 +1,7 @@
 package io.ergodex.core.lqmining.simple
 
 import io.ergodex.core.BoxRuntime.NonRunnable
+import io.ergodex.core.Helpers.hex
 import io.ergodex.core.RuntimeState._
 import io.ergodex.core._
 import io.ergodex.core.syntax._
@@ -11,7 +12,7 @@ final class StakingBundleBox[F[_]: RuntimeState](
   override val creationHeight: Int,
   override val tokens: Coll[(Coll[Byte], Long)],
   override val registers: Map[Int, Any],
-  override val validatorBytes: String = "staking_bundle"
+  override val validatorBytes: String = hex("staking_bundle")
 ) extends BoxSim[F] {
 
   override val validator: F[Boolean] =

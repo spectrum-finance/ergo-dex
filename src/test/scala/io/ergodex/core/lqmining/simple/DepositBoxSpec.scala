@@ -1,6 +1,6 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.bytes
+import io.ergodex.core.Helpers.{bytes, hex}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.lqmining.simple.LMPool._
 import io.ergodex.core.lqmining.simple.Token._
