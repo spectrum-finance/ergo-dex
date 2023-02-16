@@ -37,21 +37,21 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         tokens    = Vector(tokenId(tokenY) -> swappedAmount),
         registers = Map.empty,
         constants = Map(
-          1  -> 1400L,
-          2  -> 100L,
-          3  -> 1200L,
+          1  -> 100L,
+          2  -> 78L,
+          3 -> 1200L,
           4  -> 996,
           5  -> false,
           10 -> spfIsQuote,
+          11 -> 1400L,
           13 -> tokenId("pool_NFT"),
           14 -> bytes("redeemer"),
           15 -> tokenId(tokenY),
           16 -> 800L,
-          19 -> 22L,
-          22 -> tokenId("spf"),
-          26 -> 1000,
-          27 -> tokenId("miner"),
-          30 -> minerFee
+          23 -> tokenId("spf"),
+          27 -> 1000,
+          28 -> tokenId("miner"),
+          31 -> minerFee
         ),
         validatorBytes = hex("swapSell")
       )
