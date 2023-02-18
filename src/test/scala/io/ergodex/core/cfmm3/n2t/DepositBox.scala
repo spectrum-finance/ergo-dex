@@ -45,6 +45,8 @@ final class DepositBox[F[_]: RuntimeState](
       val MaxMinerFee: Long             = getConstant(21).get
 
       val InitiallyLockedLP = 0x7fffffffffffffffL
+      val selfXAmount       = SelfXAmount
+      val selfYAmount       = SelfYAmount
 
       val poolIn = INPUTS(0)
 
@@ -53,8 +55,6 @@ final class DepositBox[F[_]: RuntimeState](
       val validDeposit =
         if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
 
-          val selfXAmount = SelfXAmount
-          val selfYAmount = SelfYAmount
           // 1.1.
           val validPoolIn = poolIn.tokens(0)._1 == PoolNFT
 
@@ -82,11 +82,13 @@ final class DepositBox[F[_]: RuntimeState](
               rewardOut.value >= SELF.value - selfXAmount &&
               changeY._1 == reservesY._1 &&
               changeY._2 >= excessY
+
             } else if (minByX >= minByY) {
               val diff    = minByX - minByY
               val excessX = diff * reservesXAmount / supplyLP
 
               rewardOut.value >= SELF.value - (selfXAmount - excessX)
+
             } else {
               false
             }

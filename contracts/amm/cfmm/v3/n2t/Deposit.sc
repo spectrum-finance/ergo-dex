@@ -17,6 +17,8 @@
   // ErgoTreeTemplate: d802d601b2a4730000d6027301eb027302d195ed92b1a4730393b1db630872017304d80bd603db63087201d604b2a5730500d605b27203730600d6067e9973078c72050206d6077ec1720106d6089d9c7e72020672067207d609b27203730800d60a7e8c72090206d60b9d9c7e7309067206720ad60cdb63087204d60db2720c730a00ededededed938cb27203730b0001730c93c27204730d95ed8f7208720b93b1720c730ed801d60eb2720c730f00eded92c1720499c1a77310938c720e018c720901927e8c720e02069d9c99720b7208720a720695927208720b927ec1720406997ec1a706997e7202069d9c997208720b720772067311938c720d018c720501927e8c720d0206a17208720b90b0ada5d9010e639593c2720e7312c1720e73137314d9010e599a8c720e018c720e0273157316
 
   val InitiallyLockedLP = 0x7fffffffffffffffL
+  val selfXAmount       = SelfXAmount
+  val selfYAmount       = SelfYAmount
 
   val poolIn = INPUTS(0)
 
@@ -25,8 +27,6 @@
   val validDeposit =
     if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
 
-      val selfXAmount = SelfXAmount
-      val selfYAmount = SelfYAmount
       // 1.1.
       val validPoolIn = poolIn.tokens(0)._1 == PoolNFT
 
@@ -54,11 +54,13 @@
           rewardOut.value >= SELF.value - selfXAmount &&
           changeY._1 == reservesY._1 &&
           changeY._2 >= excessY
+
         } else if (minByX >= minByY) {
           val diff    = minByX - minByY
           val excessX = diff * reservesXAmount / supplyLP
 
           rewardOut.value >= SELF.value - (selfXAmount - excessX)
+
         } else {
           false
         }
