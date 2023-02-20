@@ -121,7 +121,7 @@ Each staker automatically receives a reward of `EpochReward * StakerLQ / LockedL
 
 ### Redeem
 Once Alice decided to unstake her liquidity she returns her staking bundle to LM Pool and receives proportional amount of LQ tokens
-to the amount of vLQ returned. Redemption is only allowed when all epochs Alice is eligible for are compounded.
+to the amount of vLQ returned. Redemption is only allowed when all previous epochs of program are compounded.
 
 ![LMRedeem](./../img/LMRedeem0.png)
 ![LMRedeem](./../img/LMRedeem1.png)
