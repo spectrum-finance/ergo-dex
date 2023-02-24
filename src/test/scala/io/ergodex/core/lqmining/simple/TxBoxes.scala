@@ -57,8 +57,10 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         bytes("lm_pool_id") -> 1L
       ),
       registers = Map(
-        4 -> redeemerProp,
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> redeemerProp,
+        7 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -142,8 +144,10 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> SigmaProp(bytes("user")),
+        7 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -167,8 +171,10 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       DefaultCreationHeight,
       tokens = tokensNew,
       registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> SigmaProp(bytes("user")),
+        7 -> bytes("LM_Pool_NFT_ID")
       ),
       validatorBytes = validatorOutBytes
     )
