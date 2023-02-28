@@ -43,11 +43,11 @@ Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking
 tokens and controls Compounding and Redeem operations (see "User scenarios" below).
 
 ### Tokens
-| Name             | Description                                              |
-|------------------|----------------------------------------------------------|
-| vLQ              | Virtual LQ token. Represents certain amount of liquidity |
-| TMP              | Temporal token                                           |
-| Bundle Key Token | Token to identify the ownership                          |
+| Name            | Description                                              |
+|-----------------|----------------------------------------------------------|
+| vLQ             | Virtual LQ token. Represents certain amount of liquidity |
+| TMP             | Temporal token                                           |
+| BundleKeyToken  | Token to identify the ownership                          |
 
 
 ## User scenarios
@@ -102,7 +102,7 @@ and the creator will lose his `programBudget`!
 Alice wants to participate in LM program X. To do that, she sends `LQa` ADA/Xt LQ tokens to LM script
 address and receives bundled (see "Staking bundle" section above) `vLQa` vLQ tokens + `TMPa` temporal tokens in return,
 where `vLQa` - amount of LQ tokens deposited, `LQa = vLQa`, `TMPa = NumEpochsDelegated * vLQa`.
-She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bundle" redemption.
+She also gets a BundleKeyToken token `(BundleKeyId, C)`, which will be needed for "Staking bundle" redemption.
 
 ![LMDeposit0](./../img/LMDeposit0.png)
 ![LMDeposit1](./../img/LMDeposit1.png)
