@@ -35,8 +35,6 @@ and if the value is too large, the **distribution of rewards may be incorrect**!
 | Temporal Token   | Left program epochs times liquidity                                   |
 | Bundle Key Token | Token that is used to identify the ownership of the Staking bundle    |
 
-_Notes_:
-* **Exactly 1 LQ token must be locked in the LM Pool during initialization!!!** Otherwise, LM program **will not work!**
 
 ## Staking bundle
 Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking bundle script guarantees bundling of
@@ -79,21 +77,20 @@ When initializing an LM Pool (Self-Hosted or Delegated), the following actions *
    1. `maxRoundingError` << `programBudget / epochNum`
    2. `programBudget` stored in R5 of the LM Pool Box == (Total LM program budget - 1L)
 
-2. Initial transaction with correct tokens' amounts:
+2. Initial transaction with correct tokens' amounts, the creator of the LM Pool should also Deposit
+some LQ tokens and not Redeem received Staking Bundle until the LM program end.:
 
 | Name            | Amount                  |
 |-----------------|-------------------------|
 | X               | Total LM program budget |
-| LQ              | 1L                      |
+| LQ              | Initial deposit         |
 | vLQ             | 0x7fffffffffffffffL     |
 | TMP             | 0x7fffffffffffffffL     |
 
-3. Initial deposit: before the start of the first LM program epoch, the creator of the LM Pool must Deposit
-some LQ tokens and not Redeem received Staking Bundle until the LM program end.
 
 _Notes_:
 * Without Initial deposit the LM program will break, no one will be able to take part in it,
-and the creator will lose his `programBudget`!
+and the creator will lose his `programBudget`
 
 
 ### Participant
