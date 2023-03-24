@@ -1,9 +1,9 @@
 package io.ergodex.core.lqmining.simple
 
-import io.ergodex.core.Helpers.{boxId, bytes}
+import io.ergodex.core.Helpers.{boxId, bytes, hex}
 import io.ergodex.core.LedgerPlatform
 import io.ergodex.core.lqmining.simple.LMPool.{DefaultCreationHeight, _}
-import io.ergodex.core.syntax.{blake2b256, SigmaProp}
+import io.ergodex.core.syntax.{Coll, SigmaProp, blake2b256}
 import org.scalatest.flatspec.AnyFlatSpec
 
 object TxBoxes extends AnyFlatSpec with LedgerPlatform {
@@ -39,12 +39,12 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         1  -> bytes("LM_Pool_NFT_ID"),
         3  -> bytes("user"),
         6  -> false,
-        10 -> blake2b256(bundleValidatorBytesTag.getBytes().toVector),
+        10 -> blake2b256(bytes(bundleValidatorBytesTag)),
         14 -> expectedNumEpochs,
         18 -> bytes("miner"),
         21 -> 100L
       ),
-      validatorBytes = "deposit_order"
+      validatorBytes = hex("deposit_order")
     )
 
     val bundleBox = new StakingBundleBox(
@@ -57,8 +57,10 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         bytes("lm_pool_id") -> 1L
       ),
       registers = Map(
-        4 -> redeemerProp,
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> redeemerProp,
+        7 -> bytes("LM_Pool_NFT_ID")
       )
     )
 
@@ -107,7 +109,7 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
     bundleVLQAmount: Long,
     bundleTMPAmountIn: Long,
     bundleTMPAmountOut: Long,
-    validatorOutBytes: String = "staking_bundle"
+    validatorOutBytes: String = hex("staking_bundle")
   ): (UserBox[Ledger], UserBox[Ledger], StakingBundleBox[Ledger], StakingBundleBox[Ledger]) = {
 
     val C = Long.MaxValue - 1
@@ -142,23 +144,37 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
         bytes("bundle_key_id") -> 1L
       ),
       registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> SigmaProp(bytes("user")),
+        7 -> bytes("LM_Pool_NFT_ID")
       )
     )
+
+    val tokensNew = {
+      if (bundleTMPAmountOut == 0)
+        Coll(
+          bytes("VLQ")           -> bundleVLQAmount,
+          bytes("bundle_key_id") -> 1L
+        )
+      else
+        Coll(
+          bytes("VLQ")           -> bundleVLQAmount,
+          bytes("TMP")           -> bundleTMPAmountOut,
+          bytes("bundle_key_id") -> 1L
+        )
+    }
 
     val bundleBox2 = new StakingBundleBox(
       boxId("bundle_box"),
       0,
       DefaultCreationHeight,
-      tokens = Vector(
-        bytes("VLQ")           -> bundleVLQAmount,
-        bytes("TMP")           -> bundleTMPAmountOut,
-        bytes("bundle_key_id") -> 1L
-      ),
+      tokens = tokensNew,
       registers = Map(
-        4 -> SigmaProp(bytes("user")),
-        5 -> bytes("LM_Pool_NFT_ID")
+        4 -> bytes("yfToken"),
+        5 -> bytes("yfTokenInfo"),
+        6 -> SigmaProp(bytes("user")),
+        7 -> bytes("LM_Pool_NFT_ID")
       ),
       validatorBytes = validatorOutBytes
     )

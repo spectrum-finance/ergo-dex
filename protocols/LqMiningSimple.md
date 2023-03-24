@@ -13,13 +13,15 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epochNum`         | `Integer`   | Number of epochs in LM program                                |
 | `programStart`     | `Integer`   | Block the program starts at                                   |
 | `redeemLimitDelta` | `Integer`   | Number of blocks after program to redeem without restrictions |
-| `programBudget`    | `Long`      | Total LM program budget                                       |
+| `programBudget`    | `Long`      | Total LM program budget - 1L                                  |
 | `maxRoundingError` | `Long`      | Total allowable residual from rounding                        |
 | `execBudget`       | `Long`      | Total execution budget                                        |
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |
 
 _Notes_:
-* `maxRoundingError` value is recommended to choose as the **smallest unit of the Reward token**
+* `maxRoundingError` can be estimated as `meanNumberOfParticipants * epochNum` . Since the exact number of participants is difficult to predict in advance,
+It is better to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
+and if the value is too large, the **distribution of rewards may be incorrect**!
 * `execBudget` is **not necessary** for Self-Hosted LM Pool
 * `epoch` **indexing starts from 1**
 
@@ -33,16 +35,17 @@ _Notes_:
 | Temporal Token   | Left program epochs times liquidity                                   |
 | Bundle Key Token | Token that is used to identify the ownership of the Staking bundle    |
 
+
 ## Staking bundle
 Staking bundle is responsible for holding vLQ and Temporal tokens (Tmp). Staking bundle script guarantees bundling of
 tokens and controls Compounding and Redeem operations (see "User scenarios" below).
 
 ### Tokens
-| Name             | Description                                              |
-|------------------|----------------------------------------------------------|
-| vLQ              | Virtual LQ token. Represents certain amount of liquidity |
-| TMP              | Temporal token                                           |
-| Bundle Key Token | Token to identify the ownership                          |
+| Name            | Description                                              |
+|-----------------|----------------------------------------------------------|
+| vLQ             | Virtual LQ token. Represents certain amount of liquidity |
+| TMP             | Temporal token                                           |
+| BundleKeyToken  | Token to identify the ownership                          |
 
 
 ## User scenarios
@@ -68,13 +71,35 @@ When created, the budget will be spent linearly.
 However, the exact number of ERGs needed depends on the number of program participants. 
 Creator will have to monitor ERGs balance and perform additional deposits.
 
+#### General LM Pool initialization rules
+When initializing an LM Pool (Self-Hosted or Delegated), the following actions **must be performed:**
+1. Correct config: 
+   1. `maxRoundingError` << `programBudget / epochNum`
+   2. `programBudget` stored in R5 of the LM Pool Box == (Total LM program budget - 1L)
+
+2. Initial transaction with correct tokens' amounts, the creator of the LM Pool should also Deposit
+some LQ tokens and not Redeem received Staking Bundle until the LM program end.:
+
+| Name            | Amount                  |
+|-----------------|-------------------------|
+| X               | Total LM program budget |
+| LQ              | Initial deposit         |
+| vLQ             | 0x7fffffffffffffffL     |
+| TMP             | 0x7fffffffffffffffL     |
+
+
+_Notes_:
+* Without Initial deposit the LM program will break, no one will be able to take part in it,
+and the creator will lose his `programBudget`
+
+
 ### Participant
 
 #### Deposit
 Alice wants to participate in LM program X. To do that, she sends `LQa` ADA/Xt LQ tokens to LM script
 address and receives bundled (see "Staking bundle" section above) `vLQa` vLQ tokens + `TMPa` temporal tokens in return,
 where `vLQa` - amount of LQ tokens deposited, `LQa = vLQa`, `TMPa = NumEpochsDelegated * vLQa`.
-She also gets a token `(BundleKeyId, C)`, which will be needed for "Staking bundle" redemption.
+She also gets a BundleKeyToken token `(BundleKeyId, C)`, which will be needed for "Staking bundle" redemption.
 
 ![LMDeposit0](./../img/LMDeposit0.png)
 ![LMDeposit1](./../img/LMDeposit1.png)
@@ -93,7 +118,7 @@ Each staker automatically receives a reward of `EpochReward * StakerLQ / LockedL
 
 ### Redeem
 Once Alice decided to unstake her liquidity she returns her staking bundle to LM Pool and receives proportional amount of LQ tokens
-to the amount of vLQ returned. Redemption is only allowed when all epochs Alice is eligible for are compounded.
+to the amount of vLQ returned. Redemption is only allowed when all previous epochs of program are compounded.
 
 ![LMRedeem](./../img/LMRedeem0.png)
 ![LMRedeem](./../img/LMRedeem1.png)

@@ -1,7 +1,7 @@
 package io.ergodex.core
 
 import org.ergoplatform.ErgoAddressEncoder
-import scorex.crypto.hash.Blake2b256
+import scorex.crypto.hash.{Blake2b256, Sha256}
 import scorex.util.encode.Base16
 import sigmastate.Values.ErgoTree
 import sigmastate.eval.{CompiletimeIRContext, IRContext}
@@ -52,10 +52,13 @@ trait SigmaPlatform {
     )
     println(
       s"[$signature] ErgoTreeHash:         " + Base16.encode(
-        Blake2b256.hash(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
+        Blake2b256(ErgoTreeSerializer.DefaultSerializer.serializeErgoTree(tree))
       )
     )
     println(s"[$signature] ErgoTreeTemplate: " + Base16.encode(tree.template))
+    println(
+      s"[$signature] ErgoTreeTemplateHash:         " + Base16.encode(Sha256.hash(tree.template))
+    )
     println("-" * 80)
     println()
   }
