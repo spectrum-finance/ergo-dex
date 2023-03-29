@@ -402,6 +402,7 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val startAtHeight   = programStart - 1
         val compound1Height = startAtHeight + epochLen + 1
         val compound2Height = startAtHeight + 2 * epochLen + 1
+        val compound3Height = startAtHeight + 3 * epochLen + 1
 
         val action                       = pool01.deposit(input0)
         val (_, Right((pool1, bundle1))) = action.run(RuntimeCtx.at(programStart - 1)).value
@@ -482,10 +483,10 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val (_, isValidCompoundReward3) = bundleBox3.validator
           .run(
             RuntimeCtx(
-              compound2Height,
+              compound3Height,
               vars    = Map(0 -> 1, 1 -> 2),
-              inputs  = List(poolBox5.setRegister(epochReg, 2), bundleBox3),
-              outputs = List(poolBox6.setRegister(epochReg, 2), userBoxReward3, bundleBox22)
+              inputs  = List(poolBox5.setRegister(epochReg, 3), bundleBox3),
+              outputs = List(poolBox6.setRegister(epochReg, 3), userBoxReward3, bundleBox22)
             )
           )
           .value
@@ -493,10 +494,10 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         val (_, isValidPool3) = poolBox5.validator
           .run(
             RuntimeCtx(
-              compound2Height,
+              compound3Height,
               vars    = Map(0 -> 1, 1 -> 2),
-              inputs  = List(poolBox5.setRegister(epochReg, 2), bundleBox3),
-              outputs = List(poolBox6.setRegister(epochReg, 2), userBoxReward3, bundleBox22)
+              inputs  = List(poolBox5.setRegister(epochReg, 3), bundleBox3),
+              outputs = List(poolBox6.setRegister(epochReg, 3), userBoxReward3, bundleBox22)
             )
           )
           .value
@@ -507,8 +508,8 @@ class StakingBundleBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCh
         isValidPool2 shouldBe true
         isValidCompoundReward2 shouldBe true
 
-        isValidPool3 shouldBe false
-        isValidCompoundReward3 shouldBe true
+        isValidPool3 shouldBe true
+        isValidCompoundReward3 shouldBe false
 
       }
 
