@@ -86,7 +86,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
 
         val prevEpochsCompoundedForDeposit = true
 
-        // prevEpochsCompoundedForRedeem is true above to check in contract the condition:
+        // prevEpochsCompoundedForDeposit is true above to check in contract the condition:
         // val curEpochIx     = if (ctx.height < conf.programEnd) epochIx(ctx) else conf.epochNum + 1
         // val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
         // val prevEpochsCompoundedForDeposit =
@@ -127,11 +127,11 @@ final case class LMPool[Ledger[_]: RuntimeState](
           val revokedTMP   = bundle.TMP - epochsToCompound * bundle.vLQ
           val epochsBurned = (bundle.TMP / bundle.vLQ) - epochsToCompound
 
-          val actualTMP = reserves.supplyTMP - (reserves.LQ - 1L) * epochsToCompound
+          val actualTMP = reserves.supplyTMP - reserves.LQ * epochsToCompound
           val allocRem  = reserves.X - BigInt(conf.programBudget) * epochsToCompound / conf.epochNum - 1L
 
           val reward =
-            if (actualTMP > 0 && epochsBurned > 0) (allocRem * bundle.vLQ * epochsBurned / actualTMP).toLong - 1L
+            if (actualTMP > 0 && epochsBurned > 0) ((allocRem * bundle.vLQ * epochsBurned) / actualTMP).toLong
             else 0L
 
           val execFee = (BigInt(execution.execBudget) * reward / conf.programBudget).toLong
@@ -236,13 +236,6 @@ object LMPool {
           bytes("vLQ")            -> pool.reserves.vLQ,
           bytes("TMP")            -> pool.reserves.TMP
         )
-      else if (pool.reserves.X > 0 && pool.reserves.LQ == 0)
-        Coll(
-          bytes("LM_Pool_NFT_ID") -> 1L,
-          bytes("X")              -> pool.reserves.X,
-          bytes("vLQ")            -> pool.reserves.vLQ,
-          bytes("TMP")            -> pool.reserves.TMP
-        )
       else
         Coll(
           bytes("LM_Pool_NFT_ID") -> 1L,
@@ -281,8 +274,8 @@ object LMPool {
     maxRoundingError: Long
   ): LMPool[Ledger] =
     LMPool(
-      LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget - 1L, maxRoundingError),
-      PoolReserves(MinCollateralErg, programBudget, 1L, MaxCapVLQ, MaxCapTMP),
+      LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, programBudget, maxRoundingError),
+      PoolReserves(MinCollateralErg, programBudget, 0L, MaxCapVLQ, MaxCapTMP),
       PoolExecution(MinCollateralErg),
       lastUpdatedAtEpochIx = 0
     )

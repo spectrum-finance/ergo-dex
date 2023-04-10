@@ -13,14 +13,14 @@ Liquidity Mining (LM) Pool is represented on-chain as a UTxO with the following 
 | `epochNum`         | `Integer`   | Number of epochs in LM program                                |
 | `programStart`     | `Integer`   | Block the program starts at                                   |
 | `redeemLimitDelta` | `Integer`   | Number of blocks after program to redeem without restrictions |
-| `programBudget`    | `Long`      | Total LM program budget - 1L                                  |
+| `programBudget`    | `Long`      | Total LM program budget                                       |
 | `maxRoundingError` | `Long`      | Total allowable residual from rounding                        |
 | `execBudget`       | `Long`      | Total execution budget                                        |
 | `epoch`            | `Int`       | Index of the epoch being compounded                           |
 
 _Notes_:
-* `maxRoundingError` can be estimated as `meanNumberOfParticipants * epochNum` . Since the exact number of participants is difficult to predict in advance,
-It is better to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
+* `maxRoundingError` can be estimated as `epochNum` . Since the exact number of participants is difficult to predict in advance,
+It is convenient to choose a larger value, but it should be << `programBudget / epochNum` . If the `maxRoundingError` value is too small, the **LM program may break**,
 and if the value is too large, the **distribution of rewards may be incorrect**!
 * `execBudget` is **not necessary** for Self-Hosted LM Pool
 * `epoch` **indexing starts from 1**
@@ -74,7 +74,7 @@ Creator will have to monitor ERGs balance and perform additional deposits.
 #### General LM Pool initialization rules
 When initializing an LM Pool (Self-Hosted or Delegated), the following actions **must be performed:**
 1. Correct config: 
-   1. `maxRoundingError` << `programBudget / epochNum`
+   1. `epochNum` <= `maxRoundingError` << `programBudget / epochNum`
    2. `programBudget` stored in R5 of the LM Pool Box == (Total LM program budget - 1L)
 
 2. Initial transaction with correct tokens' amounts, the creator of the LM Pool should also Deposit
