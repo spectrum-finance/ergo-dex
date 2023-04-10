@@ -56,7 +56,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
           val (userBox1, depositBox1, bundleBox1) =
             getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
 
-          val txInputs  = List(poolBox0)
+          val txInputs  = List(poolBox0, depositBox1)
           val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
           val (_, isValidDeposit) = depositBox1.validator
@@ -87,7 +87,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
           val (userBox1, depositBox1, bundleBox1) =
             getDepositTxBoxes(depositedLQAmount, expectedNumEpochs, expectedVLQAmount, expectedTMPAmount)
 
-          val txInputs  = List(poolBox0)
+          val txInputs  = List(poolBox0, depositBox1)
           val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
           val (_, isValidDeposit) = depositBox1.validator
@@ -123,7 +123,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
             bundleValidatorBytesTag = "bad_box"
           )
 
-          val txInputs  = List(poolBox0)
+          val txInputs  = List(poolBox0, depositBox1)
           val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
           val (_, isValidDeposit) = depositBox1.validator
@@ -159,7 +159,7 @@ class DepositBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPro
             redeemerProp = SigmaProp(bytes("bad_user"))
           )
 
-          val txInputs  = List(poolBox0)
+          val txInputs  = List(poolBox0, depositBox1)
           val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
           val (_, isValidDeposit) = depositBox1.validator

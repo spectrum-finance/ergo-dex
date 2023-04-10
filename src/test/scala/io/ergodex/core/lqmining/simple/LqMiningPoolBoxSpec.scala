@@ -62,7 +62,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
           val (userBox1, depositBox1, bundleBox1) =
             getDepositTxBoxes(input0.value, pool01.conf.epochNum - currEpoch, bundle1.vLQ, bundle1.TMP)
 
-          val txInputs  = List(poolBox0)
+          val txInputs  = List(poolBox0, depositBox1)
           val txOutputs = List(poolBox1, userBox1, bundleBox1)
 
           val (_, isValidDeposit) = depositBox1.validator
@@ -95,7 +95,7 @@ class LqMiningPoolBoxSpec extends AnyFlatSpec with should.Matchers with ScalaChe
           val (userBox3, depositBox3, bundleBox3) =
             getDepositTxBoxes(input0.value, pool01.conf.epochNum - currEpoch, bundle1.vLQ, bundle1.TMP)
 
-          val txInputs  = List(poolBox3)
+          val txInputs  = List(poolBox3, depositBox3)
           val txOutputs = List(poolBox4, userBox3, bundleBox3)
 
           val (_, isValidDeposit) = depositBox3.validator
