@@ -3,7 +3,7 @@ package io.ergodex.core.lqmining.simple
 import io.ergodex.core.Helpers.{boxId, bytes, hex}
 import io.ergodex.core.LedgerPlatform
 import io.ergodex.core.lqmining.simple.LMPool.{DefaultCreationHeight, _}
-import io.ergodex.core.syntax.{Coll, SigmaProp, blake2b256}
+import io.ergodex.core.syntax.{blake2b256, Coll, SigmaProp}
 import org.scalatest.flatspec.AnyFlatSpec
 
 object TxBoxes extends AnyFlatSpec with LedgerPlatform {
@@ -26,7 +26,6 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       ),
       registers = Map.empty
     )
-
     val depositBox = new DepositBox(
       boxId("deposit_box"),
       0,
@@ -37,12 +36,12 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       registers = Map.empty,
       constants = Map(
         1  -> bytes("LM_Pool_NFT_ID"),
-        3  -> bytes("user"),
-        6  -> false,
-        10 -> blake2b256(bytes(bundleValidatorBytesTag)),
-        14 -> expectedNumEpochs,
-        18 -> bytes("miner"),
-        21 -> 100L
+        2  -> bytes("user"),
+        3  -> false,
+        12 -> blake2b256(bytes(bundleValidatorBytesTag)),
+        16 -> expectedNumEpochs,
+        20 -> bytes("miner"),
+        23 -> 100L
       ),
       validatorBytes = hex("deposit_order")
     )
@@ -91,12 +90,12 @@ object TxBoxes extends AnyFlatSpec with LedgerPlatform {
       ),
       registers = Map.empty,
       constants = Map(
-        1 -> false,
-        2 -> bytes("user"),
-        3 -> bytes("LQ"),
-        4 -> redeemedVLQAmount,
-        6 -> bytes("miner"),
-        9 -> 100L
+        0  -> false,
+        5  -> bytes("miner"),
+        8  -> 100L,
+        9  -> bytes("user"),
+        10 -> bytes("LQ"),
+        11 -> redeemedVLQAmount
       ),
       validatorBytes = "redeem"
     )

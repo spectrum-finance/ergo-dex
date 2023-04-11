@@ -80,17 +80,17 @@ When initializing an LM Pool (Self-Hosted or Delegated), the following actions *
 2. Initial transaction with correct tokens' amounts, the creator of the LM Pool should also Deposit
 some LQ tokens and not Redeem received Staking Bundle until the LM program end.:
 
-| Name            | Amount                  |
-|-----------------|-------------------------|
-| X               | Total LM program budget |
-| LQ              | Initial deposit         |
-| vLQ             | 0x7fffffffffffffffL     |
-| TMP             | 0x7fffffffffffffffL     |
+| Name            | Amount                                              |
+|-----------------|-----------------------------------------------------|
+| X               | `programBudget`                                     |
+| LQ              | `initialDeposit`                                    |
+| vLQ             | 0x7fffffffffffffffL - `initialDeposit`              |
+| TMP             | 0x7fffffffffffffffL - `initialDeposit` * `epochNum` |
 
 
 _Notes_:
-* Without Initial deposit the LM program will break, no one will be able to take part in it,
-and the creator will lose his `programBudget`
+* Without the `initialDeposit` the LM program will break, no one will be able to take part in it,
+and the creator will lose his `programBudget`. Amount of the `initialDeposit` should be tiny, **it should not be redeemed either during or after the end of the program!**
 
 
 ### Participant
