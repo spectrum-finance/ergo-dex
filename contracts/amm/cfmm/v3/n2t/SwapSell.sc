@@ -4,25 +4,33 @@
   //
   // Constants:
   //
-  // {1} -> RefundProp[ProveDlog]
-  // {6} -> SpectrumIsQuote[Boolean]
-  // {7} -> MaxExFee[Long]
-  // {8} -> ExFeePerTokenDenom[Long]
-  // {10} -> BaseAmount[Long]
-  // {11} -> FeeNum[Int]
+  // {1} -> ExFeePerTokenDenom[Long]
+  // {2} -> Delta[Long]
+  // {3} -> BaseAmount[Long]
+  // {4} -> FeeNum[Int]
+  // {5} -> RefundProp[ProveDlog]
+  // {10} -> SpectrumIsQuote[Boolean]
+  // {11} -> MaxExFee[Long]
   // {13} -> PoolNFT[Coll[Byte]]
   // {14} -> RedeemerPropBytes[Coll[Byte]]
   // {15} -> QuoteId[Coll[Byte]]
   // {16} -> MinQuoteAmount[Long]
-  // {20} -> ExFeePerTokenNum[Long]
-  // {24} -> SpectrumId[Coll[Byte]]
-  // {28} -> FeeDenom[Int]
-  // {29} -> MinerPropBytes[Coll[Byte]]
-  // {32} -> MaxMinerFee[Long]
+  // {23} -> SpectrumId[Coll[Byte]]
+  // {27} -> FeeDenom[Int]
+  // {28} -> MinerPropBytes[Coll[Byte]]
+  // {31} -> MaxMinerFee[Long]
   //
-  // ErgoTree: 19e50422040008cd02217daf90deb73bdf8b6709bb42093fdfaff6573fd47b630e2d3fdd4a8193a74d0404040604020400010006020578060164059c01060204b0060203e404000e2002020202020202020202020202020202020202020202020202020202020202020e2001010101010101010101010101010101010101010101010101010101010101010e20040404040404040404040404040404040404040404040404040404040404040406020320010001010602057806011606016406010004020e20030303030303030303030303030303030303030303030303030303030303030301010404060101060203e80e691005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a573040500050005a09c010100d801d601b2a4730000eb027301d195ed92b1a4730293b1db630872017303d807d602db63087201d603b2a5730400d604db63087203d605b27204730500d6068c720502d6079573069d9c997e720606730773087e7309067e720606d6089c730a730bedededededed938cb27202730c0001730d93c27203730e938c720501730f92720773109573117312d801d6099973139d9c720773147315959172097316d801d60ab27204731700ed938c720a017318927e8c720a020672097319909c7e8cb27202731a00020672089c9a7207731b9a9c7ec1720106731c720890b0ada5d90109639593c27209731dc17209731e731fd90109599a8c7209018c72090273207321
+  // ErgoTree: 19fe04210400059cdb0205cead0105e01204c80f08cd02217daf90deb73bdf8b6709bb42093fdfaff6573fd47b630e2d3fdd4a8193a74d0404040604020400010105f01504000e2002020202020202020202020202020202020202020202020202020202020202020e2001010101010101010101010101010101010101010101010101010101010101010e20040404040404040404040404040404040404040404040404040404040404040405c00c0101010105f015060100040404020e2003030303030303030303030303030303030303030303030303030303030303030101040406010104d00f0e691005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a573040500050005a09c010100d804d601b2a4730000d6027301d6037302d6049c73037e730405eb027305d195ed92b1a4730693b1db630872017307d806d605db63087201d606b2a5730800d607db63087206d608b27207730900d6098c720802d60a95730a9d9c7e997209730b067e7202067e7203067e720906edededededed938cb27205730c0001730d93c27206730e938c720801730f92720a7e7310069573117312d801d60b997e7313069d9c720a7e7203067e72020695ed91720b731492b172077315d801d60cb27207731600ed938c720c017317927e8c720c0206720b7318909c7e8cb2720573190002067e7204069c9a720a731a9a9c7ec17201067e731b067e72040690b0ada5d9010b639593c2720b731cc1720b731d731ed9010b599a8c720b018c720b02731f7320
   //
-  // ErgoTreeTemplate: d801d601b2a4730000eb027301d195ed92b1a4730293b1db630872017303d807d602db63087201d603b2a5730400d604db63087203d605b27204730500d6068c720502d6079573069d9c997e720606730773087e7309067e720606d6089c730a730bedededededed938cb27202730c0001730d93c27203730e938c720501730f92720773109573117312d801d6099973139d9c720773147315959172097316d801d60ab27204731700ed938c720a017318927e8c720a020672097319909c7e8cb27202731a00020672089c9a7207731b9a9c7ec1720106731c720890b0ada5d90109639593c27209731dc17209731e731fd90109599a8c7209018c72090273207321
+  // ErgoTreeTemplate: d804d601b2a4730000d6027301d6037302d6049c73037e730405eb027305d195ed92b1a4730693b1db630872017307d806d605db63087201d606b2a5730800d607db63087206d608b27207730900d6098c720802d60a95730a9d9c7e997209730b067e7202067e7203067e720906edededededed938cb27205730c0001730d93c27206730e938c720801730f92720a7e7310069573117312d801d60b997e7313069d9c720a7e7203067e72020695ed91720b731492b172077315d801d60cb27207731600ed938c720c017317927e8c720c0206720b7318909c7e8cb2720573190002067e7204069c9a720a731a9a9c7ec17201067e731b067e72040690b0ada5d9010b639593c2720b731cc1720b731d731ed9010b599a8c720b018c720b02731f7320
+
+  val baseAmount         = BaseAmount
+  val feeNum             = FeeNum
+  val feeDenom           = FeeDenom
+  val maxExFee           = MaxExFee
+  val exFeePerTokenDenom = ExFeePerTokenDenom
+  val delta              = Delta
+  val minQuoteAmount     = MinQuoteAmount
 
   val poolIn = INPUTS(0)
 
@@ -40,21 +48,23 @@
 
       val rewardBox = OUTPUTS(1)
 
-      val quoteAsset  = rewardBox.tokens(0)
+      val quoteAsset = rewardBox.tokens(0)
       val quoteAmount =
         if (SpectrumIsQuote) {
-          val deltaQuote = quoteAsset._2.toBigInt - MaxExFee
-          deltaQuote * ExFeePerTokenDenom / (ExFeePerTokenDenom - ExFeePerTokenNum)
+          val quoteAssetAmount = quoteAsset._2
+          val deltaQuote       = quoteAssetAmount - maxExFee
+          (deltaQuote.toBigInt * exFeePerTokenDenom) / delta
         } else {
           quoteAsset._2.toBigInt
         }
       // 1.1.
-      val fairExFee   =
+      val fairExFee =
         if (SpectrumIsQuote) true
         else {
-          val exFee     = quoteAmount * ExFeePerTokenNum / ExFeePerTokenDenom
-          val remainder = MaxExFee - exFee
-          if (remainder > 0) {
+          val exFeePerTokenNum = exFeePerTokenDenom - delta
+          val exFee            = quoteAmount * exFeePerTokenNum / exFeePerTokenDenom
+          val remainder        = maxExFee - exFee
+          if (remainder > 0 && rewardBox.tokens.size >= 2) {
             val spectrumRem = rewardBox.tokens(1)
             spectrumRem._1 == SpectrumId && spectrumRem._2 >= remainder
           } else {
@@ -62,10 +72,11 @@
           }
         }
 
-      val relaxedOutput = quoteAmount + 1 // handle rounding loss
-      val base_x_feeNum = BaseAmount.toBigInt * FeeNum
+      val relaxedOutput = quoteAmount + 1L // handle rounding loss
+
+      val base_x_feeNum = baseAmount.toBigInt * feeNum
       // 1.2.
-      val fairPrice     = poolReservesY * base_x_feeNum <= relaxedOutput * (poolReservesX * FeeDenom + base_x_feeNum)
+      val fairPrice = poolReservesY * base_x_feeNum <= relaxedOutput * (poolReservesX * feeDenom + base_x_feeNum)
       // 1.3.
       val validMinerFee = OUTPUTS.map { (o: Box) =>
         if (o.propositionBytes == MinerPropBytes) o.value else 0L
@@ -74,7 +85,7 @@
       validPoolIn &&
       rewardBox.propositionBytes == RedeemerPropBytes &&
       quoteAsset._1 == QuoteId &&
-      quoteAmount >= MinQuoteAmount &&
+      quoteAmount >= minQuoteAmount &&
       fairExFee &&
       fairPrice &&
       validMinerFee

@@ -22,7 +22,7 @@
   // 1.
   val validRedeem =
     if (INPUTS.size >= 2 && poolIn.tokens.size == 3) {
-      val selfLP      = SELF.tokens(0)
+      val selfLP = SELF.tokens(0)
       // 1.1.
       val validPoolIn = poolIn.tokens(0)._1 == PoolNFT
 

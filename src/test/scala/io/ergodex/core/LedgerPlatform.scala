@@ -9,6 +9,9 @@ import scorex.util.encode.Base16
 import sttp.client3._
 import sttp.client3.circe._
 import sttp.client3.okhttp.OkHttpSyncBackend
+import io.circe.{Decoder, Json, Printer}
+import io.circe.derivation.deriveDecoder
+import sttp.model.MediaType
 
 trait LedgerPlatform extends JsonCodecs {
 
@@ -33,13 +36,39 @@ trait LedgerPlatform extends JsonCodecs {
     inputs.toList -> tx.outputs.toList
   }
 
-  def pullBox(id: BoxId): Option[ErgoBox] = basicRequest
-    .get(uri"http://213.239.193.208:9053/utxo/byId/${Base16.encode(id)}")
-    .response(asJson[ErgoBox])
+  private def pullBox(id: BoxId): Option[ErgoBox] = basicRequest
+    .post(uri"https://gql.ergoplatform.com/")
+    .body(bodyJson(id))
+    .response(asJson[Data])
     .send(backend)
     .body
     .right
     .toOption
+    .flatMap(_.data.boxes.headOption)
+
+  def body(id: BoxId): String =
+    s"""{"query":"{boxes(boxId:\\"${Base16.encode(
+      id
+    )}\\") {boxId,value,creationHeight,transactionId,index,ergoTree,additionalRegisters,assets{tokenId,amount,}}}"}"""
+
+  def bodyJson(id: BoxId): Json = io.circe.parser.parse(body(id)).toOption.get
+
+  // curl 'https://gql.ergoplatform.com/' -H 'Accept-Encoding: gzip, deflate, br' -H 'Content-Type: application/json' -H 'Accept: application/json' -H 'Connection: keep-alive' -H 'DNT: 1' -H 'Origin: https://gql.ergoplatform.com' --data-binary '{"query":"{\n  boxes(boxId: \"e8cb8e8acbebab6b9ba3706904facd70393f5731c7e36a55caa660fde5419b60\") {\n    boxId,\n    value,\n    creationHeight,\n    index,\n    ergoTree,\n    additionalRegisters,\n    assets {\n      tokenId,\n      amount,\n    }\n  }\n}"}' --compressed
+
+  implicit val jsonSerializer: BodySerializer[Json] = json =>
+    StringBody(json.printWith(Printer.noSpaces), "utf-8", MediaType.ApplicationJson)
+
+  case class Boxes(boxes: List[ErgoBox])
+
+  object Boxes {
+    implicit val decoder: Decoder[Boxes] = deriveDecoder
+  }
+
+  case class Data(data: Boxes)
+
+  object Data {
+    implicit val decoder: Decoder[Data] = deriveDecoder
+  }
 }
 
 final case class RuntimeSetup[B[_[_]]](box: B[Ledger], ctx: RuntimeCtx) {
@@ -48,11 +77,11 @@ final case class RuntimeSetup[B[_[_]]](box: B[Ledger], ctx: RuntimeCtx) {
 
 object RuntimeSetup extends JsonCodecs {
   def fromIOs[Box[_[_]]](
-                          inputs: List[ErgoBox],
-                          outputs: List[ErgoBox],
-                          selfInputIx: Int,
-                          height: Int
-                        )(implicit fromBox: TryFromBox[Box, Ledger]): Option[RuntimeSetup[Box]] = {
+    inputs: List[ErgoBox],
+    outputs: List[ErgoBox],
+    selfInputIx: Int,
+    height: Int
+  )(implicit fromBox: TryFromBox[Box, Ledger]): Option[RuntimeSetup[Box]] = {
     val selfIn = inputs(selfInputIx)
     for {
       selfBox <- fromBox.tryFromBox(selfIn)

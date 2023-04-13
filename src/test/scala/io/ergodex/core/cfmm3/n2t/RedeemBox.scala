@@ -41,9 +41,9 @@ final class RedeemBox[F[_]: RuntimeState](
       val MaxMinerFee: Long             = getConstant(16).get
 
       // Contract
-      val InitiallyLockedLP             = 0x7fffffffffffffffL
+      val InitiallyLockedLP = 0x7fffffffffffffffL
 
-      val poolIn      = INPUTS(0)
+      val poolIn = INPUTS(0)
 
       // Validations
       // 1.
@@ -68,8 +68,8 @@ final class RedeemBox[F[_]: RuntimeState](
           val returnY       = returnOut.tokens(0)
           // 1.2.
           val validMinerFee = OUTPUTS.map { (o: Box) =>
-            if (o.propositionBytes == MinerPropBytes) o.value else 0L}
-            .fold(0L, { ( a: Long, b: Long) => a + b } ) <= MaxMinerFee
+            if (o.propositionBytes == MinerPropBytes) o.value else 0L
+          }.fold(0L, { (a: Long, b: Long) => a + b }) <= MaxMinerFee
 
           validPoolIn &&
           returnOut.propositionBytes == RedeemerPropBytes &&
@@ -84,7 +84,7 @@ final class RedeemBox[F[_]: RuntimeState](
     }
 }
 object RedeemBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): RedeemBox[F] =
     new RedeemBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[RedeemBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])
