@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, bytes}
+import io.ergodex.core.Helpers.{boxId, bytes, hex, tokenId}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -22,30 +22,30 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       boxId("redeemer_box"),
       expectedXAmount,
       DefaultCreationHeight,
-      tokens         = Vector(
-        bytes("y") -> expectedYAmount
+      tokens = Vector(
+        tokenId("y") -> expectedYAmount
       ),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "redeemer"
+      validatorBytes = hex("redeemer")
     )
 
     val redeemBox = new RedeemBox(
       boxId("redeem_box"),
       0L,
       DefaultCreationHeight,
-      tokens         = Vector(
-        bytes("lp") -> redeemedLPAmount
+      tokens = Vector(
+        tokenId("lp") -> redeemedLPAmount
       ),
-      registers      = Map.empty,
-      constants      = Map(
+      registers = Map.empty,
+      constants = Map(
         1  -> false,
-        11 -> bytes("pool_NFT"),
+        11 -> tokenId("pool_NFT"),
         12 -> bytes("redeemer"),
         13 -> bytes("miner"),
         16 -> minerFee
       ),
-      validatorBytes = "redeem"
+      validatorBytes = hex("redeem")
     )
 
     val minerBox = new UserBox(
@@ -55,7 +55,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
       tokens         = Vector(),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "miner"
+      validatorBytes = hex("miner")
     )
 
     (userBox, redeemBox, minerBox)
@@ -94,7 +94,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
         RuntimeCtx(startAtHeight, inputs = List(poolBox0, redeemBox1), outputs = List(poolBox1, userBox1, minerBox1))
       )
       .value
-    val (_, isValidPool)   = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidRedeem shouldBe true
     isValidPool shouldBe true
@@ -121,7 +121,7 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
         RuntimeCtx(startAtHeight, inputs = List(poolBox0, redeemBox1), outputs = List(poolBox1, userBox1, minerBox1))
       )
       .value
-    val (_, isValidPool)   = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     receivedX shouldBe totalX
     receivedY.value shouldBe totalY

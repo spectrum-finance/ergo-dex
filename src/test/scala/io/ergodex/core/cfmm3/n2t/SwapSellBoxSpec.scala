@@ -1,6 +1,6 @@
 package io.ergodex.core.cfmm3.n2t
 
-import io.ergodex.core.Helpers.{boxId, bytes}
+import io.ergodex.core.Helpers.{boxId, bytes, hex, tokenId}
 import io.ergodex.core.ToLedger._
 import io.ergodex.core.cfmm3.UserBox
 import io.ergodex.core.cfmm3.n2t.CfmmPool._
@@ -18,15 +18,15 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
     tokenY: String
   ): (UserBox[Ledger], SwapSellBox[Ledger], UserBox[Ledger]) = {
     val spfIsQuote = if (tokenY == "spf") true else false
-    val userBox    =
+    val userBox =
       new UserBox(
         boxId("redeemer_box"),
         expectedAmount,
         DefaultCreationHeight,
-        tokens         = Vector(bytes(tokenY) -> expectedAmount, bytes("spf") -> expectedAmount),
+        tokens         = Vector(tokenId(tokenY) -> expectedAmount, tokenId("spf") -> expectedAmount),
         registers      = Map.empty,
         constants      = Map.empty,
-        validatorBytes = "redeemer"
+        validatorBytes = hex("redeemer")
       )
 
     val swapSellBox =
@@ -34,35 +34,35 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         boxId("swapSell_box"),
         swappedAmount,
         DefaultCreationHeight,
-        tokens         = Vector(bytes(tokenY) -> swappedAmount),
-        registers      = Map.empty,
-        constants      = Map(
-          1  -> false,
-          6  -> spfIsQuote,
-          7  -> 1400L,
-          8  -> 100L,
-          10 -> 1200L,
-          11 -> 996,
-          13 -> bytes("pool_NFT"),
+        tokens    = Vector(tokenId(tokenY) -> swappedAmount),
+        registers = Map.empty,
+        constants = Map(
+          1  -> 100L,
+          2  -> 78L,
+          3 -> 1200L,
+          4  -> 996,
+          5  -> false,
+          10 -> spfIsQuote,
+          11 -> 1400L,
+          13 -> tokenId("pool_NFT"),
           14 -> bytes("redeemer"),
-          15 -> bytes(tokenY),
+          15 -> tokenId(tokenY),
           16 -> 800L,
-          20 -> 22L,
-          24 -> bytes("spf"),
-          28 -> 1000,
-          29 -> bytes("miner"),
-          32 -> minerFee
+          23 -> tokenId("spf"),
+          27 -> 1000,
+          28 -> tokenId("miner"),
+          31 -> minerFee
         ),
-        validatorBytes = "swapSell"
+        validatorBytes = hex("swapSell")
       )
-    val minerBox    = new UserBox(
+    val minerBox = new UserBox(
       boxId("miner_box"),
       minerFee,
       DefaultCreationHeight,
       tokens         = Vector(),
       registers      = Map.empty,
       constants      = Map.empty,
-      validatorBytes = "miner"
+      validatorBytes = hex("miner")
     )
 
     (userBox, swapSellBox, minerBox)
@@ -105,7 +105,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe true
     isValidPool shouldBe true
@@ -133,7 +133,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe false
     isValidPool shouldBe true
@@ -162,7 +162,7 @@ class SwapSellBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckPr
         )
       )
       .value
-    val (_, isValidPool)  = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
+    val (_, isValidPool) = poolBox0.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox1))).value
 
     isValidSwapX shouldBe true
     isValidPool shouldBe true

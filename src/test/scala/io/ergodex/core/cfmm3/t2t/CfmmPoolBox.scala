@@ -96,7 +96,7 @@ final class CfmmPoolBox[F[_]: RuntimeState](
 }
 
 object CfmmPoolBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): CfmmPoolBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): CfmmPoolBox[F] =
     new CfmmPoolBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[CfmmPoolBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])

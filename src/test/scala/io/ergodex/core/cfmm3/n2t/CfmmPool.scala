@@ -1,7 +1,7 @@
 package io.ergodex.core.cfmm3.n2t
 
 import cats.kernel.Monoid
-import io.ergodex.core.Helpers.{boxId, bytes}
+import io.ergodex.core.Helpers.{boxId, hex, tokenId}
 import io.ergodex.core.{RuntimeState, ToLedger}
 
 object Token {
@@ -31,7 +31,7 @@ final case class CfmmPool[Ledger[_]: RuntimeState](reserves: PoolReserves, confi
   def updateReserves(fn: PoolReserves => PoolReserves): CfmmPool[Ledger] =
     copy(reserves = fn(reserves))
 
-  val supplyLP: Long                                                     = config.emissionLP - reserves.lp
+  val supplyLP: Long = config.emissionLP - reserves.lp
 
   import CfmmPool._
 
@@ -43,13 +43,13 @@ final case class CfmmPool[Ledger[_]: RuntimeState](reserves: PoolReserves, confi
       val minByX   = inX * supplyLP / reserves.x
       val minByY   = inY.value * supplyLP / reserves.y
       val unlocked = math.min(minByX, minByY)
-      val changeX  =
+      val changeX =
         if (minByX < minByY) {
           val diff    = minByY - minByX
           val excessY = diff * reserves.y / supplyLP
           excessY
         } else 0L
-      val changeY  = if (minByX > minByY) {
+      val changeY = if (minByX > minByY) {
         val diff    = minByX - minByY
         val excessX = diff * reserves.x / supplyLP
         excessX
@@ -128,16 +128,16 @@ object CfmmPool {
         boxId("cfmm_pool_box"),
         pool.reserves.x,
         DefaultCreationHeight,
-        tokens         = Vector(
-          bytes("pool_NFT") -> 1L,
-          bytes("lp")       -> pool.reserves.lp,
-          bytes("y")        -> pool.reserves.y
+        tokens = Vector(
+          tokenId("pool_NFT") -> 1L,
+          tokenId("lp")       -> pool.reserves.lp,
+          tokenId("y")        -> pool.reserves.y
         ),
-        registers      = Map(
+        registers = Map(
           4 -> pool.config.feeNum
         ),
         constants      = Map.empty,
-        validatorBytes = "cfmm_pool"
+        validatorBytes = hex("cfmm_pool")
       )
 
   def init[Ledger[_]: RuntimeState](inX: Long, inY: Long, config: PoolConfig): CfmmPool[Ledger] = {

@@ -40,7 +40,7 @@ final class CfmmPoolBox[F[_]: RuntimeState](
       val validLP          = reservedLP1._1 == reservedLP0._1
       val validY           = tokenY1._1 == tokenY0._1
       // since tokens can be repeated, we ensure for sanity that there are no more tokens
-      val noMoreTokens     = successor.tokens.size == 3
+      val noMoreTokens = successor.tokens.size == 3
 
       val validStorageRent = successor.value > MinStorageRent
 
@@ -96,7 +96,7 @@ final class CfmmPoolBox[F[_]: RuntimeState](
 }
 
 object CfmmPoolBox {
-  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): CfmmPoolBox[F]      =
+  def apply[F[_]: RuntimeState, G[_]](bx: BoxSim[G]): CfmmPoolBox[F] =
     new CfmmPoolBox(bx.id, bx.value, bx.creationHeight, bx.tokens, bx.registers, bx.constants, bx.validatorBytes)
   implicit def tryFromBox[F[_]: RuntimeState]: TryFromBox[CfmmPoolBox, F] =
     AnyBox.tryFromBox.translate(apply[F, NonRunnable])
