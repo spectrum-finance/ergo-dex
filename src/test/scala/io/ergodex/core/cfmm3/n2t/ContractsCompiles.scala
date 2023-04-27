@@ -71,10 +71,10 @@ class ContractsCompiles extends AnyPropSpec with should.Matchers with ScalaCheck
     val sourceSwapSell = readSource("contracts/amm/cfmm/v3/n2t/SwapSell.sc")
     val envSwapSell = Map(
       "RefundProp"         -> DLogProverInput(BigInt(Long.MaxValue).bigInteger).publicImage,
-      "SpectrumIsQuote"    -> BooleanConstant(true),
+      "SpectrumIsQuote"    -> false,
       "MaxExFee"           -> 1400L,
-      "ExFeePerTokenNum"   -> 22L,
-      "ExFeePerTokenDenom" -> 100L,
+      "Delta"              -> 11111L,
+      "ExFeePerTokenDenom" -> 22222L,
       "BaseAmount"         -> 1200L,
       "FeeNum"             -> 996,
       "QuoteId"            -> Array.fill(32)(4: Byte),
