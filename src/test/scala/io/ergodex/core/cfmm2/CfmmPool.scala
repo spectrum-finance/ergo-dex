@@ -1,5 +1,4 @@
-package io.ergodex
-package core.cfmm2
+package io.ergodex.core.cfmm2
 
 /**  @param feeNum is the numerator in the ratio of fee to be taken.
   *  @param denom is the denominator in the ratio of fee to be taken.

@@ -73,14 +73,14 @@ object TryFromBox {
 
 // Non-runnable projection of a box.
 final case class AnyBox(
-                         override val id: Coll[Byte],
-                         override val value: Long,
-                         override val creationHeight: Int,
-                         override val tokens: Coll[(Coll[Byte], Long)],
-                         override val registers: Map[Int, Any],
-                         override val validatorBytes: String,
-                         override val constants: Map[Int, Any]
-                       ) extends BoxSim[BoxRuntime.NonRunnable] {
+  override val id: Coll[Byte],
+  override val value: Long,
+  override val creationHeight: Int,
+  override val tokens: Coll[(Coll[Byte], Long)],
+  override val registers: Map[Int, Any],
+  override val validatorBytes: String,
+  override val constants: Map[Int, Any]
+) extends BoxSim[BoxRuntime.NonRunnable] {
   override val validator: NonRunnable[Boolean] = ()
 }
 
@@ -99,9 +99,9 @@ object AnyBox {
               v match {
                 case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) =>
                   CollOpaque(array.toArray.toVector)
-                case ConstantNode(sigmastate.eval.CSigmaProp(_), _) => false
-                case ConstantNode(v, _)                             => v
-                case v                                              => v
+                case ConstantNode(p @ sigmastate.eval.CSigmaProp(_), _) => SigmaProp(p.propBytes.toArray.toVector)
+                case ConstantNode(v, _)                                 => v
+                case v                                                  => v
               }
             }
           }.toMap,
@@ -110,9 +110,9 @@ object AnyBox {
               c match {
                 case ConstantNode(array: special.collection.CollOverArray[Any @unchecked], _) =>
                   CollOpaque(array.toArray.toVector)
-                case ConstantNode(sigmastate.eval.CSigmaProp(_), _) => false
-                case ConstantNode(v, _)                             => v
-                case v                                              => v
+                case ConstantNode(p @ sigmastate.eval.CSigmaProp(_), _) => SigmaProp(p.propBytes.toArray.toVector)
+                case ConstantNode(v, _)                                 => v
+                case v                                                  => v
               }
             }
           }.toMap

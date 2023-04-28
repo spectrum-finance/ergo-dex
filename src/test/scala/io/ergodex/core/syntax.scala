@@ -2,6 +2,7 @@ package io.ergodex.core
 
 import scorex.crypto.hash.Blake2b256
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object syntax {
@@ -60,7 +61,7 @@ object syntax {
     ctx.signatories.contains(prop)
 
   implicit class ToSigmaPropOps(prop: SigmaProp) {
-    def propBytes: Coll[Byte] = prop.value.getBytes().toVector
+    def propBytes: Coll[Byte] = prop.value
   }
 
   final case class CollOpaque[+A](inner: Vector[A]) {
@@ -75,6 +76,8 @@ object syntax {
   type Coll[A] = CollOpaque[A]
 
   object Coll {
-    def apply[A](elems: A*): Coll[A] = CollOpaque(Vector.apply(elems:_*))
+    def apply[A](elems: A*): Coll[A] = CollOpaque(Vector.apply(elems: _*))
   }
+
+  case class SigmaProp(value: Coll[Byte])
 }

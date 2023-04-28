@@ -1,7 +1,4 @@
-package io.ergodex
-package core.cfmm
-
-import io.circe.Json
+package io.ergodex.core.cfmm
 
 final case class PoolConfig(feeNum: Int, feeDenom: Int, emissionLP: Long, burnLP: Long, minInitialDeposit: Long)
 

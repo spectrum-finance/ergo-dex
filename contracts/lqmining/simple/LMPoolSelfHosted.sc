@@ -10,7 +10,7 @@
   //      2: Program start
   //      3: Redeem blocks delta  // the number of blocks after the end of LM program, at which redeems can be performed without any restrictions.
   //   R5[Long]: Program budget  // total budget of LM program.
-  //   R6[Long]: MaxRoundingError // Tokens rounding delta max value.
+  //   R6[Long]: Max Rounding Error // Tokens rounding delta max value.
   //   R7[Int]: Epoch index  // index of the epoch being compounded (required only for compounding).
   //
   // Tokens:
@@ -30,9 +30,14 @@
   //     _1: TMP Token ID  // left program epochs times liquidity.
   //     _2: Amount of TMP tokens.
   //
-  // ErgoTree: 19e9041f04000402040204040404040604060408040804040402040004000402040204000400040a0500040204020500050004020402040605000500040205000500d81bd601b2a5730000d602db63087201d603db6308a7d604e4c6a70410d605e4c6a70505d606e4c6a70605d607b27202730100d608b27203730200d609b27202730300d60ab27203730400d60bb27202730500d60cb27203730600d60db27202730700d60eb27203730800d60f8c720a02d610998c720902720fd6118c720802d612b27204730900d6139a99a37212730ad614b27204730b00d6159d72137214d61695919e72137214730c9a7215730d7215d617b27204730e00d6187e721705d6199d72057218d61a998c720b028c720c02d61b998c720d028c720e02d1ededededed93b27202730f00b27203731000ededed93e4c672010410720493e4c672010505720593e4c6720106057206928cc77201018cc7a70193c27201c2a7ededed938c7207018c720801938c7209018c720a01938c720b018c720c01938c720d018c720e0193b172027311959172107312eded929a997205721172069c7e9995907216721772169a721773137314057219937210f0721a939c7210997218a273157e721605f0721b958f72107316ededec929a997205721172069c7e9995907216721772169a72177317731805721992a39a9a72129c72177214b2720473190093721af0721092721b959172167217731a9c721a997218a2731b7e721605d801d61ce4c672010704edededed90721c997216731c909972119c7e997217721c0572199a72197206907ef0998c7207027211069d9c7e7219067e721b067e720f06937210731d93721a731e
+  // Constants:
+  // {23}  -> BundleScriptHash[Coll[Byte]]
   //
-  // ErgoTreeTemplate: d81bd601b2a5730000d602db63087201d603db6308a7d604e4c6a70410d605e4c6a70505d606e4c6a70605d607b27202730100d608b27203730200d609b27202730300d60ab27203730400d60bb27202730500d60cb27203730600d60db27202730700d60eb27203730800d60f8c720a02d610998c720902720fd6118c720802d612b27204730900d6139a99a37212730ad614b27204730b00d6159d72137214d61695919e72137214730c9a7215730d7215d617b27204730e00d6187e721705d6199d72057218d61a998c720b028c720c02d61b998c720d028c720e02d1ededededed93b27202730f00b27203731000ededed93e4c672010410720493e4c672010505720593e4c6720106057206928cc77201018cc7a70193c27201c2a7ededed938c7207018c720801938c7209018c720a01938c720b018c720c01938c720d018c720e0193b172027311959172107312eded929a997205721172069c7e9995907216721772169a721773137314057219937210f0721a939c7210997218a273157e721605f0721b958f72107316ededec929a997205721172069c7e9995907216721772169a72177317731805721992a39a9a72129c72177214b2720473190093721af0721092721b959172167217731a9c721a997218a2731b7e721605d801d61ce4c672010704edededed90721c997216731c909972119c7e997217721c0572199a72197206907ef0998c7207027211069d9c7e7219067e721b067e720f06937210731d93721a731e
+  // ErgoTree: 19c0062804000400040204020404040404060406040804080404040204000400040204020400040a050005000404040204020e200508f3623d4b2be3bdb9737b3e65644f011167eefb830d9965205f022ceda40d0400040205000402040204060500050005feffffffffffffffff01050005000402060101050005000100d81fd601b2a5730000d602db63087201d603db6308a7d604b27203730100d605e4c6a70410d606e4c6a70505d607e4c6a70605d608b27202730200d609b27203730300d60ab27202730400d60bb27203730500d60cb27202730600d60db27203730700d60e8c720d01d60fb27202730800d610b27203730900d6118c721001d6128c720b02d613998c720a027212d6148c720902d615b27205730a00d6169a99a37215730bd617b27205730c00d6189d72167217d61995919e72167217730d9a7218730e7218d61ab27205730f00d61b7e721a05d61c9d7206721bd61d998c720c028c720d02d61e8c721002d61f998c720f02721ed1ededededed93b272027310007204ededed93e4c672010410720593e4c672010505720693e4c6720106057207928cc77201018cc7a70193c27201c2a7ededed938c7208018c720901938c720a018c720b01938c720c01720e938c720f01721193b172027311959172137312d802d6209c721399721ba273137e721905d621b2a5731400ededed929a7e9972067214067e7207067e9c7e9995907219721a72199a721a7315731605721c06937213f0721d937220f0721fedededed93cbc272217317938602720e7213b2db6308722173180093860272117220b2db63087221731900e6c67221060893e4c67221070e8c720401958f7213731aededec929a7e9972067214067e7207067e9c7e9995907219721a72199a721a731b731c05721c0692a39a9a72159c721a7217b27205731d0093721df0721392721f95917219721a731e9c721d99721ba2731f7e721905d804d620e4c672010704d62199721a7220d6227e722105d62399997320721e9c7212722295ed917223732191721f7322edededed9072209972197323909972149c7222721c9a721c7207907ef0998c7208027214069d9c99997e7214069d9c7e7206067e7221067e721a0673247e721f067e722306937213732593721d73267327
+  //
+  // ErgoTreeTemplate: d81fd601b2a5730000d602db63087201d603db6308a7d604b27203730100d605e4c6a70410d606e4c6a70505d607e4c6a70605d608b27202730200d609b27203730300d60ab27202730400d60bb27203730500d60cb27202730600d60db27203730700d60e8c720d01d60fb27202730800d610b27203730900d6118c721001d6128c720b02d613998c720a027212d6148c720902d615b27205730a00d6169a99a37215730bd617b27205730c00d6189d72167217d61995919e72167217730d9a7218730e7218d61ab27205730f00d61b7e721a05d61c9d7206721bd61d998c720c028c720d02d61e8c721002d61f998c720f02721ed1ededededed93b272027310007204ededed93e4c672010410720593e4c672010505720693e4c6720106057207928cc77201018cc7a70193c27201c2a7ededed938c7208018c720901938c720a018c720b01938c720c01720e938c720f01721193b172027311959172137312d802d6209c721399721ba273137e721905d621b2a5731400ededed929a7e9972067214067e7207067e9c7e9995907219721a72199a721a7315731605721c06937213f0721d937220f0721fedededed93cbc272217317938602720e7213b2db6308722173180093860272117220b2db63087221731900e6c67221060893e4c67221070e8c720401958f7213731aededec929a7e9972067214067e7207067e9c7e9995907219721a72199a721a731b731c05721c0692a39a9a72159c721a7217b27205731d0093721df0721392721f95917219721a731e9c721d99721ba2731f7e721905d804d620e4c672010704d62199721a7220d6227e722105d62399997320721e9c7212722295ed917223732191721f7322edededed9072209972197323909972149c7222721c9a721c7207907ef0998c7208027214069d9c99997e7214069d9c7e7206067e7221067e721a0673247e721f067e722306937213732593721d73267327
+  //
+  // ErgoTreeTemplateHash: 728bc5b8f6244f191bd5c6b783b7895981dc37f1504458d0fc8e02754ecb3eff
   //
   // Validations:
   // 1. LM Pool NFT is preserved;
@@ -43,18 +48,29 @@
   // 6. Action is valid:
   //    6.1. Deposit: if (deltaLQ > 0)
   //         6.1.1. Previous epochs are compounded;
-  //         6.1.2. Delta LQ tokens amount is correct;
-  //         6.1.3. Delta TMP tokens amount is correct.
+  //         6.1.2. Bundle is valid;
   //    6.2. Redeem: elif if (deltaLQ < 0)
   //         6.2.1. Previous epochs are compounded;
-  //         6.2.2. Delta LQ tokens amount is correct;
-  //         6.2.3. Delta TMP tokens amount is correct.
+  //         6.2.2. Redeem without limits is available.
   //    6.3. Compound: else
-  //         6.3.1. Epoch is legal to perform compounding;
-  //         6.3.2. Previous epoch is compounded;
-  //         6.3.3. Delta reward tokens amount equals to calculated reward amount;
-  //         6.3.4. Delta LQ tokens amount is 0;
-  //         6.3.5. Delta vLQ tokens amount is 0.
+  //         6.3.1. Previous epoch is compounded;
+  //         6.3.2. Epoch is legal to perform compounding;
+  //
+  // Limitations:
+  // 1. Deposit
+  //    1.1. Deposit can be performed before program start;
+  //    1.2. During the program Deposit can't be performed until all rewards for passed epochs are distributed;
+  //    1.3. Bundle box created after every Deposit is unique;
+  // 1. Redeem
+  //    1.1. During the program Redeem can't be performed until all rewards for passed epochs are distributed;
+  //    1.2. Redeem can be performed with no any program's logic limits after the program end;
+  //    1.3. Redeem can be only performed by User, who owns unique 0x7fffffffffffffffL - 1L bundleKeyId tokens;
+  // 1. Compound
+  //    1.1. Reward distribution can be performed in batches;
+  //    1.2. Rewards will be send on the address stored in Bundle's R4;
+  //    1.3. Reward distribution should be done sequentially;
+  //    1.4. All epoch allocated rewards should be fully distributed;
+  //    1.5. Program budget can't be redeemed.
   //
   // ===== Getting SELF data ===== //
   val poolNFT0 = SELF.tokens(0)
@@ -114,7 +130,6 @@
     (programBudget1 == programBudget0) &&
     (maxRoundingError1 == maxRoundingError0) &&
     (creationHeight1 >= creationHeight0)
-
   // 3.
   val scriptPreserved = successor.propositionBytes == SELF.propositionBytes
   // 4.
@@ -132,15 +147,24 @@
       val releasedVLQ     = deltaLQ
       val epochsAllocated = epochNum - max(0L, curEpochIx)
       val releasedTMP     = releasedVLQ * epochsAllocated
+      val curEpochToCalc  = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
       // 6.1.1.
-      val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
       val prevEpochsCompoundedForDeposit =
-        ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+        ((programBudget0 - reservesX).toBigInt + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+
+      val bundleOut = OUTPUTS(2)
+      // 6.1.2.
+      val validBundle =
+        blake2b256(bundleOut.propositionBytes) == BundleScriptHash &&
+        (poolVLQ0._1, releasedVLQ) == bundleOut.tokens(0) &&
+        (poolTMP0._1, releasedTMP) == bundleOut.tokens(1) &&
+        bundleOut.R6[SigmaProp].isDefined &&
+        bundleOut.R7[Coll[Byte]].get == poolNFT0._1
 
       prevEpochsCompoundedForDeposit &&
-      // 6.1.2. && 6.1.3.
-      (deltaLQ == -deltaVLQ) &&
-      (releasedTMP == -deltaTMP)
+      deltaLQ == -deltaVLQ &&
+      releasedTMP == -deltaTMP &&
+      validBundle
 
     } else if (deltaLQ < 0) { // redeem
       // 6.2.
@@ -151,32 +175,40 @@
           val epochsDeallocated = epochNum - max(0L, curEpochIx)
           releasedLQ * epochsDeallocated
         }
-      // 6.2.1.
       val curEpochToCalc = if (curEpochIx <= epochNum) curEpochIx else epochNum + 1
+      // 6.2.1.
       val prevEpochsCompoundedForRedeem =
-        ((programBudget0 - reservesX) + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+        ((programBudget0 - reservesX).toBigInt + maxRoundingError0) >= (curEpochToCalc - 1) * epochAlloc
+      // 6.2.2.
       val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
 
       (prevEpochsCompoundedForRedeem || redeemNoLimit) &&
-      // 6.2.2. & 6.2.3.
       (deltaVLQ == -deltaLQ) &&
       (deltaTMP >= minReturnedTMP)
 
     } else { // compound
       // 6.3.
-      val epoch               = successor.R7[Int].get
-      val epochsToCompound    = epochNum - epoch
-      val prevEpochCompounded = (reservesX - epochsToCompound * epochAlloc) <= (epochAlloc + maxRoundingError0)
-
+      val epoch            = successor.R7[Int].get
+      val epochsToCompound = epochNum - epoch
+      // 6.3.1.
       val legalEpoch = epoch <= curEpochIx - 1
-      val reward     = epochAlloc.toBigInt * deltaTMP / reservesLQ
+      // 6.3.2.
+      val prevEpochCompounded = reservesX - epochsToCompound * epochAlloc <= epochAlloc + maxRoundingError0
 
-      // 6.3.1. && 6.3.2. && 6.3.3. && 6.3.4. && 6.3.5.
-      legalEpoch &&
-      prevEpochCompounded &&
-      (-deltaX <= reward) &&
-      (deltaLQ == 0L) &&
-      (deltaVLQ == 0L)
+      val actualTMP  = 0x7fffffffffffffffL - poolTMP0._2 - reservesLQ * epochsToCompound
+      val allocRem = reservesX - programBudget0.toBigInt * epochsToCompound / epochNum - 1L
+
+      if (actualTMP > 0 && deltaTMP > 0) {
+        val reward = allocRem * deltaTMP / actualTMP
+
+        legalEpoch &&
+        prevEpochCompounded &&
+        (-deltaX <= reward) &&
+        (deltaLQ == 0L) &&
+        (deltaVLQ == 0L)
+
+      } else { false }
+
     }
   }
   sigmaProp(
