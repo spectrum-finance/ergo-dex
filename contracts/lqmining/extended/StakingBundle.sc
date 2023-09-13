@@ -6,11 +6,7 @@
   // Registers:
   //   R4[Coll[Byte]]: BundleKeyToken name.
   //   R5[Coll[Byte]]: BundleKeyToken info.
-  //   R6[SigmaProp]: Redeemer Sigma Proposition.  // address which can claim a rewards.
-  //   R7[Coll[Byte]]: LM Pool ID (tokenId).  // used to authenticate pool.
-  //
-  // Constants:
-  //  {1} -> actionId[Int]
+  //   R6[Coll[Byte]]: LM Pool ID (tokenId).       // used to authenticate pool.
   //
   // Tokens:
   //   0:
@@ -29,175 +25,271 @@
   //     _1: Optional reward Token ID.
   //     _2: Amount of optional reward tokens.
   //
+  // Constants:
+  //  {1} -> actionId[Int]  // 0 - deposit/compound/redeem;
+  //                           1 - redeem rewards.
+  //
   // ContextExtension constants:
-  // 0: Int - redeemer output index;
-  // 1: Int - successor output index;
-  // 2: Int - redeemed reward token index;
+  // If (actionId == 0):
+  //  0: Int - redeemer output index;
+  //  1: Int - successor output index.
   // * indexes are dynamic to allow batch compounding.
+  // If (actionId == 1):
+  //  0: Int - bundleKeyToken index;
+  //  1: Int - reward token index.
   //
-  // ErgoTree: 198c0737040004160400040004000404040404020408040a0400050004020502040205feffffffffffffffff010400050004020404040604020404050005020500050005020500040a0502050205000101010004000502050204000500040404020400040405fcffffffffffffffff010100040204000400040205fcffffffffffffffff01040405fcffffffffffffffff0105000502d804d601e4c6a7070ed602db6308a7d603b27202730000d604e4c6a70608d1959373017302d80bd605b2a5730300d606db63087205d607b2a4730400d608db63087207d6098cb2720873050002d60a998cb27206730600027209d60bb27208730700d60cb27208730800d60db27208730900d60e8c720b01d60f8c720d01ed938cb27206730a000172019593720a730bd814d610e4c672070511d611c672050804d61299b2e4c672070410730c0095e67211e47211e4c672050704d6137e721205d614997213730dd615b27202730e00d6168c721502d6179972169c72138c720302d6189999730f8c720c029c72097213d6199d9c998c720b029cb27210731000721472177218d61a9172197311d61b9d9c998c720d029cb27210731200721472177218d61cb2a5e4e3010400d61ddb6308721cd61eb2721d731300d61fb2721d731400d620b2721d731500d6218c722001d6228c722002d6238cb2720273160001ededededed95ed721a93721b7317ed938c721e01720e928c721e029972197318d801d624937219731995ed722491721b731aed938c721f01720f928c721f0299721b731b95ed721a91721b731cd801d625b2721d731d00ededed937221720e927222997219731e938c722501720f928c72250299721b731f95ed722493721b73207321732293e4c6721c0608720493e4c6721c070e720193c2721cc2a7959172127323eded93860272237324721e9372218c721501939972167222721793860272237325722093b2721d7326007203958f720a7327d802d610b2a4732800d6118cb2720273290001ed93b2db63087210732a008602959472118c720c018cb27202732b00017211732c93c27210d07204732dd805d605b2a4732e00d606b2db63087205732f00d607b2a5733000d608e4e30204d6098cb2720272080002ec93720686028cb27202733100017332edededededed93720686028cb2720273330001733493c27205d072048f998cb2db630872077208000272097335927209733693e4c672070608720493e4c67207070e720193c27207c2a7
+  // Validations:
+  // 1. LM Pool NFT (Token ID) is valid;
+  // 2. Action is valid:
+  //    - Compound:
+  //      -- Valid TMP And bundleKey;
+  //      -- Valid successor;
+  //      -- Valid reward.
+  //    - Redeem:
+  //      -- Valid bundleKey tokens provided.
+  //    - Redeem rewards:
+  //      -- Valid bundleKey tokens provided;
+  //      -- Reward is valid;
+  //      -- Out Bundle is valid.
   //
-  // ErgoTreeHash:
+  // Limitations:
+  // 1. After Redeem rewards at least 1 reward token of any type must stay in the bundle;
+  // 2. Redeem/Redeem rewards can be performed only by input with 0x7fffffffffffffffL - 1L
+  //    bundleKeyId tokens unique for every Bundle.
   //
-  // ErgoTreeTemplate: d804d601e4c6a7070ed602db6308a7d603b27202730000d604e4c6a70608d1959373017302d80bd605b2a5730300d606db63087205d607b2a4730400d608db63087207d6098cb2720873050002d60a998cb27206730600027209d60bb27208730700d60cb27208730800d60db27208730900d60e8c720b01d60f8c720d01ed938cb27206730a000172019593720a730bd814d610e4c672070511d611c672050804d61299b2e4c672070410730c0095e67211e47211e4c672050704d6137e721205d614997213730dd615b27202730e00d6168c721502d6179972169c72138c720302d6189999730f8c720c029c72097213d6199d9c998c720b029cb27210731000721472177218d61a9172197311d61b9d9c998c720d029cb27210731200721472177218d61cb2a5e4e3010400d61ddb6308721cd61eb2721d731300d61fb2721d731400d620b2721d731500d6218c722001d6228c722002d6238cb2720273160001ededededed95ed721a93721b7317ed938c721e01720e928c721e029972197318d801d624937219731995ed722491721b731aed938c721f01720f928c721f0299721b731b95ed721a91721b731cd801d625b2721d731d00ededed937221720e927222997219731e938c722501720f928c72250299721b731f95ed722493721b73207321732293e4c6721c0608720493e4c6721c070e720193c2721cc2a7959172127323eded93860272237324721e9372218c721501939972167222721793860272237325722093b2721d7326007203958f720a7327d802d610b2a4732800d6118cb2720273290001ed93b2db63087210732a008602959472118c720c018cb27202732b00017211732c93c27210d07204732dd805d605b2a4732e00d606b2db63087205732f00d607b2a5733000d608e4e30204d6098cb2720272080002ec93720686028cb27202733100017332edededededed93720686028cb2720273330001733493c27205d072048f998cb2db630872077208000272097335927209733693e4c672070608720493e4c67207070e720193c27207c2a7
+  // Compounding Tx:
+  //    INPUTS:  (0 -> pool_in,
+  //              1 -> bundle_in
+  //              ...).
+  //    OUTPUTS: (0 -> pool_out,
+  //              1 -> bundle_out
+  //              ...).
   //
-  // ErgoTreeTemplateHash: f213f4bcba7a83cc0153fffbd27388e0ea2b81ef090c6da1120e18125766f7c1
+  // ErgoTree: 19a2041904000e2002020202020202020202020202020202020202020202020202020202020202020e20000000000000000000000000000000000000000000000000000000000000000008cd02217daf90deb73bdf8b6709bb42093fdfaff6573fd47b630e2d3fdd4a8193a74d0404040c040204040400040005fcffffffffffffffff0104000e200508f3623d4b2be3bdb9737b3e65644f011167eefb830d9965205f022ceda40d04060400040804140402050204040e691005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a573040500050005a09c010100d803d601b2a4730000d6027301d6037302eb027303d195ed92b1a4730490b1db630872017305d805d604db63087201d605b2a5730600d606c57201d607b2a5730700d6088cb2db6308a773080002ededed938cb27204730900017202ed93c2720572039386027206730ab2db63087205730b00ededededed93cbc27207730c93d0e4c672070608720393e4c67207070e72029386028cb27204730d00017208b2db63087207730e009386028cb27204730f00019c72087e731005b2db6308720773110093860272067312b2db6308720773130090b0ada5d90109639593c272097314c1720973157316d90109599a8c7209018c72090273177318
   //
-  // ===== Getting SELF data ===== //
-  val bundleVLQ0 = SELF.tokens(0)
+  // ErgoTreeTemplate: d803d601b2a4730000d6027301d6037302eb027303d195ed92b1a4730490b1db630872017305d805d604db63087201d605b2a5730600d606c57201d607b2a5730700d6088cb2db6308a773080002ededed938cb27204730900017202ed93c2720572039386027206730ab2db63087205730b00ededededed93cbc27207730c93d0e4c672070608720393e4c67207070e72029386028cb27204730d00017208b2db63087207730e009386028cb27204730f00019c72087e731005b2db6308720773110093860272067312b2db6308720773130090b0ada5d90109639593c272097314c1720973157316d90109599a8c7209018c72090273177318
+  //
+  // ErgoTreeTemplateHash: 9125d9488d38c942ab3a6a212c05f9c0d8d7fe6c3cb85c3638459e432a99cfbb
+  //
+  // ===== Validating conditions ===== //
+  val validStateTransition = {
+    if (actionId == 0) { // Deposit/Compound/Redeem.
+      // ===== Getting INPUTS data ===== //
+      val bundleVLQ0    = SELF.tokens(0)
+      val redeemerProp0 = SELF.R6[SigmaProp].get
+      val poolId0       = SELF.R7[Coll[Byte]].get
 
-  val redeemerProp0 = SELF.R6[SigmaProp].get
-  val poolId0       = SELF.R7[Coll[Byte]].get
+      val pool0 = INPUTS(0)
 
-  // ===== Getting INPUTS data ===== //
-  val validOperation = {
-    if (actionId == 0) {
-      val pool0            = INPUTS(0)
-      val poolMainReward0  = pool0.tokens(1)._2
-      val poolReservesLQ0  = pool0.tokens(2)._2
+      val poolMainRewardToken0 = pool0.tokens(1)
+      val poolMainReward0      = poolMainRewardToken0._2
+
+      val poolReservesLQ0 = pool0.tokens(2)._2
+
       val poolTMP0         = pool0.tokens(4)
       val poolReservesTMP0 = poolTMP0._2
-      val poolOptReward0   = pool0.tokens(5)._2
+
+      val poolOptRewardToken0 = pool0.tokens(5)
+      val poolOptReward0      = poolOptRewardToken0._2
+
+      val conf = pool0.R4[Coll[Int]].get
 
       // ===== Getting OUTPUTS data ===== //
       val pool1   = OUTPUTS(0)
       val deltaLQ = pool1.tokens(2)._2 - poolReservesLQ0
 
-      // ===== Validating conditions ===== //
-      // 1.
-      val validPool = pool1.tokens(0)._1 == poolId0
-      // 2.
-      val validAction =
-        if (deltaLQ == 0L) { // compound
-          // 2.1.
-          // ===== Getting SELF data ===== //
-          val bundleTMP0  = SELF.tokens(1)
-          val bundleKey0  = SELF.tokens(2)._1
-          val mainReward0 = SELF.tokens(3)
-          val optReward0  = SELF.tokens(4)
+      val epochNum         = conf(1)
+      val epoch            = pool0.R8[Int].get
+      val epochsToCompound = epochNum - epoch
 
+      // Valid Pool:
+      val validPool = pool1.tokens(0)._1 == poolId0
+
+      // Valid action:
+      val validAction =
+        if (deltaLQ == 0L) { // Compound.
           // ===== Getting INPUTS data ===== //
-          val conf                   = pool0.R4[Coll[Int]].get
+          val bundleTMP0 = SELF.tokens(1)
+          val bundleKey0 = SELF.tokens(2)._1
+
           val budgets0               = pool0.R5[Coll[Long]].get
           val prevMainProgramBudget0 = budgets0(0)
           val prevOptProgramBudget0  = budgets0(1)
-          val epochNum               = conf(1)
 
           val successorIndex = getVar[Int](1).get
 
           // ===== Getting OUTPUTS data ===== //
-          val successor   = OUTPUTS(successorIndex)
-          val mainReward1 = successor.tokens(3)
-          val optReward1  = successor.tokens(4)
+          val successor = OUTPUTS(successorIndex)
 
           val bundleVLQ1 = successor.tokens(0)
-          val epoch_     = pool1.R8[Int]
-          val epoch      = if (epoch_.isDefined) epoch_.get else pool1.R7[Int].get
 
-          // ===== Getting deltas and calculate reward ===== //
-          val epochsToCompound = epochNum - epoch
-          val bundleVLQ        = bundleVLQ0._2
-          val bundleTMP        = bundleTMP0._2
-          val releasedTMP      = bundleTMP0._2 - epochsToCompound * bundleVLQ
-          val mainRewardDelta  = mainReward1._2 - mainReward0._2
-          val optRewardDelta   = optReward1._2 - optReward0._2
+          // ===== Getting deltas and calculate rewards ===== //
+          val bundleVLQ   = bundleVLQ0._2
+          val bundleTMP   = bundleTMP0._2
+          val releasedTMP = bundleTMP0._2 - epochsToCompound * bundleVLQ
+          val actualTMP   = 0x7fffffffffffffffL - poolReservesTMP0 - poolReservesLQ0 * epochsToCompound
 
-          val actualTMP    = 0x7fffffffffffffffL - poolReservesTMP0 - poolReservesLQ0 * epochsToCompound
-          val allocMainRem = poolMainReward0 - prevMainProgramBudget0 * (epochsToCompound - 1L)
-          val allocOptRem  = poolOptReward0 - prevOptProgramBudget0 * (epochsToCompound - 1L)
+          val epochNumToEnd = epochsToCompound + 1 // to recalculate epoch allocations.
+
+          val epochMainAlloc = prevMainProgramBudget0 / epochNumToEnd
+          val epochOptAlloc  = prevOptProgramBudget0 / epochNumToEnd
+
+          val allocMainRem = poolMainReward0 - epochMainAlloc * epochsToCompound
+          val allocOptRem  = poolOptReward0 - epochOptAlloc * epochsToCompound
 
           val rewardMain = allocMainRem * releasedTMP / actualTMP
           val rewardOpt  = allocOptRem * releasedTMP / actualTMP
 
-          // ===== Validating conditions ===== //
+          // ===== Validate compounding ===== //
+          // Valid TMP And bundleKey:
           val validTMPAndKey = if (epochsToCompound > 0) {
             val bundleTMP1 = successor.tokens(1)
+
             (bundleKey0, 1L) == successor.tokens(2) &&
             (bundleTMP1._1 == bundleTMP0._1) &&
             (bundleTMP - bundleTMP1._2 == releasedTMP)
+
           } else {
             (bundleKey0, 1L) == successor.tokens(1)
           }
-          // 2.1.1.
-          val validReward = if (rewardMain > 0 && rewardOpt == 0) {
-            val redeemerRewardToken = successor.tokens(2)
+          // Valid Successor:
+          val validSuccessor =
+            (successor.R6[SigmaProp].get == redeemerProp0) &&
+            (successor.R7[Coll[Byte]].get == poolId0) &&
+            (successor.propositionBytes == SELF.propositionBytes) &&
+            (bundleVLQ1 == bundleVLQ0)
 
-            (redeemerRewardToken._1 == pool0.tokens(1)._1) &&
-            (redeemerRewardToken._2 >= rewardMain - 1L)
+          // Valid Reward:
+          val validReward = {
+            // Here we must take into account 8 possible scenarios:
+            // 1. First compounding (parallel rewards): Bundle0(BundleKeyToken0, TMP0) ->
+            //                                          Bundle1(BundleKeyToken1, TMP1, rewardMain1, rewardOpt1);
+            //
+            // 2. First compounding (only main rewards): Bundle0(BundleKeyToken0, TMP0) ->
+            //                                           Bundle1(BundleKeyToken1, TMP1, rewardMain1);
+            //
+            // 3. Normal compounding (parallel rewards): Bundle0(BundleKeyToken0, TMP0, rewardMain0, rewardOpt0) ->
+            //                                           Bundle1(BundleKeyToken1, TMP, rewardMain1, rewardOpt1);
+            //
+            // 4. Normal compounding (only main rewards): Bundle0(BundleKeyToken0, TMP0, rewardMain0) ->
+            //                                            Bundle1(BundleKeyToken1, TMP, rewardMain1);
+            //
+            // 5. Last compounding (parallel rewards): Bundle0(BundleKeyToken0, TMP0, rewardMain0, rewardOpt0) ->
+            //                                         Bundle1(BundleKeyToken1, rewardMain1, rewardOpt1);
+            //
+            // 6. Last compounding (only main rewards): Bundle0(BundleKeyToken0, TMP0, rewardMain0) ->
+            //                                          Bundle1(BundleKeyToken1, rewardMain1);
+            //
+            // 7. Last compounding is first (parallel rewards): Bundle0(BundleKeyToken0, TMP0) ->
+            //                                                  Bundle1(BundleKeyToken, rewardMain1, rewardOpt1);
+            //
+            // 8. Last compounding is first (only main rewards): Bundle0(BundleKeyToken0, TMP0) ->
+            //                                                   Bundle1(BundleKeyToken, rewardMain1);
 
-          } else if (rewardMain == 0 && rewardOpt > 0) {
-            val redeemerRewardToken = successor.tokens(3)
+            val isEqualBundlesSize = SELF.tokens.size == successor.tokens.size
+            val isFirstLastBundlesSize =
+              !isEqualBundlesSize && (SELF.tokens.size == 3) // for last compounding is first case.
 
-            (redeemerRewardToken._1 == pool0.tokens(5)._1) &&
-            (redeemerRewardToken._2 >= rewardOpt - 1L)
+            val maxRoundingError0 = pool0.R7[Long].get
+            val isParallelRewards = if (poolOptReward0 > maxRoundingError0) true else false
 
-          } else if (rewardMain > 0 && rewardOpt > 0) {
-            val redeemerRewardMainToken = successor.tokens(1)
-            val redeemerRewardOptToken  = successor.tokens(5)
+            val firstParallelCompound = epochsToCompound != 0 && isParallelRewards && !isEqualBundlesSize
 
-            (redeemerRewardMainToken._1 == pool0.tokens(1)._1) &&
-            (redeemerRewardMainToken._2 >= rewardMain - 1L) &&
-            (redeemerRewardOptToken._1 == pool0.tokens(5)._1) &&
-            (redeemerRewardOptToken._2 >= rewardOpt - 1L)
+            val normalParallelCompound = epochsToCompound != 0 && isParallelRewards && isEqualBundlesSize
+            val normalMainCompound     = epochsToCompound != 0 && !isParallelRewards && isEqualBundlesSize
 
-          } else if (rewardMain == 0 && rewardOpt == 0) { true }
-          else false
+            val lastParallelCompound =
+              epochsToCompound == 0 && isParallelRewards && !isEqualBundlesSize && !isFirstLastBundlesSize
+            val lastMainCompound =
+              epochsToCompound == 0 && isParallelRewards && !isEqualBundlesSize && !isFirstLastBundlesSize
 
-          validReward &&
-          (successor.R6[SigmaProp].get == redeemerProp0) &&
-          (successor.R7[Coll[Byte]].get == poolId0) &&
-          (successor.propositionBytes == SELF.propositionBytes) &&
-          validTMPAndKey &&
-          (bundleVLQ1 == bundleVLQ0)
+            val mainRewardZero = (poolMainRewardToken0._1, 0L)
+            val optRewardZero  = (poolOptRewardToken0._1, 0L)
 
-        } else if (deltaLQ < 0L) { // redeem
-          // 2.2.
-          // ===== Getting SELF data ===== //
-          val bundleKey0 = {
-            if (SELF.tokens(1)._1 != poolTMP0._1) {
-              SELF.tokens(2)._1
-            } else SELF.tokens(1)._1
+            // Calculating bundle rewards deltas:
+            val rewardMain0: (Coll[Byte], Long) =
+              if (firstParallelCompound || isFirstLastBundlesSize) {
+                mainRewardZero
+              } else if (normalParallelCompound || lastParallelCompound) SELF.tokens(3)
+              else SELF.tokens(2)
+
+            val rewardOpt0: (Coll[Byte], Long) =
+              if (firstParallelCompound || isFirstLastBundlesSize) {
+                optRewardZero
+              } else if (normalParallelCompound || lastParallelCompound) SELF.tokens(4)
+              else SELF.tokens(3)
+
+            val rewardMain1: (Coll[Byte], Long) =
+              if (!lastParallelCompound) successor.tokens(3)
+              else successor.tokens(2)
+
+            val rewardOpt1: (Coll[Byte], Long) =
+              if (!lastParallelCompound && !lastMainCompound) successor.tokens(4)
+              else if (normalMainCompound || lastParallelCompound) successor.tokens(3)
+              else if (lastMainCompound) successor.tokens(2)
+              else optRewardZero
+
+            (rewardMain1._1 == pool0.tokens(1)._1) &&
+            (rewardOpt1._1 == pool0.tokens(5)._1) &&
+            (rewardMain1._2 - rewardMain0._2 >= rewardMain - 1L) &&
+            (rewardOpt1._2 - rewardOpt0._2 >= rewardOpt - 1L)
           }
 
-          // ===== Getting INPUTS data ===== //
-          val permitIn       = INPUTS(2)
-          val requiredPermit = (bundleKey0, 0x7fffffffffffffffL - 1L)
+          validReward &&
+          validSuccessor &&
+          validTMPAndKey
 
-          // ===== Validating conditions ===== //
-          // 2.2.1.
-          (permitIn.tokens(0) == requiredPermit) &&
-          (permitIn.propositionBytes == redeemerProp0.propBytes)
-        } else {
-          false
-        }
+        } else if (deltaLQ < 0L) { // Redeem.
+          // ===== Getting INPUTS data ===== //
+          val bundleKeyId    = if (epochsToCompound > 0) SELF.tokens(2)._1 else SELF.tokens(1)._1
+          val permitIn       = INPUTS(2)
+          val requiredPermit = (bundleKeyId, 0x7fffffffffffffffL - 1L)
+
+          // ===== Validate redeem ===== //
+          // Valid BundleKeyId tokens provided:
+          permitIn.tokens(0) == requiredPermit
+
+        } else false
 
       validPool &&
       validAction
 
-    } else  // redeem rewards
-    {
+    } else { // Redeem rewards.
+      // ===== Getting INPUTS data ===== //
+      val permitIn = INPUTS(1)
 
-      val permitIn                = INPUTS(1)
-      val requiredPermitPossible0 = (SELF.tokens(1)._1, 0x7fffffffffffffffL - 1L)
-      val requiredPermitPossible1 = (SELF.tokens(2)._1, 0x7fffffffffffffffL - 1L)
+      val bundleKeyTokenInd = getVar[Int](0).get
+      val rewardInd         = getVar[Int](1).get
 
-      val rewardInd     = getVar[Int](2).get
+      val bundleKeyId    = SELF.tokens(bundleKeyTokenInd)._1
+      val requiredPermit = (bundleKeyId, 0x7fffffffffffffffL - 1L)
+
       val bundleReward0 = SELF.tokens(rewardInd)
 
-      val bundleOut     = OUTPUTS(0)
-      val bundleReward1 = bundleOut.tokens(rewardInd)
+      // ===== Getting OUTPUTS data ===== //
+      val bundleOut = OUTPUTS(0)
 
+      val bundleReward1     = bundleOut.tokens(rewardInd)
       val bundleRewardDelta = bundleReward1._2 - bundleReward0._2
 
-      (permitIn.tokens(0) == requiredPermitPossible0) || (permitIn.tokens(0) == requiredPermitPossible1) &&
-      (permitIn.propositionBytes == redeemerProp0.propBytes) &&
-      (bundleRewardDelta < 0) &&
-      (bundleReward0._2 >= 1) &&
-      (bundleOut.R6[SigmaProp].get == redeemerProp0) &&
-      (bundleOut.R7[Coll[Byte]].get == poolId0) &&
-      (bundleOut.propositionBytes == SELF.propositionBytes)
+      // Valid BundleKeyId tokens provided:
+      val validRedeemer = permitIn.tokens(0) == requiredPermit
+
+      // Reward is valid:
+      val validReward =
+        (bundleRewardDelta < 0) &&
+        (bundleReward0._2 >= 1)
+
+      // Out Bundle is valid:
+      val validSuccessor =
+        (bundleOut.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get) &&
+        (bundleOut.propositionBytes == SELF.propositionBytes)
+
+      validRedeemer &&
+      validReward &&
+      validSuccessor
 
     }
   }
-  sigmaProp(validOperation)
+  sigmaProp(validStateTransition)
 }
