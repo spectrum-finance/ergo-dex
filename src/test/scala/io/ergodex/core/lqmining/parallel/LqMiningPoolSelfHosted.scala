@@ -1,9 +1,9 @@
-package io.ergodex.core.lqmining.extended
+package io.ergodex.core.lqmining.parallel
 
 import cats.kernel.Monoid
 import io.ergodex.core.Helpers.{boxId, bytes}
-import io.ergodex.core.lqmining.extended.LMPool.MaxCapTMP
-import io.ergodex.core.syntax.{Coll, SigmaProp}
+import io.ergodex.core.lqmining.parallel.LMPool.MaxCapTMP
+import io.ergodex.core.syntax.Coll
 import io.ergodex.core.{RuntimeCtx, RuntimeState, ToLedger}
 
 object Token {
@@ -40,7 +40,7 @@ final case class LMConfig(
   val programEnd: Int = programStart + epochNum * epochLen
 }
 
-final case class PoolRedeemers(mainBudgetRedeemer: SigmaProp, optBudgetRedeemer: SigmaProp)
+final case class PoolRedeemers(mainBudgetRedeemer: Coll[Byte], optBudgetRedeemer: Coll[Byte])
 final case class ActualBudgets(mainBudget: Long, optBudget: Long)
 
 final case class PoolReserves(value: Long, X0: Long, LQ: Long, vLQ: Long, TMP: Long, X1: Long) {
@@ -90,18 +90,6 @@ final case class LMPool[Ledger[_]: RuntimeState](
 
         val prevEpochsCompoundedForDeposit = true
 
-        // prevEpochsCompoundedForDeposit is true above to check in contract the condition:
-        // val curEpochIx     = if (ctx.height < conf.programEnd) epochIx(ctx) else conf.epochNum + 1
-        // val curEpochToCalc = if (curEpochIx <= conf.epochNum) curEpochIx else conf.epochNum + 1
-        // val prevEpochsCompoundedForDeposit =
-        // ((conf.programBudget - reserves.X) + conf.maxRoundingError) >= (curEpochToCalc - 1) * conf.epochAlloc
-
-        val epochIx_ =
-          if (curEpochIx != lastUpdatedAtEpochIx) {
-            curEpochIx
-          } else {
-            lastUpdatedAtEpochIx
-          }
         if (prevEpochsCompoundedForDeposit) {
           Right(
             copy(
@@ -109,8 +97,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
                 LQ  = reserves.LQ + lq.value,
                 vLQ = reserves.vLQ - releasedVLQ,
                 TMP = reserves.TMP - releasedTMP
-              ),
-              lastUpdatedAtEpochIx = epochIx_
+              )
             ) ->
             StakingBundle(releasedVLQ, releasedTMP, 0L, 0L)
           )
@@ -129,18 +116,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
       val epochMainAlloc   = budgets.mainBudget / epochNumToEnd
       val epochOptAlloc    = budgets.optBudget / epochNumToEnd
 
-      val virtualMainAllocation = epochNumToEnd * BigInt(epochMainAlloc) - conf.maxRoundingError
-      val virtualOptAllocation  = epochNumToEnd * BigInt(epochOptAlloc) - conf.maxRoundingError
-      val prevEpochsCompounded  = true
-//      val prevEpochsCompounded = {
-//        curEpochIx <= 1 || (virtualMainAllocation + conf.maxRoundingError >= 0 &&
-//          virtualOptAllocation + conf.maxRoundingError >= 0 &&
-//          (virtualMainAllocation >= conf.maxRoundingError) &&
-//          (virtualOptAllocation >= conf.maxRoundingError) &&
-//          (virtualMainAllocation <= epochMainAlloc) &&
-//          (virtualOptAllocation <= epochOptAlloc))
-//      }
-
+      val prevEpochsCompounded = true
       if (epoch <= curEpochIx - 1) {
         if (prevEpochsCompounded) {
           val revokedTMP   = bundle.TMP - epochsToCompound * bundle.vLQ
@@ -151,10 +127,12 @@ final case class LMPool[Ledger[_]: RuntimeState](
           val allocOptRem  = reserves.X1 - epochOptAlloc * epochsToCompound
 
           val rewardMain =
-            if (actualTMP > 0 && epochsBurned > 0) ((allocMainRem * bundle.vLQ * epochsBurned) / actualTMP).toLong
+            if (actualTMP > 0 && epochsBurned > 0)
+              (((BigInt(allocMainRem) - 1L) * bundle.vLQ * epochsBurned) / actualTMP).toLong
             else 0L
           val rewardOpt =
-            if (actualTMP > 0 && epochsBurned > 0) ((allocOptRem * bundle.vLQ * epochsBurned) / actualTMP).toLong
+            if (actualTMP > 0 && epochsBurned > 0)
+              (((BigInt(allocOptRem) - 1L) * bundle.vLQ * epochsBurned) / actualTMP).toLong
             else 0L
 
           Right(
@@ -186,28 +164,11 @@ final case class LMPool[Ledger[_]: RuntimeState](
     }
 
   def redeem(bundle: StakingBundle): Ledger[VerifiedST[(LMPool[Ledger], AssetOutput[Token.LQ])]] =
-    RuntimeState.withRuntimeState { ctx =>
-      val releasedLQ                = bundle.vLQ
-      val (curEpochIx, curEpochIxR) = epochIx(ctx)
-      val epochNumToEnd =
-        if (curEpochIx < 2) conf.epochNum
-        else if (curEpochIx >= 2 && curEpochIx < conf.epochNum) conf.epochNum - curEpochIxR + 1
-        else 1
-      val epochMainAlloc = budgets.mainBudget / epochNumToEnd
-      val epochOptAlloc  = budgets.optBudget / epochNumToEnd
+    RuntimeState.withRuntimeState { _ =>
+      val releasedLQ = bundle.vLQ
 
-      val virtualMainAllocation = epochNumToEnd * BigInt(epochMainAlloc) - conf.maxRoundingError
-      val virtualOptAllocation  = epochNumToEnd * BigInt(epochOptAlloc) - conf.maxRoundingError
-      val prevEpochsCompounded  = true
-//      val prevEpochsCompounded = {
-//        curEpochIx <= 1 || (virtualMainAllocation + conf.maxRoundingError >= 0 &&
-//          virtualOptAllocation + conf.maxRoundingError >= 0 &&
-//          (virtualMainAllocation >= conf.maxRoundingError) &&
-//          (virtualOptAllocation >= conf.maxRoundingError) &&
-//          (virtualMainAllocation <= epochMainAlloc) &&
-//          (virtualOptAllocation <= epochOptAlloc))
-//      }
-      val redeemNoLimit = ctx.height >= conf.programStart + conf.epochNum * conf.epochLen + conf.redeemLimitDelta
+      val prevEpochsCompounded = true
+      val redeemNoLimit        = true
 
       if (prevEpochsCompounded || redeemNoLimit) {
 
@@ -226,6 +187,45 @@ final case class LMPool[Ledger[_]: RuntimeState](
       } else Left(PrevEpochNotWithdrawn)
     }
 
+  def updateBudgets(compounded_epoch: Int): Ledger[VerifiedST[LMPool[Ledger]]] =
+    RuntimeState.withRuntimeState { ctx =>
+      val prevEpochsCompounded = true
+
+      if (prevEpochsCompounded) {
+        Right(
+          copy(
+            budgets              = budgets.copy(mainBudget = reserves.X0, optBudget = reserves.X1),
+            lastUpdatedAtEpochIx = compounded_epoch
+          )
+        )
+      } else Left(PrevEpochNotWithdrawn)
+    }
+
+  def depositBudget(valueAdd: Long, budgetId: Int): Ledger[VerifiedST[LMPool[Ledger]]] =
+    RuntimeState.withRuntimeState { _ =>
+      if (budgetId == 0)
+        Right(
+          copy(
+            reserves = reserves.copy(
+              X0 = reserves.X0 + valueAdd
+            ),
+            budgets = budgets.copy(
+              mainBudget = budgets.mainBudget + valueAdd
+            )
+          )
+        )
+      else
+        Right(
+          copy(
+            reserves = reserves.copy(
+              X1 = reserves.X1 + valueAdd
+            ),
+            budgets = budgets.copy(
+              optBudget = budgets.optBudget + valueAdd
+            )
+          )
+        )
+    }
   def redeemBudget(budgetId: Int): Ledger[VerifiedST[(LMPool[Ledger], AssetOutput[Any])]] =
     RuntimeState.withRuntimeState { ctx =>
       val redeemNoLimit = ctx.height >= conf.programStart + conf.epochNum * conf.epochLen + conf.redeemLimitDelta
@@ -257,44 +257,6 @@ final case class LMPool[Ledger[_]: RuntimeState](
         }
       } else Left(ProgramNotEnded)
     }
-
-  def depositBudget(valueAdd: Long, budgetId: Int): Ledger[VerifiedST[LMPool[Ledger]]] =
-    RuntimeState.withRuntimeState { _ =>
-      if (budgetId == 0)
-        Right(
-          copy(
-            reserves = reserves.copy(
-              X0 = reserves.X0 + valueAdd
-            ),
-            budgets = budgets.copy(
-              mainBudget = budgets.mainBudget + valueAdd
-            )
-          )
-        )
-      else
-        Right(
-          copy(
-            reserves = reserves.copy(
-              X1 = reserves.X1 + valueAdd
-            ),
-            budgets = budgets.copy(
-              optBudget = budgets.optBudget + valueAdd
-            )
-          )
-        )
-    }
-
-  def updateBudgets(): Ledger[VerifiedST[LMPool[Ledger]]] =
-    RuntimeState.withRuntimeState { ctx =>
-      val prevEpochsCompounded = true
-      if (prevEpochsCompounded) {
-        Right(
-          copy(
-            budgets = budgets.copy(mainBudget = reserves.X0, optBudget = reserves.X1)
-          )
-        )
-      } else Left(PrevEpochNotWithdrawn)
-    }
 }
 
 object LMPool {
@@ -325,12 +287,12 @@ object LMPool {
         bytes("LM_Pool_NFT_ID") -> 1L,
         bytes("X0")             -> pool.reserves.X0,
         bytes("LQ")             -> pool.reserves.LQ,
-        bytes("vLQ")            -> pool.reserves.vLQ,
+        bytes("VLQ")            -> pool.reserves.vLQ,
         bytes("TMP")            -> pool.reserves.TMP,
         bytes("X1")             -> pool.reserves.X1
       )
     new LqMiningPoolBoxSelfHosted[F](
-      boxId("lm_pool_id"),
+      boxId("bundle_key_id"),
       pool.reserves.value,
       DefaultCreationHeight,
       tokens = tokensNew,
@@ -350,6 +312,7 @@ object LMPool {
           pool.redeemers.optBudgetRedeemer
         ),
         7 -> pool.conf.maxRoundingError,
+        8 -> pool.lastUpdatedAtEpochIx
       )
     )
   }
@@ -365,7 +328,7 @@ object LMPool {
   ): LMPool[Ledger] =
     LMPool(
       conf = LMConfig(epochLen, epochNum, programStart, redeemLimitDelta, maxRoundingError, mainBudget, optBudget),
-      PoolRedeemers(SigmaProp(bytes("Host")), SigmaProp(bytes("Spectrum"))),
+      PoolRedeemers(bytes("Host"), bytes("Spectrum")),
       ActualBudgets(mainBudget, optBudget),
       PoolReserves(MinCollateralErg, mainBudget, 0L, MaxCapVLQ, MaxCapTMP, optBudget),
       lastUpdatedAtEpochIx = 0
