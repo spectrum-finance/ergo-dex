@@ -148,7 +148,7 @@ passed epoch.
 _Notes_:
 * After each completed epoch, the pool budgets in the pool registers (`mainBudget` and `optionalBudget`) must
 be updated in accordance with the current balances of reward tokens in the pool.
-* 
+
 ### Redeem Rewards
 
 If Alice decide to claim her rewards she can receive it from her bundle using the input with the associated

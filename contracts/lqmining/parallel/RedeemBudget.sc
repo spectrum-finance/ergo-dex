@@ -39,7 +39,7 @@
       // ===== Validating conditions ===== //
       // 1.
       val validRedeemerOut =
-      (redeemerOut.propositionBytes == RedeemerPropBytes) &&
+        (redeemerOut.propositionBytes == RedeemerPropBytes) &&
         ((ExpectedBudget, ExpectedBudgetAmount) == redeemerOut.tokens(0))
       // 2.
       val validMinerFee = OUTPUTS

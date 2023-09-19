@@ -160,23 +160,24 @@
       releasedTMP == -deltaTMP &&
       validBundle
 
-    } else if (deltaLQ < 0) { // Redeem.
-      val releasedLQ = deltaVLQ
-      val minReturnedTMP =
-        if (curEpochIx > epochNum) 0L
-        else {
-          val epochsDeallocated = epochNum - max(0L, curEpochIx)
-          releasedLQ * epochsDeallocated
-        }
+    } else if (deltaLQ < 0) // Redeem.
+      {
+        val releasedLQ = deltaVLQ
+        val minReturnedTMP =
+          if (curEpochIx > epochNum) 0L
+          else {
+            val epochsDeallocated = epochNum - max(0L, curEpochIx)
+            releasedLQ * epochsDeallocated
+          }
 
-      val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
+        val redeemNoLimit = HEIGHT >= programStart + epochNum * epochLen + redeemLimitDelta
 
-      (prevEpochsCompounded || redeemNoLimit) &&
-      lastCompoundedEpochPreserved &&
-      (deltaVLQ == -deltaLQ) &&
-      (deltaTMP >= minReturnedTMP)
+        (prevEpochsCompounded || redeemNoLimit) &&
+        lastCompoundedEpochPreserved &&
+        (deltaVLQ == -deltaLQ) &&
+        (deltaTMP >= minReturnedTMP)
 
-    } else {
+      } else {
 
       val deltaMainReward = poolMainReward1._2 - reservesMainReward
       val deltaOptReward  = poolOptReward1._2 - reservesOptReward
@@ -234,31 +235,32 @@
             prevEpochsCompounded &&
             lastCompoundedEpochPreserved
 
-          } else if (budgetsNotUpdated && budgetsNotDepleted) { // Epoch Budgets Update.
-          // Check if previous epoch is fully compounded:
-          val epochNumToEnd =
-            if (curEpochIx <= 1) epochNum
-            else if (curEpochIx > 1 && curEpochIx < epochNum) epochNum - curEpochIxR + 1
-            else 1
+          } else if (budgetsNotUpdated && budgetsNotDepleted) // Epoch Budgets Update.
+          {
+            // Check if previous epoch is fully compounded:
+            val epochNumToEnd =
+              if (curEpochIx <= 1) epochNum
+              else if (curEpochIx > 1 && curEpochIx < epochNum) epochNum - curEpochIxR + 1
+              else 1
 
-          val virtualMainAllocation0 = prevMainProgramBudget0 - reservesMainReward
-          val virtualOptAllocation0  = prevOptProgramBudget0 - reservesOptReward
-          val validOptBudget0 =
-            optBudgetIsNotInit || ((virtualOptAllocation0 >= -maxRoundingError0 * epochNumToEnd) &&
-            (virtualOptAllocation0.toBigInt * epochNumToEnd <= prevOptProgramBudget0))
+            val virtualMainAllocation0 = prevMainProgramBudget0 - reservesMainReward
+            val virtualOptAllocation0  = prevOptProgramBudget0 - reservesOptReward
+            val validOptBudget0 =
+              optBudgetIsNotInit || ((virtualOptAllocation0 >= -maxRoundingError0 * epochNumToEnd) &&
+              (virtualOptAllocation0.toBigInt * epochNumToEnd <= prevOptProgramBudget0))
 
-          // prevEpochsCompounded:
-          val prevEpochCompounded = {
-            curEpochIx <= 2 || (validOptBudget0 && (virtualMainAllocation0 >= -maxRoundingError0 * epochNumToEnd &&
-            (virtualMainAllocation0.toBigInt * epochNumToEnd <= prevMainProgramBudget0)))
-          }
+            // prevEpochsCompounded:
+            val prevEpochCompounded = {
+              curEpochIx <= 2 || (validOptBudget0 && (virtualMainAllocation0 >= -maxRoundingError0 * epochNumToEnd &&
+              (virtualMainAllocation0.toBigInt * epochNumToEnd <= prevMainProgramBudget0)))
+            }
 
-          prevEpochCompounded &&
-          (prevMainProgramBudget1 == poolMainReward1._2) &&
-          (prevOptProgramBudget1 == poolOptReward1._2) &&
-          (lastCompoundedEpoch1 == lastCompoundedEpoch0 + 1)
+            prevEpochCompounded &&
+            (prevMainProgramBudget1 == poolMainReward1._2) &&
+            (prevOptProgramBudget1 == poolOptReward1._2) &&
+            (lastCompoundedEpoch1 == lastCompoundedEpoch0 + 1)
 
-        } else if (!budgetsNotDepleted && !budgetsNotUpdated) // main/optional Budget Redeem.
+          } else if (!budgetsNotDepleted && !budgetsNotUpdated) // main/optional Budget Redeem.
           {
             // Check if budget redeemer is valid:
             val redeemerBudgetOut = OUTPUTS(1)

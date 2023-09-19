@@ -260,27 +260,28 @@
           validSuccessor &&
           validTMPAndKey
 
-        } else if (deltaLQ < 0L) { // Redeem.
-          // ===== Getting INPUTS data ===== //
-          val bundleKeyId    = if (epochsToCompound > 0) SELF.tokens(2)._1 else SELF.tokens(1)._1
-          val permitIn       = INPUTS(2)
-          val requiredPermit = (bundleKeyId, 0x7fffffffffffffffL - 1L)
+        } else if (deltaLQ < 0L) // Redeem.
+          {
+            // ===== Getting INPUTS data ===== //
+            val bundleKeyId    = if (epochsToCompound > 0) SELF.tokens(2)._1 else SELF.tokens(1)._1
+            val permitIn       = INPUTS(2)
+            val requiredPermit = (bundleKeyId, 0x7fffffffffffffffL - 1L)
 
-          // Check if all rewards are redeemed:
-          val selfSize = SELF.tokens.size
-          val rewardsAreEmpty = if (epochsToCompound > 0 && selfSize == 5) {
-            SELF.tokens(3)._2 == 1 && SELF.tokens(4)._2 == 1
-          } else if (epochsToCompound > 0 && selfSize == 4) { SELF.tokens(3)._2 == 1 }
-          else if (epochsToCompound == 0 && selfSize == 4) { SELF.tokens(2)._2 == 1 && SELF.tokens(3)._2 == 1 }
-          else if (epochsToCompound == 0 && selfSize == 3) { SELF.tokens(2)._2 == 1 }
-          else false
+            // Check if all rewards are redeemed:
+            val selfSize = SELF.tokens.size
+            val rewardsAreEmpty = if (epochsToCompound > 0 && selfSize == 5) {
+              SELF.tokens(3)._2 == 1 && SELF.tokens(4)._2 == 1
+            } else if (epochsToCompound > 0 && selfSize == 4) { SELF.tokens(3)._2 == 1 }
+            else if (epochsToCompound == 0 && selfSize == 4) { SELF.tokens(2)._2 == 1 && SELF.tokens(3)._2 == 1 }
+            else if (epochsToCompound == 0 && selfSize == 3) { SELF.tokens(2)._2 == 1 }
+            else false
 
-          // ===== Validate redeem ===== //
-          // Valid BundleKeyId tokens provided:
-          permitIn.tokens(0) == requiredPermit &&
-          rewardsAreEmpty
+            // ===== Validate redeem ===== //
+            // Valid BundleKeyId tokens provided:
+            permitIn.tokens(0) == requiredPermit &&
+            rewardsAreEmpty
 
-        } else false
+          } else false
 
       validPool &&
       validAction
