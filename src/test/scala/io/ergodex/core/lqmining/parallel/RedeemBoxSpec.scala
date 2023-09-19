@@ -1,10 +1,9 @@
-package io.ergodex.core.lqmining.simple
+package io.ergodex.core.lqmining.parallel
 
 import io.ergodex.core.ToLedger._
-import io.ergodex.core.lqmining.simple.LMPool._
-import io.ergodex.core.lqmining.simple.Token._
-import io.ergodex.core.lqmining.simple.TxBoxes._
-import io.ergodex.core.lqmining.simple.generators.{lmConfGen, DepositGen, MultGen}
+import io.ergodex.core.lqmining.parallel.Token._
+import io.ergodex.core.lqmining.parallel.TxBoxes._
+import io.ergodex.core.lqmining.parallel.generators.{lmConfGen, DepositGen, MultGen}
 import io.ergodex.core.{LedgerPlatform, RuntimeCtx}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -16,13 +15,13 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
   forAll(lmConfGen) { conf =>
     forAll(DepositGen) { lq =>
       forAll(MultGen) { mults =>
-
         val epochLen         = conf.epochLen
         val epochNum         = conf.epochNum
         val programStart     = conf.programStart
         val redeemLimitDelta = conf.redeemLimitDelta
-        val programBudget    = conf.programBudget
         val maxRoundingError = conf.maxRoundingError
+        val mainBudget       = conf.mainBudget
+        val optBudget        = conf.optBudget
 
         val testId = Random.nextLong()
 
@@ -30,9 +29,10 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
           LMPool.init(
             epochLen,
             epochNum,
+            mainBudget,
+            optBudget,
             programStart,
             redeemLimitDelta,
-            programBudget = programBudget,
             maxRoundingError
           )
 
@@ -46,14 +46,30 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
           val action1                      = pool1.redeem(bundle1)
           val (_, Right((pool2, out2)))    = action1.run(RuntimeCtx.at(startAtHeight)).value
 
-          val poolBox1               = pool1.toLedger[Ledger]
-          val poolBox2               = pool2.toLedger[Ledger]
-
-          val (userBox1, redeemBox1) = getRedeemTxBoxes(bundle1.vLQ, out2.value)
+          val poolBox1 = pool1.toLedger[Ledger]
+          val poolBox2 = pool2.toLedger[Ledger]
+          val (userBox1, redeemBox1, bundleBox1) =
+            getRedeemTxBoxes(bundle1.TMP, bundle1.rewardMain, bundle1.rewardOpt, bundle1.vLQ, out2.value)
 
           val (_, isValid) =
-            redeemBox1.validator.run(RuntimeCtx(startAtHeight, inputs = List(poolBox1, redeemBox1), outputs = List(poolBox2, userBox1))).value
-          val (_, isValidPool) = poolBox1.validator.run(RuntimeCtx(startAtHeight, outputs = List(poolBox2))).value
+            redeemBox1.validator
+              .run(
+                RuntimeCtx(
+                  startAtHeight,
+                  inputs  = List(poolBox1, bundleBox1, redeemBox1),
+                  outputs = List(poolBox2, userBox1)
+                )
+              )
+              .value
+          val (_, isValidPool) = poolBox1.validator
+            .run(
+              RuntimeCtx(
+                startAtHeight,
+                inputs  = List(poolBox1, bundleBox1, redeemBox1),
+                outputs = List(poolBox2, userBox1)
+              )
+            )
+            .value
 
           out2.value shouldBe depositedLQAmount
           isValid shouldBe true
@@ -68,10 +84,19 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
           val action1                   = pool1.redeem(bundle1)
           val (_, Right((pool2, out2))) = action1.run(RuntimeCtx.at(startAtHeight)).value
 
-          val (userBox1, redeemBox1) = getRedeemTxBoxes(bundle1.vLQ, out2.value)
+          val (userBox1, redeemBox1, bundleBox1) =
+            getRedeemTxBoxes(bundle1.TMP, bundle1.rewardMain, bundle1.rewardOpt, bundle1.vLQ, out2.value)
 
           val (_, isValid) =
-            redeemBox1.validator.run(RuntimeCtx(startAtHeight,  inputs = List(pool1.toLedger[Ledger], redeemBox1), outputs = List(pool2.toLedger[Ledger], userBox1))).value
+            redeemBox1.validator
+              .run(
+                RuntimeCtx(
+                  startAtHeight,
+                  inputs  = List(pool1.toLedger[Ledger], bundleBox1, redeemBox1),
+                  outputs = List(pool2.toLedger[Ledger], userBox1)
+                )
+              )
+              .value
           out2.value shouldBe depositedLQAmount
           isValid shouldBe true
         }
@@ -83,11 +108,18 @@ class RedeemBoxSpec extends AnyFlatSpec with should.Matchers with ScalaCheckProp
           val startAtHeight1               = programStart + epochNum * epochLen + pool1.conf.redeemLimitDelta
           val action1                      = pool1.redeem(bundle1)
           val (_, Right((pool2, out2)))    = action1.run(RuntimeCtx.at(startAtHeight1)).value
-          val pool11                       = pool1.updateReserves(r => PoolReserves(r.value, r.X, r.LQ, r.vLQ, pool2.reserves.TMP))
-          val (userBox1, redeemBox1)       = getRedeemTxBoxes(bundle1.vLQ, out2.value)
+          val pool11                       = pool1.updateReserves(r => PoolReserves(r.value, r.X0, r.LQ, r.vLQ, pool2.reserves.TMP, r.X1))
+          val (userBox1, redeemBox1, bundleBox1) =
+            getRedeemTxBoxes(bundle1.TMP, bundle1.rewardMain, bundle1.rewardOpt, bundle1.vLQ, out2.value)
           val (_, isValid) =
             redeemBox1.validator
-              .run(RuntimeCtx(startAtHeight1, inputs = List(pool1.toLedger[Ledger], redeemBox1), outputs = List(pool11.toLedger[Ledger], userBox1)))
+              .run(
+                RuntimeCtx(
+                  startAtHeight1,
+                  inputs  = List(pool1.toLedger[Ledger], bundleBox1, redeemBox1),
+                  outputs = List(pool11.toLedger[Ledger], userBox1)
+                )
+              )
               .value
           out2.value shouldBe depositedLQAmount
           isValid shouldBe true

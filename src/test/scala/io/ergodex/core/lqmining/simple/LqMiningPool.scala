@@ -98,6 +98,7 @@ final case class LMPool[Ledger[_]: RuntimeState](
           } else {
             lastUpdatedAtEpochIx
           }
+
         if (prevEpochsCompoundedForDeposit) {
           Right(
             copy(
