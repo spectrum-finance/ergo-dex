@@ -235,7 +235,7 @@ final class StakingBundleBox[F[_]: RuntimeState](
                 val isLastParallel =
                   isParallelRewards && !isEqualBundlesSize && !mainRewardIsZero && !optRewardIsZero && isLastCompounding
                 // Case 6:
-                val isLastMain = !isParallelRewards && !isEqualBundlesSize && !optRewardIsZero
+                val isLastMain = !isParallelRewards && !isEqualBundlesSize && !mainRewardIsZero
                 // Case 7:
                 val isFirstAddedOpt =
                   isParallelRewards && !isEqualBundlesSize && !mainRewardIsZero && !optRewardIsZero && !isLastCompounding && (SELF.tokens.size == 4)

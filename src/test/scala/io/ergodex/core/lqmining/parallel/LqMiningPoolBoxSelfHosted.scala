@@ -246,7 +246,8 @@ final class LqMiningPoolBoxSelfHosted[F[_]: RuntimeState](
             val budgetsNotDepleted = poolMainReward1._2 != 0 && poolOptReward0._2 != 0
 
             if (
-              (deltaMainReward > 0 || deltaOptReward > 0) && !budgetsNotUpdated && budgetsNotDepleted
+              (deltaMainReward > maxRoundingError0 || deltaOptReward > maxRoundingError0) &&
+              !budgetsNotUpdated && budgetsNotDepleted
             ) // main/optional Budget Deposit.
               {
                 (curEpochIx < epochNum) &&
